@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "Bomberman.exe",
+      "env": "PATH=%PATH%;C:\\Users\\knjaz\\Documents\\Fero\\Zapoctak\\SFML-2.5.1\\out\\install\\x64-Debug (default)\\bin",
+      "name": "Bomberman.exe"
+    }
+  ]
+}
