@@ -1,5 +1,7 @@
 {
-    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "C_Cpp.default.includePath": [
+        "**.hpp"
+    ],
     "files.associations": {
         "fstream": "cpp",
         "cctype": "cpp",
@@ -52,4 +54,5 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp"
     }
+
 }

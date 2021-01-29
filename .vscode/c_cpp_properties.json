@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${default}",
+                "/home/gortibaldik/Documents/Skola/cpp/moje_zdrojaky/bomberman/",
+                "/home/gortibaldik/Documents/Skola/cpp/moje_zdrojaky/bomberman/controls/",
+                "/home/gortibaldik/Documents/Skola/cpp/moje_zdrojaky/bomberman/states/",
+                "/home/gortibaldik/Documents/Skola/cpp/moje_zdrojaky/bomberman/window_manager/",
+                "/home/gortibaldik/Documents/Skola/cpp/moje_zdrojaky/bomberman/texture_manager/"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "clang-x64",
+            "configurationProvider": "ms-vscode.cmake-tools"
+        }
+    ],
+    "version": 4
+}

@@ -2,7 +2,7 @@
 #define STATES_START_HPP
 
 #include "abstract.hpp"
-#include "button/def.hpp"
+#include "controls/control_grid.hpp"
 #include <vector>
 #include <SFML/Graphics.hpp>
 class GameStateStart: public GameState {
@@ -14,8 +14,9 @@ public:
     GameStateStart(WindowManager& window_manager);
 private:
     friend void handle_resize_menu(GameStateStart&, unsigned int, unsigned int);
+    friend void handle_btn_pressed(GameStateStart&);
     sf::View view;
-    std::vector<ButtonPtr> menu;
+    ControlGrid menu;
     GStyle menu_btn_style;
 };
 #endif

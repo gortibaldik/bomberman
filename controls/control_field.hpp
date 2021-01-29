@@ -1,7 +1,8 @@
-#ifndef BUTTON_BOMBERMAN_HPP
-#define BUTTON_BOMBERMAN_HPP
+#ifndef CONTROL_FIELD_BOMBERMAN_HPP
+#define CONTROL_FIELD_BOMBERMAN_HPP
 #include <SFML/Graphics.hpp>
 #include <memory>
+
 
 struct GStyle {
     sf::Color cbackground;
@@ -36,22 +37,30 @@ enum BTN_STATE {
     PRESSED
 };
 
-class Button {
+class ControlGrid;
+
+class ControlField {
 public:
-    Button( float x,
+    ControlField( float x,
             float y,
-            float height,
+            float letter_width,
             const std::string& text,
-            GStyle* style);
+            GStyle* style,
+            ControlGrid* grid);
     void render(sf::RenderTarget* target);
     void handle_input(const sf::Vector2f& mouse_position);
     void update();
-    void move_pos(float, float);
+    void move_pos(float, unsigned int, unsigned int);
+
+    float get_height() const;
+    std::string get_text() const;
 private:
     sf::RectangleShape shape;
     GStyle* style;
+    ControlGrid* grid;
     BTN_STATE state;
+    float letter_width;
     sf::Text text;
 };
-using ButtonPtr = std::unique_ptr<Button>;
+using CFPtr = std::unique_ptr<ControlField>;
 #endif

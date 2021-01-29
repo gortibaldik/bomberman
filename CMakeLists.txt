@@ -37,7 +37,7 @@ add_executable(Bomberman main.cpp)
 add_subdirectory(states)
 add_subdirectory(window_manager)
 add_subdirectory(texture_manager)
-add_subdirectory(button)
+add_subdirectory(controls)
 
 # include assets as project dependencies
 add_custom_target(copy_assets

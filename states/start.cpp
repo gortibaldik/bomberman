@@ -1,26 +1,48 @@
 #include "start.hpp"
 #include "window_manager/def.hpp"
 #include <iostream>
+#include <unordered_map>
 
-static const int mb_width = 100;
-static const int mb_height = 50;
-static const std::string mb_starttxt = "New Game";
+enum BTN {
+    NEW_GAME,
+    CONNECT,
+    CREATE,
+    QUIT
+};
+
+static const unsigned int mb_txt_size = 30;
+static const std::unordered_map<std::string, BTN> mb_entries = { 
+    {"Quit", QUIT}, {"Connect to a server", CONNECT}, {"Create a server", CREATE}, {"New Game", NEW_GAME}
+};
 
 void GameStateStart::draw(float dt) {
     window_manager.window.setView(view);
     window_manager.window.draw(window_manager.background);
-    for (auto&& button : menu) {
-        button->render(&window_manager.window);
-    }
+    menu.render(&window_manager.window);
 }
 
 void handle_resize_menu(GameStateStart& gss, unsigned int width, unsigned int height) {
+    float before = (float(gss.view.getSize().x) + float(gss.view.getSize().y)) / 2.f;
+    float after = (float(width) + float(height)) / 2.f;
     sf::Vector2f pos = sf::Vector2f(width, height);
-    pos *= 0.5f;
+    pos *= 0.38f;
     pos = gss.window_manager.window.mapPixelToCoords(sf::Vector2i(pos), gss.view);
-    for (auto&& button : gss.menu) {
-        button->move_pos(pos.x, pos.y);
-    } 
+    gss.menu.move_pos(after/before, pos.x, pos.y);
+}
+
+void handle_btn_pressed(GameStateStart& gss) {
+    auto&& btn = gss.menu.get_pressed_btn();
+    if (btn) {
+        auto it = mb_entries.find(btn->get_text());
+        if (it == mb_entries.end()) {
+            return;
+        }
+        switch (it->second) {
+        case QUIT:
+            gss.window_manager.window.close();
+            break;
+        }
+    }
 }
 
 void GameStateStart::handle_input() {
@@ -31,14 +53,15 @@ void GameStateStart::handle_input() {
             window_manager.close_window();
             break;
         case sf::Event::Resized:
+            handle_resize_menu(*this, event.size.width, event.size.height);
             view.setSize(event.size.width, event.size.height);
             window_manager.resize_window(event.size.width, event.size.height);
             break;
-        case sf::Event::MouseMoved: case sf::Event::MouseLeft:
+        case sf::Event::MouseMoved: case sf::Event::MouseButtonPressed:
             update_mouse_pos();
-            for (auto&& button : menu) {
-                button->handle_input(mouse_pos);
-            }
+            menu.handle_input(mouse_pos);
+            handle_btn_pressed(*this);
+            break;
         }
     }
 }
@@ -52,17 +75,18 @@ GameStateStart::GameStateStart(WindowManager& mngr):
                         sf::Color::Black,
                         sf::Color::Blue,
                         mngr.get_font("main_font"),
-                        0.f) {
+                        1.f) {
     sf::Vector2f pos(mngr.window.getSize());
     view.setSize(pos);
     pos *= 0.5f;
     view.setCenter(pos);
-    menu.push_back(std::make_unique<Button>(pos.x, pos.y, mb_height, mb_starttxt, &menu_btn_style));
+    menu.initialize(pos.x, pos.y, mb_txt_size, &menu_btn_style);
+    for (auto&& it : mb_entries) {
+        menu.add_button(it.first);
+    }
 }
 
 
 void GameStateStart::update(float dt) {
-    for (auto&& button : menu) {
-        button->update();
-    }
+    menu.update();
 }
