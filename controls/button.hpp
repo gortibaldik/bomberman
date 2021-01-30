@@ -5,7 +5,7 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 
-class Button  {
+class Button : public ControlField {
 public:
     Button( float x,
             float y,
@@ -13,20 +13,18 @@ public:
             const std::string& text,
             GStyle* style,
             ControlGrid* grid);
-    void render(sf::RenderTarget* target);
-    void handle_input(const sf::Vector2f& mouse_position);
-    void update();
-    void move_pos(float, unsigned int, unsigned int);
+};
 
-    float get_height() const;
-    std::string get_text() const;
-private:
-    sf::RectangleShape shape;
-    GStyle* style;
-    ControlGrid* grid;
-    CONTROL_STATE state;
-    float letter_width;
-    sf::Text text;
+class NonClickableButton : public ControlField {
+public:
+    NonClickableButton( float x,
+                        float y,
+                        float letter_width,
+                        const std::string& text,
+                        GStyle* style,
+                        ControlGrid* grid);
+    void handle_input(const sf::Vector2f& mouse_position, const sf::Event& e) override;
+    void update() override;
 };
 
 #endif

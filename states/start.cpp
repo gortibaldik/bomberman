@@ -7,12 +7,14 @@ enum BTN {
     NEW_GAME,
     CONNECT,
     CREATE,
-    QUIT
+    QUIT,
+    SUBMIT
 };
 
 static const unsigned int mb_txt_size = 30;
-static const std::unordered_map<std::string, BTN> mb_entries = { 
-    {"Quit", QUIT}, {"Connect to a server", CONNECT}, {"Create a server", CREATE}, {"New Game", NEW_GAME}
+static const std::vector<std::string> mb_entries = { "New Game", "Create a server", "Connect to a server", "Quit" };
+static const std::unordered_map<std::string, BTN> mb_actions = { 
+    {"Quit", QUIT}, {"Connect to a server", CONNECT}, {"Create a server", CREATE}, {"New Game", NEW_GAME},
 };
 
 void GameStateStart::draw(float dt) {
@@ -33,8 +35,8 @@ void handle_resize_menu(GameStateStart& gss, unsigned int width, unsigned int he
 void handle_btn_pressed(GameStateStart& gss) {
     auto&& btn = gss.menu.get_pressed_btn();
     if (btn) {
-        auto it = mb_entries.find(btn->get_text());
-        if (it == mb_entries.end()) {
+        auto it = mb_actions.find(btn->get_text());
+        if (it == mb_actions.end()) {
             return;
         }
         switch (it->second) {
@@ -62,6 +64,9 @@ void GameStateStart::handle_input() {
             menu.handle_input(mouse_pos, event);
             handle_btn_pressed(*this);
             break;
+        default:
+            menu.handle_input(mouse_pos, event);
+            break;
         }
     }
 }
@@ -75,14 +80,14 @@ GameStateStart::GameStateStart(WindowManager& mngr):
                         sf::Color::Black,
                         sf::Color::Blue,
                         mngr.get_font("main_font"),
-                        1.f) {
+                        1.f){
     sf::Vector2f pos(mngr.window.getSize());
     view.setSize(pos);
     pos *= 0.5f;
     view.setCenter(pos);
     menu.initialize(pos.x, pos.y, mb_txt_size, &menu_btn_style);
     for (auto&& it : mb_entries) {
-        menu.add_button(it.first);
+        menu.add_button(it);
     }
 }
 

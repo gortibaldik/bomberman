@@ -34,27 +34,28 @@ struct GStyle {
 enum CONTROL_STATE {
     IDLE,
     HOVER,
-    PRESSED
+    ACTIVE
 };
 
 class ControlGrid;
 
 class ControlField {
 public:
+    virtual void render(sf::RenderTarget* target);
+    virtual void handle_input(const sf::Vector2f& mouse_position, const sf::Event& e);
+    virtual void update();
+    virtual void move_pos(float, unsigned int, unsigned int);
+
+    float get_height() const;
+    float get_width() const;
+    std::string get_text() const;
+protected:
     ControlField( float x,
             float y,
             float letter_width,
-            const std::string& text,
             GStyle* style,
             ControlGrid* grid);
-    void render(sf::RenderTarget* target);
-    void handle_input(const sf::Vector2f& mouse_position, const sf::Event& e);
-    void update();
-    void move_pos(float, unsigned int, unsigned int);
-
-    float get_height() const;
-    std::string get_text() const;
-private:
+    sf::FloatRect move_position(float, unsigned int, unsigned int);
     sf::RectangleShape shape;
     GStyle* style;
     ControlGrid* grid;
