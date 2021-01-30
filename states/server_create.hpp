@@ -8,7 +8,7 @@
 class ServerCreateState: public MenuState {
 public:
 
-    ServerCreateState(WindowManager& window_manager);
+    ServerCreateState(WindowManager&, const sf::View&);
 protected:
     void handle_btn_pressed() override;
     void handle_resize_menu(unsigned int, unsigned int, float) override;

@@ -11,7 +11,8 @@ public:
     void update(float dt) override;
     void handle_input() override;
 
-    MenuState(WindowManager& window_manager);
+    MenuState(WindowManager&);
+    MenuState(WindowManager&, const sf::View&);
 protected:
     virtual void handle_resize_menu(unsigned int, unsigned int, float factor = 0.38f);
     virtual void handle_btn_pressed() = 0;

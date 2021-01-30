@@ -38,8 +38,8 @@ void ServerCreateState::handle_btn_pressed() {
     }
 }
 
-ServerCreateState::ServerCreateState(WindowManager& mngr):
-        MenuState(mngr),
+ServerCreateState::ServerCreateState(WindowManager& mngr, const sf::View& view):
+        MenuState(mngr, view),
         menu_btn_style( sf::Color::Transparent,
                         sf::Color::Transparent,
                         sf::Color::Transparent,

@@ -27,7 +27,6 @@ void MenuState::handle_input() {
             break;
         case sf::Event::Resized:
             handle_resize_menu(event.size.width, event.size.height);
-            std::cout << event.size.width << "," << event.size.height << std::endl;
             view.setSize(event.size.width, event.size.height);
             window_manager.resize_window(event.size.width, event.size.height);
             break;
@@ -44,12 +43,17 @@ void MenuState::handle_input() {
 }
 
 MenuState::MenuState(WindowManager& mngr): GameState(mngr) {
+    mngr.window.
     sf::Vector2f pos(mngr.window.getSize());
+    window_manager.resize_window(pos.x, pos.y);
     view.setSize(pos);
     pos *= 0.5f;
     view.setCenter(pos);
 }
 
+MenuState::MenuState(WindowManager& mngr, const sf::View& view): GameState(mngr) {
+    this->view = view;
+}
 
 void MenuState::update(float dt) {
     menu.update();

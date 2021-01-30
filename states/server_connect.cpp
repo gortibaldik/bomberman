@@ -38,8 +38,8 @@ void ServerConnectState::handle_btn_pressed() {
     }
 }
 
-ServerConnectState::ServerConnectState(WindowManager& mngr):
-        MenuState(mngr),
+ServerConnectState::ServerConnectState(WindowManager& mngr, const sf::View& view):
+        MenuState(mngr, view),
         menu_btn_style( sf::Color::Transparent,
                         sf::Color::Transparent,
                         sf::Color::Transparent,

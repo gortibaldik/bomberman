@@ -27,10 +27,10 @@ void StartState::handle_btn_pressed() {
         }
         switch (it->second) {
         case CREATE:
-            window_manager.push_state(std::make_unique<ServerCreateState>(window_manager));
+            window_manager.push_state(std::make_unique<ServerCreateState>(window_manager, view));
             break;
         case CONNECT:
-            window_manager.push_state(std::make_unique<ServerConnectState>(window_manager));
+            window_manager.push_state(std::make_unique<ServerConnectState>(window_manager, view));
             break;
         case QUIT:
             window_manager.window.close();
