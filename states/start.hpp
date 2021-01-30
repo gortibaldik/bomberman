@@ -1,22 +1,17 @@
 #ifndef STATES_START_HPP
 #define STATES_START_HPP
 
-#include "abstract.hpp"
+#include "menu_state.hpp"
 #include "controls/control_grid.hpp"
 #include <vector>
 #include <SFML/Graphics.hpp>
-class GameStateStart: public GameState {
+class StartState: public MenuState {
 public:
-    void draw(float dt) override;
-    void update(float dt) override;
-    void handle_input() override;
 
-    GameStateStart(WindowManager& window_manager);
+    StartState(WindowManager& window_manager);
+protected:
+    void handle_btn_pressed() override;
 private:
-    friend void handle_resize_menu(GameStateStart&, unsigned int, unsigned int);
-    friend void handle_btn_pressed(GameStateStart&);
-    sf::View view;
-    ControlGrid menu;
     GStyle menu_btn_style;
 };
 #endif

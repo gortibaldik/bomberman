@@ -11,6 +11,7 @@ public:
                 float y,
                 float letter_width,
                 unsigned int max_length,
+                float default_width,
                 GStyle* gstyle,
                 ControlGrid* grid);
     void move_pos(float, unsigned int, unsigned int) override;
@@ -21,6 +22,7 @@ private:
     void handle_text_entered(sf::Uint32);
     void handle_special_keys(sf::Uint32);
     void set_cursor(unsigned int);
+    float default_width, default_height;
     sf::RectangleShape cursor;
     unsigned int max_length, cursor_pos = 0;
 };

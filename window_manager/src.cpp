@@ -4,31 +4,39 @@
 #include <stdexcept>
 
 void WindowManager::push_state(GSPtr&& state) {
-    this->states.push(std::move(state));
+    states.push(std::move(state));
 }
 
 void WindowManager::pop_state() {
-    this->states.pop();
+    if (states.empty()) {
+        return;
+    } else {
+        remove_top = true;
+    }
 }
 
 void WindowManager::change_state(GSPtr&& state) {
-    if (!this->states.empty()) {
+    if (!states.empty()) {
         pop_state();
     }
     push_state(std::move(state));
 }
 
 const GSPtr& WindowManager::peek_state() {
-    if (this->states.empty()) {
+    if (states.empty()) {
         return null_placeholder;
     } else {
-        return this->states.top();
+        return states.top();
     }
 }
 
 void WindowManager::loop() {
     sf::Clock clock;
     while(window.isOpen()) {
+        if (remove_top) {
+            states.pop();
+            remove_top = false;
+        }
         sf::Time elapsed = clock.restart();
         float dt = elapsed.asSeconds();
 

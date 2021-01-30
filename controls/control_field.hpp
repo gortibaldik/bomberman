@@ -55,7 +55,11 @@ protected:
             float letter_width,
             GStyle* style,
             ControlGrid* grid);
-    sf::FloatRect move_position(float, unsigned int, unsigned int);
+    sf::FloatRect move_position(float,
+                                unsigned int,
+                                unsigned int,
+                                float default_width = 0.f,
+                                float default_height = 0.f);
     sf::RectangleShape shape;
     GStyle* style;
     ControlGrid* grid;

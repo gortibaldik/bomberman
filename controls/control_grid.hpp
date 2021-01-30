@@ -19,12 +19,14 @@ public:
                     float y,
                     unsigned int letter_size,
                     unsigned int max_text_field_size,
+                    float default_width,
                     GStyle* text_field_style);
 
     void initialize(float x,
                     float y,
                     unsigned int letter_size,
                     unsigned int max_text_field_size,
+                    float default_width,
                     GStyle* button_style,
                     GStyle* text_field_style);
     void add_button(const std::string& button_title);
@@ -42,7 +44,7 @@ private:
     void add_entry(CFPtr&& entry);
     void add_entry(const std::string& name_of_field, CFPtr&& entry);
 
-    float last_x, last_y;
+    float last_x, last_y, default_width;
     unsigned int letter_size, max_text_field_size;
 
     GStyle* button_style;

@@ -2,20 +2,20 @@
 #include "control_grid.hpp"
 #include <iostream>
 
-#define DUMMY_FILL "GGGGGGGGGGGG"
-#define DUMMY_FILL_SIZE 10
+#define DUMMY "G"
+#define BB_FACTOR 1.10f
 
 void TextField::move_pos(float factor, unsigned int new_x, unsigned int new_y) {
-    sf::FloatRect fr;
-    if (text.getString().getSize() <= DUMMY_FILL_SIZE) {
-        sf::String tmp = text.getString();
-        text.setString(DUMMY_FILL);
-        fr = move_position(factor, new_x, new_y);
-        text.setString(tmp);
+    sf::FloatRect fr = text.getGlobalBounds();
+    bool cnd = fr.width < default_width;
+    default_width *= factor;
+    default_height *= factor;
+    if (cnd) {
+        fr = move_position(factor, new_x, new_y, default_width, default_height);
     } else {
         fr = move_position(factor, new_x, new_y);
     }
-    cursor.setSize(sf::Vector2f(1.f, fr.height));
+    cursor.setSize(sf::Vector2f(1.f, default_height));
     cursor.setPosition(fr.left, fr.top);
 }
 
@@ -23,15 +23,19 @@ TextField::TextField(   float x,
                         float y,
                         float letter_width,
                         unsigned int max_length,
+                        float default_width,
                         GStyle* gstyle,
-                        ControlGrid* grid):  ControlField(x, y, letter_width, gstyle, grid),
-                                             max_length(max_length) {
+                        ControlGrid* grid): ControlField(x, y, letter_width, gstyle, grid),
+                                            default_width(default_width),
+                                            max_length(max_length) {
     
-    text.setString(DUMMY_FILL);
+    text.setString(DUMMY);
     auto&& fr = this->text.getGlobalBounds();
     shape.setPosition(fr.left, fr.top);
-    shape.setSize(sf::Vector2f(max_length * fr.width, fr.height));
+    default_height = fr.height * BB_FACTOR;
+    shape.setSize(sf::Vector2f(default_width, default_height));
     text.setString("");
+
     cursor.setPosition(fr.left, fr.top);
     cursor.setFillColor(style->ctext);
     cursor.setSize(sf::Vector2f(1.f, fr.height));
@@ -43,10 +47,13 @@ void TextField::render(sf::RenderTarget* target) {
 }
 
 void TextField::set_cursor(unsigned int index) {
-    cursor.setPosition(text.findCharacterPos(cursor_pos).x, cursor.getGlobalBounds().top);
-    if (cursor_pos >= DUMMY_FILL_SIZE) {
-        auto&& fr = text.getGlobalBounds();
-        shape.setSize(sf::Vector2f(fr.width, fr.height));
+    auto x = text.findCharacterPos(cursor_pos).x;
+    cursor.setPosition(x, cursor.getGlobalBounds().top);
+    auto&& fr = text.getGlobalBounds();
+    if (fr.width > default_width) {
+        shape.setSize(sf::Vector2f(fr.width, default_height));
+    } else {
+        shape.setSize(sf::Vector2f(default_width, default_height));
     }
 }
 

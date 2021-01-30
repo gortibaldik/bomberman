@@ -28,6 +28,7 @@ private:
     void load_fonts();
 
     GSPtr null_placeholder;
+    bool remove_top = false;
     std::stack<GSPtr> states;
     std::map<std::string, sf::Font> fonts;
     TextureManager texture_manager;

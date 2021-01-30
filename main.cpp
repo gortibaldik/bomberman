@@ -7,6 +7,6 @@
 int main()
 {
     WindowManager wmanager;
-    wmanager.push_state(std::make_unique<GameStateStart>(wmanager));
+    wmanager.push_state(std::make_unique<StartState>(wmanager));
     wmanager.loop();
 }

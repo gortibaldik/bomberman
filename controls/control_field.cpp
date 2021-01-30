@@ -1,14 +1,20 @@
 #include "control_field.hpp"
 #include "control_grid.hpp"
+#include <iostream>
 
-sf::FloatRect ControlField::move_position(float factor, unsigned int new_x, unsigned int new_y) {
+sf::FloatRect ControlField::move_position(  float factor,
+                                            unsigned int new_x,
+                                            unsigned int new_y,
+                                            float default_width /*= 0.f*/,
+                                            float default_height /*=0 .f*/) {
     letter_width *= factor;
 
     text.setCharacterSize(letter_width);
     text.setPosition(new_x, new_y);
 
     auto&& fr = text.getGlobalBounds();
-    shape.setSize(sf::Vector2f(fr.width, fr.height));
+    shape.setSize(sf::Vector2f( default_width == 0.f ? fr.width : default_width,
+                                default_height == 0.f ? fr.height : default_height));
     shape.setPosition(fr.left, fr.top);
     return fr;
 }
