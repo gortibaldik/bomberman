@@ -10,7 +10,7 @@ public:
     void draw(float dt) override;
     void update(float dt) override;
     void handle_input() override;
-
+    
     MenuState(WindowManager&);
     MenuState(WindowManager&, const sf::View&);
 protected:

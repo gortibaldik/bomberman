@@ -3,6 +3,8 @@
 #include <iostream>
 #include <unordered_map>
 
+static const int port_size = 4;
+static const int ip_size = 15; 
 enum BTN {
     SUBMIT,
     RETURN,
@@ -10,7 +12,6 @@ enum BTN {
 };
 
 static const unsigned int mb_txt_size = 30;
-static const unsigned int mb_max_length_txt = 30;
 static const float mb_default_width_txt = 150.f;
 static const std::unordered_map<std::string, BTN> mb_actions = { 
     {"Submit", SUBMIT}, {"Return to main menu", RETURN}, {"Quit", QUIT}
@@ -58,11 +59,11 @@ ServerConnectState::ServerConnectState(WindowManager& mngr, const sf::View& view
                         1.f) {
     sf::Vector2f pos(mngr.window.getSize());
     pos *= 0.33f;
-    menu.initialize(pos.x, pos.y, mb_txt_size, mb_max_length_txt, mb_default_width_txt, &menu_btn_style, &menu_txt_style);
+    menu.initialize(pos.x, pos.y, mb_txt_size, mb_default_width_txt, &menu_btn_style, &menu_txt_style);
     menu.add_non_clickable("Enter IP address");
-    menu.add_text_field("IP");
+    menu.add_text_field("IP", [](char a){ return std::isdigit(a) || (a == '.');}, ip_size);
     menu.add_non_clickable("Enter port number");
-    menu.add_text_field("PORT");
+    menu.add_text_field("PORT", [](char a){ return std::isdigit(a);}, port_size);
     menu.add_button("Submit");
     menu.add_non_clickable("");
     menu.add_button("Return to main menu");

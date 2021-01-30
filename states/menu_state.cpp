@@ -43,9 +43,7 @@ void MenuState::handle_input() {
 }
 
 MenuState::MenuState(WindowManager& mngr): GameState(mngr) {
-    mngr.window.
     sf::Vector2f pos(mngr.window.getSize());
-    window_manager.resize_window(pos.x, pos.y);
     view.setSize(pos);
     pos *= 0.5f;
     view.setCenter(pos);

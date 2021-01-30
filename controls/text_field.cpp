@@ -25,9 +25,12 @@ TextField::TextField(   float x,
                         unsigned int max_length,
                         float default_width,
                         GStyle* gstyle,
-                        ControlGrid* grid): ControlField(x, y, letter_width, gstyle, grid),
-                                            default_width(default_width),
-                                            max_length(max_length) {
+                        ControlGrid* grid,
+                        std::function<bool(char)>&& func):
+                            ControlField(x, y, letter_width, gstyle, grid),
+                            default_width(default_width),
+                            max_length(max_length),
+                            input_condition(std::move(func)) {
     
     text.setString(DUMMY);
     auto&& fr = this->text.getGlobalBounds();
@@ -58,8 +61,8 @@ void TextField::set_cursor(unsigned int index) {
 }
 
 void TextField::handle_text_entered(sf::Uint32 c) {
-    if (std::isalnum(c) || std::ispunct(c) || (c == ' ')) {
-        if (cursor_pos > max_length) {
+    if (input_condition(c)) {
+        if (cursor_pos >= max_length) {
             return;
         }
         sf::String txt = text.getString();

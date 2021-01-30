@@ -9,7 +9,6 @@
 void ControlGrid::initialize(float x,
                     float y,
                     unsigned int letter_size,
-                    unsigned int max_text_field_size,
                     float default_width,
                     GStyle* button_style,
                     GStyle* text_field_style) {
@@ -17,7 +16,6 @@ void ControlGrid::initialize(float x,
     last_x = x;
     last_y = y;
     this->letter_size = letter_size;
-    this->max_text_field_size = max_text_field_size;
     this->button_style = button_style;
     this->text_field_style = text_field_style;
     this->default_width = default_width;
@@ -26,20 +24,16 @@ void ControlGrid::initialize(float x,
 void ControlGrid::initialize(float x,
                     float y,
                     unsigned int letter_size,
-                    unsigned int max_text_field_size,
                     float default_width,
                     GStyle* text_field_style) {
-    if (max_text_field_size == 0) {
-        throw std::runtime_error("Cannot initialize text_field with size less than or equal to zero!");
-    }
-    initialize(x, y, letter_size, max_text_field_size, default_width, nullptr, text_field_style);
+    initialize(x, y, letter_size, default_width, nullptr, text_field_style);
 }
 
 void ControlGrid::initialize(float x,
                 float y,
                 unsigned int letter_size,
                 GStyle* button_style) {
-    initialize(x, y, letter_size, 0, 0.f, button_style, nullptr);
+    initialize(x, y, letter_size, 0.f, button_style, nullptr);
 }
 
 void ControlGrid::add_entry(CFPtr&& entry_ptr) {
@@ -80,11 +74,13 @@ void ControlGrid::add_button(const std::string& button_title) {
     add_entry(std::make_unique<Button>(last_x, last_y, letter_size, button_title, button_style, this));
 }
 
-void ControlGrid::add_text_field(const std::string& name_of_field) {
+void ControlGrid::add_text_field(const std::string& name_of_field, std::function<bool(char)>&& f, unsigned int max_length) {
     if (text_field_style == nullptr) {
         throw std::runtime_error("Non initialized text_field style before adding text_field to the grid!");
     }
-    add_entry(name_of_field, std::make_unique<TextField>(last_x, last_y, letter_size, max_text_field_size, default_width, text_field_style, this));
+    add_entry(name_of_field, std::make_unique<TextField>(last_x, last_y, letter_size,
+                                                        max_length, default_width,
+                                                        text_field_style, this, std::move(f)));
 }
 
 void ControlGrid::add_non_clickable(const std::string& title) {

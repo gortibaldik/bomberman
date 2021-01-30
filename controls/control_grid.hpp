@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <SFML/Graphics.hpp>
+#include <functional>
 
 class ControlGrid {
 public:
@@ -18,19 +19,19 @@ public:
     void initialize(float x,
                     float y,
                     unsigned int letter_size,
-                    unsigned int max_text_field_size,
                     float default_width,
                     GStyle* text_field_style);
 
     void initialize(float x,
                     float y,
                     unsigned int letter_size,
-                    unsigned int max_text_field_size,
                     float default_width,
                     GStyle* button_style,
                     GStyle* text_field_style);
     void add_button(const std::string& button_title);
-    void add_text_field(const std::string& name_of_field);
+    void add_text_field(const std::string& name_of_field,
+                        std::function<bool(char)>&& f,
+                        unsigned int max_length);
     void add_non_clickable(const std::string& title);
     
     void render(sf::RenderTarget* target);
@@ -45,7 +46,7 @@ private:
     void add_entry(const std::string& name_of_field, CFPtr&& entry);
 
     float last_x, last_y, default_width;
-    unsigned int letter_size, max_text_field_size;
+    unsigned int letter_size;
 
     GStyle* button_style;
     GStyle* text_field_style;
