@@ -1,20 +1,21 @@
-#ifndef CF_BUTTON_HPP
-#define CF_BUTTON_HPP
+#ifndef CF_TEXT_FIELD_HPP
+#define CF_TEXT_FIELD_HPP
 
 #include "control_field.hpp"
 #include <vector>
 #include <SFML/Graphics.hpp>
 
-class Button  {
+class TextField {
 public:
-    Button( float x,
-            float y,
-            float letter_width,
-            const std::string& text,
-            GStyle* style,
-            ControlGrid* grid);
+    TextField(  float x,
+                float y,
+                float letter_width,
+                float default_width,
+                unsigned int max_length,
+                GStyle* gstyle,
+                ControlGrid* grid);
     void render(sf::RenderTarget* target);
-    void handle_input(const sf::Vector2f& mouse_position);
+    void handle_input(const sf::Vector2f& mouse_position, const sf::Event& e);
     void update();
     void move_pos(float, unsigned int, unsigned int);
 

@@ -59,7 +59,7 @@ void GameStateStart::handle_input() {
             break;
         case sf::Event::MouseMoved: case sf::Event::MouseButtonPressed:
             update_mouse_pos();
-            menu.handle_input(mouse_pos);
+            menu.handle_input(mouse_pos, event);
             handle_btn_pressed(*this);
             break;
         }

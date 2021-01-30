@@ -1,7 +1,8 @@
-#include "button.hpp"
+#include "text_field.hpp"
 #include "control_grid.hpp"
 
-void Button::move_pos(float factor, unsigned int new_x, unsigned int new_y) {
+// shouldn't be here, should be just inherited from control_field
+void TextField::move_pos(float factor, unsigned int new_x, unsigned int new_y) {
     letter_width *= factor;
 
     text.setCharacterSize(letter_width);
@@ -13,16 +14,17 @@ void Button::move_pos(float factor, unsigned int new_x, unsigned int new_y) {
     shape.setPosition(fr.left, fr.top);
 }
 
-Button::Button( float x,
-                float y,
-                float letter_width,
-                const std::string& text,
-                GStyle* gstyle,
-                ControlGrid* grid):  style(gstyle),
-                                text(text, *style->font),
-                                state(IDLE),
-                                letter_width(letter_width),
-                                grid(grid) {
+TextField::TextField(   float x,
+                        float y,
+                        float letter_width,
+                        float default_width,
+                        unsigned int max_length,
+                        GStyle* gstyle,
+                        ControlGrid* grid):  style(gstyle),
+                                            text("", *style->font),
+                                            state(IDLE),
+                                            letter_width(letter_width),
+                                            grid(grid) {
     
     this->text.setFillColor(style->ctext);
     this->text.setPosition(x, y);
@@ -37,31 +39,31 @@ Button::Button( float x,
     shape.setOutlineColor(style->cborder);
 }
 
-float Button::get_height() const {
+float TextField::get_height() const {
     return shape.getGlobalBounds().height;
 }
 
-std::string Button::get_text() const {
+std::string TextField::get_text() const {
     return text.getString().toAnsiString();
 }
 
-void Button::render(sf::RenderTarget* target) {
+void TextField::render(sf::RenderTarget* target) {
     target->draw(shape);
     target->draw(text);
 }
 
-void Button::handle_input(const sf::Vector2f& mouse_position) {
+void TextField::handle_input(const sf::Vector2f& mouse_position, const sf::Event& e) {
     state = IDLE;
     if (shape.getGlobalBounds().contains(mouse_position)) {
         state = HOVER;
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
             state = PRESSED;
-            // grid->which_pressed = this;
+            //grid->which_pressed = this;
         }
     }
 }
 
-void Button::update() {
+void TextField::update() {
     switch(state) {
     case IDLE:
         text.setFillColor(style->ctext);

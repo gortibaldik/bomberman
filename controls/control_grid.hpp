@@ -16,7 +16,7 @@ public:
     void add_button(const std::string& button_title);
     
     void render(sf::RenderTarget* target);
-    void handle_input(const sf::Vector2f& mouse_position);
+    void handle_input(const sf::Vector2f& mouse_position, const sf::Event& e);
     void update();
     void move_pos(float, unsigned int, unsigned int);
 

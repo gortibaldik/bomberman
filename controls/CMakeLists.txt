@@ -5,5 +5,7 @@ target_sources(Bomberman
     button.hpp
     control_field.cpp
     control_field.hpp
+    text_field.cpp
+    text_field.hpp
     control_grid.hpp
     control_grid.cpp)

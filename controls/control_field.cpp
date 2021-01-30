@@ -50,7 +50,7 @@ void ControlField::render(sf::RenderTarget* target) {
     target->draw(text);
 }
 
-void ControlField::handle_input(const sf::Vector2f& mouse_position) {
+void ControlField::handle_input(const sf::Vector2f& mouse_position, const sf::Event& e) {
     state = IDLE;
     if (shape.getGlobalBounds().contains(mouse_position)) {
         state = HOVER;

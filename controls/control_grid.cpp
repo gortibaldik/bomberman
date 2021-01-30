@@ -30,9 +30,9 @@ void ControlGrid::render(sf::RenderTarget* target) {
     }
 }
 
-void ControlGrid::handle_input(const sf::Vector2f& mouse_position) {
+void ControlGrid::handle_input(const sf::Vector2f& mouse_position, const sf::Event& e) {
     for (auto&& button : buttons) {
-        button->handle_input(mouse_position);
+        button->handle_input(mouse_position, e);
     }
 }
 

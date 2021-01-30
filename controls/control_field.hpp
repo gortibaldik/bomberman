@@ -31,7 +31,7 @@ struct GStyle {
                             border_size(bsize) {}
 };
 
-enum BTN_STATE {
+enum CONTROL_STATE {
     IDLE,
     HOVER,
     PRESSED
@@ -48,7 +48,7 @@ public:
             GStyle* style,
             ControlGrid* grid);
     void render(sf::RenderTarget* target);
-    void handle_input(const sf::Vector2f& mouse_position);
+    void handle_input(const sf::Vector2f& mouse_position, const sf::Event& e);
     void update();
     void move_pos(float, unsigned int, unsigned int);
 
@@ -58,7 +58,7 @@ private:
     sf::RectangleShape shape;
     GStyle* style;
     ControlGrid* grid;
-    BTN_STATE state;
+    CONTROL_STATE state;
     float letter_width;
     sf::Text text;
 };
