@@ -9,7 +9,7 @@ enum BTN {
     QUIT
 };
 
-static const int port_size = 3;
+static const int port_size = 4;
 
 static const unsigned int mb_txt_size = 30;
 static const float mb_default_width_txt = 150.f;
