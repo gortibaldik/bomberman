@@ -3,22 +3,24 @@
 #include <iostream>
 #include <unordered_map>
 
-static const int port_size = 4;
-static const int ip_size = 15; 
+static const int port_n_length = 4;
+static const int ip_length = 15;
+static const int name_length = 20;
+static const float resizing_factor = 0.2f;
 enum BTN {
     SUBMIT,
     RETURN,
     QUIT
 };
 
-static const unsigned int mb_txt_size = 30;
+static const unsigned int txt_size = 25;
 static const float mb_default_width_txt = 150.f;
 static const std::unordered_map<std::string, BTN> mb_actions = { 
     {"Submit", SUBMIT}, {"Return to main menu", RETURN}, {"Quit", QUIT}
 };
 
 void ServerConnectState::handle_resize_menu(unsigned int width, unsigned int height, float factor) {
-    MenuState::handle_resize_menu(width, height, 0.33f);
+    MenuState::handle_resize_menu(width, height, resizing_factor);
 }
 
 void ServerConnectState::handle_btn_pressed() {
@@ -58,12 +60,14 @@ ServerConnectState::ServerConnectState(WindowManager& mngr, const sf::View& view
                         mngr.get_font("main_font"),
                         1.f) {
     sf::Vector2f pos(mngr.window.getSize());
-    pos *= 0.33f;
-    menu.initialize(pos.x, pos.y, mb_txt_size, mb_default_width_txt, &menu_btn_style, &menu_txt_style);
+    pos *= resizing_factor;
+    menu.initialize(pos.x, pos.y, txt_size, mb_default_width_txt, &menu_btn_style, &menu_txt_style);
+    menu.add_non_clickable("Enter your new username:");
+    menu.add_text_field("NAME", [](char a){ return std::isalnum(a) || std::ispunct(a); }, name_length);
     menu.add_non_clickable("Enter IP address");
-    menu.add_text_field("IP", [](char a){ return std::isdigit(a) || (a == '.');}, ip_size);
+    menu.add_text_field("IP", [](char a){ return std::isdigit(a) || (a == '.');}, ip_length);
     menu.add_non_clickable("Enter port number");
-    menu.add_text_field("PORT", [](char a){ return std::isdigit(a);}, port_size);
+    menu.add_text_field("PORT", [](char a){ return std::isdigit(a);}, port_n_length);
     menu.add_button("Submit");
     menu.add_non_clickable("");
     menu.add_button("Return to main menu");

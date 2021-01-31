@@ -5,6 +5,7 @@
 #include "controls/control_grid.hpp"
 #include <vector>
 #include <SFML/Graphics.hpp>
+#include <SFML/Network.hpp>
 class ServerCreateState: public MenuState {
 public:
 
@@ -14,5 +15,6 @@ protected:
     void handle_resize_menu(unsigned int, unsigned int, float) override;
 private:
     GStyle menu_btn_style, menu_txt_style;
+    sf::IpAddress local_address;
 };
 #endif

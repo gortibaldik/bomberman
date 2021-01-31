@@ -67,11 +67,11 @@ target_include_directories(Bomberman
   PUBLIC
   "${SFML_INCLUDES}"
   "${CMAKE_SOURCE_DIR}"
-  ${Boost_INCLUDE_DIRS}
+  "${Boost_INCLUDE_DIRS}"
   )
 
 # Link executable to target libraries
-target_link_libraries(Bomberman sfml-graphics ${Boost_LIBRARIES})
+target_link_libraries(Bomberman sfml-graphics sfml-network ${Boost_LIBRARIES})
 
 # Install target
 install(TARGETS Bomberman DESTINATION "${CMAKE_SOURCE_DIR}/bin")

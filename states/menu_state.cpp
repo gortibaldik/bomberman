@@ -4,6 +4,10 @@
 #include <unordered_map>
 
 void MenuState::draw(float dt) {
+    sf::Vector2f r(window_manager.window.getSize());
+    if (view.getSize() != r) {
+        view.setSize(r.x, r.y);
+    }
     window_manager.window.setView(view);
     window_manager.window.draw(window_manager.background);
     menu.render(&window_manager.window);
