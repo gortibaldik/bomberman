@@ -51,6 +51,7 @@ add_subdirectory(states)
 add_subdirectory(window_manager)
 add_subdirectory(texture_manager)
 add_subdirectory(controls)
+add_subdirectory(network)
 
 # include assets as project dependencies
 add_custom_target(copy_assets
