@@ -28,16 +28,6 @@ find_package(SFML 2.5.1
         system window graphics network audio REQUIRED
   )
 
-# Find Boost asio libraries
-set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_MULTITHREADED ON)
-set(Boost_USE_STATIC_RUNTIME OFF)
-find_package(Boost
-    COMPONENTS
-        system thread REQUIRED
-    PATHS
-	"C:/Program Files/boost_1_75_0/stage/lib/cmake/Boost-1.75.0/")
-
 # set cmake multithreaded flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
@@ -68,11 +58,10 @@ target_include_directories(Bomberman
   PUBLIC
   "${SFML_INCLUDES}"
   "${CMAKE_SOURCE_DIR}"
-  "${Boost_INCLUDE_DIRS}"
   )
 
 # Link executable to target libraries
-target_link_libraries(Bomberman sfml-graphics sfml-network ${Boost_LIBRARIES})
+target_link_libraries(Bomberman sfml-graphics sfml-network)
 
 # Install target
 install(TARGETS Bomberman DESTINATION "${CMAKE_SOURCE_DIR}/bin")
