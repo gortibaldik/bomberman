@@ -12,7 +12,7 @@ enum WAIT_RESULT {
 class CA {
 public:
     static void initialize_init_packet(const Client& c, sf::Packet& p) {
-        p << sf::Int8(PacketType::Connect);
+        add_type_to_packet(p, PacketType::Connect);
         p << c.player_name;
     }
 
@@ -30,8 +30,25 @@ public:
             return CONTINUE;
         }
         if (!(packet >> ptype)) { return FAILURE; }
-        if ((PacketType)ptype != PacketType::Connect) { return CONTINUE; }
         return SUCCESS;
+    }
+    
+    static WAIT_RESULT listen_to_server(Client& c) {
+        auto status = c.socket.receive(packet, receiver_ip, receiver_port);
+        if (status != sf::Socket::Done) {
+            if (c.connected) {
+                return CONTINUE;
+            }
+            // packet receiving failed because the connection was closed
+            return FAILURE; 
+        }
+        // unknown sender, or undecodable packet
+        if ((receiver_ip != c.server_ip) || !(packet >> ptype)) { return CONTINUE; }
+        auto t = (PacketType)ptype;
+        // invalid type of packet
+        if ((t < PacketType::Disconnect) || (t >= PacketType::Invalid)) { return CONTINUE; }
+        return SUCCESS;
+
     }
 
     static sf::Int8 ptype;
@@ -46,13 +63,14 @@ PortNumber CA::receiver_port;
 sf::Packet CA::packet;
 
 bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
-    if (is_connected) {
+    if (connected) {
         return false;
     }
     socket.bind(sf::Socket::AnyPort);
-    sf::Packet p;
-    CA::initialize_init_packet(*this, p);
-    if (! CA::try_send_to_server(*this, p, server_ip, server_port)) {
+    std::cout << "Client sending and listening on: " << socket.getLocalPort() << std::endl;
+    sf::Packet packet;
+    CA::initialize_init_packet(*this, packet);
+    if (! CA::try_send_to_server(*this, packet, server_ip, server_port)) {
         socket.unbind();
         return false;
     }
@@ -63,10 +81,19 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
     while (timer.getElapsedTime().asMilliseconds() < sf::Int32(Network::ClientConnectTimeOut)) {
         std::cout << "WAITING" << std::endl;
         auto result = CA::wait_for_server(*this, server_ip);
+        auto ptype = (PacketType)CA::ptype;
         if (result == FAILURE) { break; }
-        if (result == CONTINUE) { continue; }
+        if (ptype == PacketType::Duplicate) {
+            std::cout << "Duplicate name !" << std::endl;
+            break;
+        }
+        if ((result == CONTINUE) || (ptype != PacketType::Connect)) { continue; }
         if (!handle_first_server_answer(CA::packet, CA::ptype)) { break; };
-        is_connected = true;
+        this->server_ip = CA::receiver_ip;
+        this->server_port_out = CA::receiver_port;
+        this->server_port_in = server_port;
+
+        connected = true;
         socket.setBlocking(true);
         worker = std::thread(&Client::listen, this);
         std::cout << "SUCCESS" << std::endl;
@@ -77,5 +104,34 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
 }
 
 void Client::listen() {
+    sf::Packet packet;
+    while (connected) {
+        packet.clear();
+        auto result = CA::listen_to_server(*this);
+        if (result == FAILURE) { break; }
+        if (result == CONTINUE) { continue; }
+        auto ptype = (PacketType)CA::ptype;
+        if (ptype == PacketType::HeartBeat) {
+            sf::Int32 t;
+            CA::packet >> t;
+            server_time = sf::milliseconds(t);
+            std::cout << "Received a heartbeat" << std::endl;
+            add_type_to_packet(packet, PacketType::HeartBeat);
+            if (socket.send(packet, this->server_ip, this->server_port_in) != sf::Socket::Done) {
+                std::cout << "Failed to respond to a heartbeat!" << std::endl;
+            }
+        }
+    }
+}
 
+void Client::terminate() {
+    if(connected) {
+        connected = false;
+        socket.unbind();
+        worker.join();
+    }
+}
+
+bool Client::handle_first_server_answer(sf::Packet& p, sf::Int8 ptype) {
+    return true;
 }

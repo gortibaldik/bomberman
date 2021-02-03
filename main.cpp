@@ -3,10 +3,16 @@
 
 int main(int argc, char** argv) {
     if (argc == 1) {
-        Client client("Ferino");
-        client.connect(sf::IpAddress("10.128.0.207"), 15000);
-    } else {
         Server server;
         server.start(15000);
+        sf::Clock c;
+        c.restart();
+        while(server.is_running()) {
+            server.update(c.restart());
+        }
+    } else {
+        Client client(argv[1]);
+        client.connect(sf::IpAddress("192.168.43.246"), 15000);
+        while(client.is_connected()) {}
     }
 }

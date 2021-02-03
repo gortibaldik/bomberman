@@ -4,4 +4,5 @@ add_subdirectory(server)
 target_sources(Bomberman
   PUBLIC
     packet_types.hpp
+    packet_types.cpp
     network_params.hpp)
