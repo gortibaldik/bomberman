@@ -39,11 +39,15 @@ using Clients = std::unordered_map<std::string, ClientInfo>;
 
 class Server {
 public:
+    Server(): max_clients(2) {}
+    Server(int max_clients): max_clients(max_clients) {}
     ~Server();
     bool start(PortNumber port);
     void listen();
     void send(const std::string&, sf::Packet&);
     void update(const sf::Time& dt);
+    void disable_adding_new_players() { can_add = false; }
+    void enable_adding_new_players() { can_add = true; }
     bool is_running() { return running; }
 protected:
     void update_time_overflow();
@@ -56,6 +60,8 @@ protected:
     std::thread worker;
     std::mutex clients_mutex;
     bool running = false;
+    bool can_add = true;
+    int max_clients;
 };
 
 #endif

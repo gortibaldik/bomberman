@@ -49,6 +49,8 @@ public:
     float get_height() const;
     float get_width() const;
     std::string get_text() const;
+    virtual void set_content(const std::string&);
+    virtual bool is_valid() { return true; }
 protected:
     ControlField( float x,
             float y,

@@ -5,4 +5,6 @@ target_sources(Bomberman
   PUBLIC
     packet_types.hpp
     packet_types.cpp
-    network_params.hpp)
+    network_params.hpp
+    utils.hpp
+    utils.cpp)

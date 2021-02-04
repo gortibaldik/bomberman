@@ -11,4 +11,6 @@ target_sources(Bomberman
     server_create.cpp
     server_connect.hpp
     server_connect.cpp
+    server_connect_waiting.hpp
+    server_connect_waiting.cpp
 )

@@ -1,7 +1,7 @@
 #ifndef STATE_MANAGER_HPP
 #define STATE_MANAGER_HPP
 
-#include <stack>
+#include <deque>
 #include <SFML/Graphics.hpp>
 #include "states/abstract.hpp"
 #include "texture_manager/def.hpp"
@@ -12,7 +12,7 @@ public:
     sf::Sprite background;
 
     void loop();
-    void pop_state();
+    void pop_states(int);
     void push_state(GSPtr&& state);
     void change_state(GSPtr&& state);
 
@@ -29,7 +29,7 @@ private:
 
     GSPtr null_placeholder;
     bool remove_top = false;
-    std::stack<GSPtr> states;
+    std::deque<GSPtr> states;
     std::map<std::string, sf::Font> fonts;
     TextureManager texture_manager;
 };

@@ -59,7 +59,7 @@ void ControlGrid::add_entry(const std::string& name_of_field, CFPtr&& entry_ptr)
     named_fields[name_of_field] = cptr;
 }
 
-const ControlField* ControlGrid::get_named_field(const std::string& name_of_field) {
+ControlField* ControlGrid::get_named_field(const std::string& name_of_field) {
     auto it = named_fields.find(name_of_field);
     if (it == named_fields.end()) {
         throw std::runtime_error("No named field with this name!");
@@ -74,13 +74,16 @@ void ControlGrid::add_button(const std::string& button_title) {
     add_entry(std::make_unique<Button>(last_x, last_y, letter_size, button_title, button_style, this));
 }
 
-void ControlGrid::add_text_field(const std::string& name_of_field, std::function<bool(char)>&& f, unsigned int max_length) {
+void ControlGrid::add_text_field(const std::string& name_of_field,
+                                std::function<bool(char)>&& in_f,
+                                std::function<bool(const std::string&)>&& val_f,
+                                unsigned int max_length) {
     if (text_field_style == nullptr) {
         throw std::runtime_error("Non initialized text_field style before adding text_field to the grid!");
     }
     add_entry(name_of_field, std::make_unique<TextField>(last_x, last_y, letter_size,
                                                         max_length, default_width,
-                                                        text_field_style, this, std::move(f)));
+                                                        text_field_style, this, std::move(in_f), std::move(val_f)));
 }
 
 void ControlGrid::add_non_clickable(const std::string& title) {
@@ -88,6 +91,13 @@ void ControlGrid::add_non_clickable(const std::string& title) {
         throw std::runtime_error("Non initialized button style before adding non_clickable to the grid!");
     }
     add_entry(std::make_unique<NonClickableButton>(last_x, last_y, letter_size, title, button_style, this));
+}
+
+void ControlGrid::add_non_clickable(const std::string& title, const std::string& content) {
+    if (button_style == nullptr) {
+        throw std::runtime_error("Non initialized button style before adding non_clickable to the grid!");
+    }
+    add_entry(title, std::make_unique<NonClickableButton>(last_x, last_y, letter_size, content, button_style, this));
 }
     
 void ControlGrid::render(sf::RenderTarget* target) {

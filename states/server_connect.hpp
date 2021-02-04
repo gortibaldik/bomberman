@@ -9,6 +9,7 @@ class ServerConnectState: public MenuState {
 public:
 
     ServerConnectState(WindowManager&, const sf::View&);
+    void update(float) override;
 protected:
     void handle_btn_pressed() override;
     void handle_resize_menu(unsigned int, unsigned int, float) override;

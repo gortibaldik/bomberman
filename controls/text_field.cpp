@@ -26,11 +26,13 @@ TextField::TextField(   float x,
                         float default_width,
                         GStyle* gstyle,
                         ControlGrid* grid,
-                        std::function<bool(char)>&& func):
+                        std::function<bool(char)>&& in_f,
+                        std::function<bool(const std::string&)>&& val_f):
                             ControlField(x, y, letter_width, gstyle, grid),
                             default_width(default_width),
                             max_length(max_length),
-                            input_condition(std::move(func)) {
+                            input_condition(std::move(in_f)),
+                            validator(std::move(val_f)) {
     
     text.setString(DUMMY);
     auto&& fr = this->text.getGlobalBounds();
@@ -42,6 +44,10 @@ TextField::TextField(   float x,
     cursor.setPosition(fr.left, fr.top);
     cursor.setFillColor(style->ctext);
     cursor.setSize(sf::Vector2f(1.f, fr.height));
+}
+
+bool TextField::is_valid() {
+    return validator(text.getString());
 }
 
 void TextField::render(sf::RenderTarget* target) {

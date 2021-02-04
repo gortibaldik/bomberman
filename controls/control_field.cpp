@@ -54,6 +54,10 @@ std::string ControlField::get_text() const {
     return text.getString().toAnsiString();
 }
 
+void ControlField::set_content(const std::string& new_content) {
+    text.setString(new_content);
+}
+
 void ControlField::render(sf::RenderTarget* target) {
     target->draw(shape);
     target->draw(text);

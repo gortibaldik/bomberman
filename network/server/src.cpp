@@ -46,11 +46,15 @@ void Server::listen() {
             if (it != connected_clients.end()){ 
                 std::cout << "Duplicate name!" << std::endl;
                 add_type_to_packet(p, PacketType::Duplicate);
-            } else {
+            } else if (can_add) {
                 // send ack packet
                 std::cout << "Adding " << name << " to the list of connected clients!" << std::endl;
                 add_type_to_packet(p, PacketType::Connect);
+                std::unique_lock<std::mutex> l(clients_mutex);
                 connected_clients.insert(std::make_pair(name, ClientInfo(ip, port, c_time)));
+            } else {
+                std::cout << "Cannot add any more users" << std::endl;
+                add_type_to_packet(p, PacketType::Invalid);
             }
             outcoming_socket.send(p, ip, port);
             continue;
@@ -66,7 +70,6 @@ void Server::listen() {
                 continue;
             }
             ptr->uncheck_heartbeat(c_time);
-            std::cout << "Got heartbeat from " << ptr->ip << "; latency " << ptr->latency.asMilliseconds() << std::endl;
         }
     }
 }
@@ -117,7 +120,6 @@ void Server::update(const sf::Time& dt) {
         sf::Packet hb;
         switch(client.second.check_time(c_time)) {
         case ClientInfo::TimeDifference::HeartBeat:
-            std::cout << "Sending heartBeat to " <<  client.first << std::endl;
             add_type_to_packet(hb, PacketType::HeartBeat);
             hb << c_time.asMilliseconds();
             send(client.first, hb);
