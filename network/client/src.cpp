@@ -26,7 +26,6 @@ public:
     static WAIT_RESULT wait_for_server(Client& c, const sf::IpAddress& server_ip) {
         auto status = c.socket.receive(packet, receiver_ip, receiver_port);
         if (status != sf::Socket::Done || receiver_ip != server_ip) {
-            std::cout << receiver_ip << "!=" << server_ip << std::endl;
             return CONTINUE;
         }
         if (!(packet >> ptype)) { return FAILURE; }
@@ -36,7 +35,7 @@ public:
     static WAIT_RESULT listen_to_server(Client& c) {
         auto status = c.socket.receive(packet, receiver_ip, receiver_port);
         if (status != sf::Socket::Done) {
-            if (c.connected) {
+            if (c.is_connected()) {
                 return CONTINUE;
             }
             // packet receiving failed because the connection was closed
@@ -63,15 +62,17 @@ PortNumber CA::receiver_port;
 sf::Packet CA::packet;
 
 bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
-    if (connected) {
+    if (is_connected()) {
         return false;
     }
+    status = ClientStatus::TryingToConnect;
     socket.bind(sf::Socket::AnyPort);
     std::cout << "Client sending and listening on: " << socket.getLocalPort() << std::endl;
     sf::Packet packet;
     CA::initialize_init_packet(*this, packet);
     if (! CA::try_send_to_server(*this, packet, server_ip, server_port)) {
         socket.unbind();
+        status = ClientStatus::Failed;
         return false;
     }
     socket.setBlocking(false);
@@ -79,7 +80,6 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
     timer.restart();
     std::cout << "Connecting to " << server_ip << ":" << server_port << std::endl;
     while (timer.getElapsedTime().asMilliseconds() < sf::Int32(Network::ClientConnectTimeOut)) {
-        std::cout << "WAITING" << std::endl;
         auto result = CA::wait_for_server(*this, server_ip);
         auto ptype = (PacketType)CA::ptype;
         if (result == FAILURE) { break; }
@@ -93,19 +93,20 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
         this->server_port_out = CA::receiver_port;
         this->server_port_in = server_port;
 
-        connected = true;
+        status = ClientStatus::Connected;
         socket.setBlocking(true);
         worker = std::thread(&Client::listen, this);
         std::cout << "SUCCESS" << std::endl;
         return true;
     }
+    status = ClientStatus::Failed;
     std::cout << "FAILURE" << std::endl;
     return false;
 }
 
 void Client::listen() {
     sf::Packet packet;
-    while (connected) {
+    while (is_connected()) {
         packet.clear();
         auto result = CA::listen_to_server(*this);
         if (result == FAILURE) { break; }
@@ -115,20 +116,26 @@ void Client::listen() {
             sf::Int32 t;
             CA::packet >> t;
             server_time = sf::milliseconds(t);
-            std::cout << "Received a heartbeat" << std::endl;
             add_type_to_packet(packet, PacketType::HeartBeat);
             if (socket.send(packet, this->server_ip, this->server_port_in) != sf::Socket::Done) {
                 std::cout << "Failed to respond to a heartbeat!" << std::endl;
             }
         }
     }
+    status = ClientStatus::Terminated;
 }
 
 void Client::terminate() {
-    if(connected) {
-        connected = false;
+    if(is_connected()) {
+        status = ClientStatus::Terminated;
+        sf::Packet p;
+        add_type_to_packet(p, PacketType::Invalid);
+        socket.send(p, sf::IpAddress::getLocalAddress(), socket.getLocalPort());
+        std::cout << "sent terminate socket" << std::endl;
         socket.unbind();
-        worker.join();
+        if (worker.joinable()) {
+            worker.join();
+        }
     }
 }
 

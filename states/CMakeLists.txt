@@ -9,8 +9,10 @@ target_sources(Bomberman
     start.cpp
     server_create.hpp
     server_create.cpp
-    server_connect.hpp
-    server_connect.cpp
-    server_connect_waiting.hpp
-    server_connect_waiting.cpp
+    server_create_waiting.hpp
+    server_create_waiting.cpp
+    client_connect.hpp
+    client_connect.cpp
+    client_connect_waiting.hpp
+    client_connect_waiting.cpp
 )

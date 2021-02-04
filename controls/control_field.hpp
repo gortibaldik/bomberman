@@ -48,7 +48,7 @@ public:
 
     float get_height() const;
     float get_width() const;
-    std::string get_text() const;
+    std::string get_content() const;
     virtual void set_content(const std::string&);
     virtual bool is_valid() { return true; }
 protected:
@@ -63,6 +63,7 @@ protected:
                                 float default_width = 0.f,
                                 float default_height = 0.f);
     sf::RectangleShape shape;
+    sf::FloatRect bounding_box;
     GStyle* style;
     ControlGrid* grid;
     CONTROL_STATE state;

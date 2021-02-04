@@ -1,6 +1,8 @@
 #include "button.hpp"
 #include "control_grid.hpp"
 
+#define DUMMY "G"
+
 Button::Button( float x,
                 float y,
                 float letter_width,
@@ -9,9 +11,9 @@ Button::Button( float x,
                 ControlGrid* grid):  ControlField(x, y, letter_width, gstyle, grid) {
     
     this->text.setString(text);
-    auto&& fr = this->text.getGlobalBounds();
-    shape.setPosition(fr.left, fr.top);
-    shape.setSize(sf::Vector2f(fr.width, fr.height));
+    bounding_box = this->text.getGlobalBounds();
+    shape.setPosition(bounding_box.left, bounding_box.top);
+    shape.setSize(sf::Vector2f(bounding_box.width, bounding_box.height));
 }
 
 NonClickableButton::NonClickableButton( float x,
@@ -20,10 +22,16 @@ NonClickableButton::NonClickableButton( float x,
                                         const std::string& text,
                                         GStyle* gstyle,
                                         ControlGrid* grid): ControlField(x, y, letter_width, gstyle, grid) {
-    this->text.setString(text);
-    auto&& fr = this->text.getGlobalBounds();
-    shape.setPosition(fr.left, fr.top);
-    shape.setSize(sf::Vector2f(fr.width, fr.height));
+    if (text.size() == 0) {
+        this->text.setString(DUMMY);
+        bounding_box = this->text.getGlobalBounds();
+        this->text.setString("");
+    } else {
+        this->text.setString(text);
+        bounding_box = this->text.getGlobalBounds();
+    }
+    shape.setPosition(bounding_box.left, bounding_box.top);
+    shape.setSize(sf::Vector2f(bounding_box.width, bounding_box.height));
 }
 
 void NonClickableButton::update() {}

@@ -1,6 +1,6 @@
 #include "start.hpp"
 #include "server_create.hpp"
-#include "server_connect.hpp"
+#include "client_connect.hpp"
 #include "window_manager/def.hpp"
 #include <iostream>
 #include <unordered_map>
@@ -21,7 +21,7 @@ static const std::unordered_map<std::string, BTN> mb_actions = {
 void StartState::handle_btn_pressed() {
     auto&& btn = menu.get_pressed_btn();
     if (btn) {
-        auto it = mb_actions.find(btn->get_text());
+        auto it = mb_actions.find(btn->get_content());
         if (it == mb_actions.end()) {
             return;
         }
@@ -30,7 +30,7 @@ void StartState::handle_btn_pressed() {
             window_manager.push_state(std::make_unique<ServerCreateState>(window_manager, view));
             break;
         case CONNECT:
-            window_manager.push_state(std::make_unique<ServerConnectState>(window_manager, view));
+            window_manager.push_state(std::make_unique<ClientConnectState>(window_manager, view));
             break;
         case QUIT:
             window_manager.window.close();

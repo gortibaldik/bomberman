@@ -22,11 +22,11 @@ void Server::listen() {
     sf::IpAddress ip;
     PortNumber port;
     sf::Packet packet;
-    while (running) {
+    while (is_running()) {
         packet.clear();
         auto status = incoming_socket.receive(packet, ip, port);
+        std::cout << "received" << std::endl;
         if (status != sf::Socket::Done) { continue; }
-        std::cout << "Received something!" << std::endl;
 
         sf::Int8 id;
         if (!(packet >> id)) {
@@ -50,8 +50,12 @@ void Server::listen() {
                 // send ack packet
                 std::cout << "Adding " << name << " to the list of connected clients!" << std::endl;
                 add_type_to_packet(p, PacketType::Connect);
+
                 std::unique_lock<std::mutex> l(clients_mutex);
                 connected_clients.insert(std::make_pair(name, ClientInfo(ip, port, c_time)));
+                if (connected_clients.size() >= max_clients) {
+                    disable_adding_new_players();
+                }
             } else {
                 std::cout << "Cannot add any more users" << std::endl;
                 add_type_to_packet(p, PacketType::Invalid);
@@ -70,8 +74,12 @@ void Server::listen() {
                 continue;
             }
             ptr->uncheck_heartbeat(c_time);
+            continue;
         }
+
+        std::cout << "unknown packet" << std::endl;
     }
+    std::cout << "Listener terminated!" << std::endl;
 }
 
 ClientInfo* Server::find_by_ip_port(const sf::IpAddress& ip, PortNumber port) {
@@ -110,6 +118,20 @@ void Server::send(const std::string& receiver, sf::Packet& p) {
     outcoming_socket.send(p, c.ip, c.port);
 }
 
+void Server::terminate() {
+    if(is_running()) {
+        running = false;
+        sf::Packet p;
+        add_type_to_packet(p, PacketType::Invalid);
+        outcoming_socket.send(p, sf::IpAddress::getLocalAddress(), incoming_socket.getLocalPort());
+        std::cout << "sent terminate socket" << std::endl;
+        incoming_socket.unbind();
+        if (worker.joinable()) {
+            worker.join();
+        }
+    }
+}
+
 void Server::update(const sf::Time& dt) {
     c_time += dt;
     if (c_time.asMilliseconds() > Network::HighestTimeStamp) {
@@ -146,5 +168,7 @@ void Server::update_time_overflow() {
 }
 
 Server::~Server() {
-    worker.join();
+    if (worker.joinable()) {
+        worker.join();
+    }
 }

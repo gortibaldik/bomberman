@@ -1,4 +1,5 @@
 #include "server_create.hpp"
+#include "server_create_waiting.hpp"
 #include "window_manager/def.hpp"
 #include "network/utils.hpp"
 #include <iostream>
@@ -10,7 +11,7 @@ enum BTN {
     QUIT
 };
 
-static const int port_number_length = 4;
+static const int port_number_length = 5;
 static const int name_length = 20;
 static const float resizing_factor = 0.2f;
 
@@ -24,14 +25,29 @@ void ServerCreateState::handle_resize_menu(unsigned int width, unsigned int heig
     MenuState::handle_resize_menu(width, height, resizing_factor);
 }
 
+void ServerCreateState::update(float) {
+    set_validator(menu.get_named_field("PORT"), menu.get_named_field("VALID_PORT"), "Invalid port <must be ( bigger than 1024 ) or 0>");
+    menu.update();
+}
+
 void ServerCreateState::handle_btn_pressed() {
     auto&& btn = menu.get_pressed_btn();
     if (btn) {
-        auto it = mb_actions.find(btn->get_text());
+        auto it = mb_actions.find(btn->get_content());
         if (it == mb_actions.end()) {
             return;
         }
         switch (it->second) {
+        case CREATE:
+            if (menu.get_named_field("PORT")->is_valid() &&
+                menu.get_named_field("NAME")->is_valid()) {
+                    window_manager.change_state(std::make_unique<ServerCreateWaitingState>(window_manager,
+                        view,
+                        local_address,
+                        std::stoi(menu.get_named_field("PORT")->get_content()),
+                        menu.get_named_field("NAME")->get_content()));
+                }
+            break;
         case RETURN:
             window_manager.pop_states(1);
             break;
@@ -71,6 +87,7 @@ ServerCreateState::ServerCreateState(WindowManager& mngr, const sf::View& view):
     menu.add_non_clickable("Enter port number");
     menu.add_text_field("PORT", [](char a){ return std::isdigit(a); }, 
                                 &is_valid_port, port_number_length);
+    menu.add_non_clickable("VALID_PORT", "");
     menu.add_button("Create");
     menu.add_non_clickable("");
     menu.add_button("Return to main menu");

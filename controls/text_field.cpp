@@ -6,17 +6,17 @@
 #define BB_FACTOR 1.10f
 
 void TextField::move_pos(float factor, unsigned int new_x, unsigned int new_y) {
-    sf::FloatRect fr = text.getGlobalBounds();
-    bool cnd = fr.width < default_width;
+    bool cnd = text.getGlobalBounds().width < default_width;
     default_width *= factor;
     default_height *= factor;
+    sf::FloatRect fr;
     if (cnd) {
         fr = move_position(factor, new_x, new_y, default_width, default_height);
     } else {
         fr = move_position(factor, new_x, new_y);
     }
     cursor.setSize(sf::Vector2f(1.f, default_height));
-    cursor.setPosition(fr.left, fr.top);
+    cursor.setPosition(text.findCharacterPos(cursor_pos).x, fr.top);
 }
 
 TextField::TextField(   float x,
@@ -35,15 +35,16 @@ TextField::TextField(   float x,
                             validator(std::move(val_f)) {
     
     text.setString(DUMMY);
-    auto&& fr = this->text.getGlobalBounds();
-    shape.setPosition(fr.left, fr.top);
-    default_height = fr.height * BB_FACTOR;
+    auto&& bb = this->text.getGlobalBounds();
+    shape.setPosition(bb.left, bb.top);
+    default_height = bb.height * BB_FACTOR;
     shape.setSize(sf::Vector2f(default_width, default_height));
+    bounding_box = shape.getGlobalBounds();
     text.setString("");
 
-    cursor.setPosition(fr.left, fr.top);
+    cursor.setPosition(bb.left, bb.top);
     cursor.setFillColor(style->ctext);
-    cursor.setSize(sf::Vector2f(1.f, fr.height));
+    cursor.setSize(sf::Vector2f(1.f, bb.height));
 }
 
 bool TextField::is_valid() {
@@ -58,12 +59,13 @@ void TextField::render(sf::RenderTarget* target) {
 void TextField::set_cursor(unsigned int index) {
     auto x = text.findCharacterPos(cursor_pos).x;
     cursor.setPosition(x, cursor.getGlobalBounds().top);
-    auto&& fr = text.getGlobalBounds();
-    if (fr.width > default_width) {
-        shape.setSize(sf::Vector2f(fr.width, default_height));
+    auto&& bb = text.getGlobalBounds();
+    if (bb.width > default_width) {
+        shape.setSize(sf::Vector2f(bb.width, default_height));
     } else {
         shape.setSize(sf::Vector2f(default_width, default_height));
     }
+    bounding_box = shape.getGlobalBounds();
 }
 
 void TextField::handle_text_entered(sf::Uint32 c) {

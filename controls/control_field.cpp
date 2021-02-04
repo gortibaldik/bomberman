@@ -16,6 +16,7 @@ sf::FloatRect ControlField::move_position(  float factor,
     shape.setSize(sf::Vector2f( default_width == 0.f ? fr.width : default_width,
                                 default_height == 0.f ? fr.height : default_height));
     shape.setPosition(fr.left, fr.top);
+    bounding_box = shape.getGlobalBounds();
     return fr;
 }
 
@@ -43,14 +44,14 @@ ControlField::ControlField( float x,
 }
 
 float ControlField::get_height() const {
-    return shape.getGlobalBounds().height;
+    return bounding_box.height;
 }
 
 float ControlField::get_width() const {
-    return shape.getGlobalBounds().width;
+    return bounding_box.width;
 }
 
-std::string ControlField::get_text() const {
+std::string ControlField::get_content() const {
     return text.getString().toAnsiString();
 }
 

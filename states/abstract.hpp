@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <SFML/Graphics.hpp>
+#include "controls/control_field.hpp"
 
 class WindowManager;
 
@@ -21,4 +22,8 @@ protected:
     WindowManager& window_manager;
 };
 using GSPtr = std::unique_ptr<GameState>;
+
+void set_validator(ControlField* field_to_check, 
+                    ControlField* field_to_modify,
+                    const std::string& new_value);
 #endif

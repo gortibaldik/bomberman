@@ -5,6 +5,7 @@
 #include "network/network_params.hpp"
 #include <unordered_map>
 #include <thread>
+#include <atomic>
 #include <mutex>
 #include <string>
 
@@ -39,8 +40,8 @@ using Clients = std::unordered_map<std::string, ClientInfo>;
 
 class Server {
 public:
-    Server(): max_clients(2) {}
-    Server(int max_clients): max_clients(max_clients) {}
+    Server(): max_clients(2), running(false), can_add(true) {}
+    Server(int max_clients): max_clients(max_clients), running(false), can_add(true) {}
     ~Server();
     bool start(PortNumber port);
     void listen();
@@ -48,6 +49,7 @@ public:
     void update(const sf::Time& dt);
     void disable_adding_new_players() { can_add = false; }
     void enable_adding_new_players() { can_add = true; }
+    void terminate();
     bool is_running() { return running; }
 protected:
     void update_time_overflow();
@@ -59,9 +61,9 @@ protected:
     sf::UdpSocket incoming_socket, outcoming_socket;
     std::thread worker;
     std::mutex clients_mutex;
-    bool running = false;
-    bool can_add = true;
-    int max_clients;
+    std::atomic<bool> running;
+    std::atomic<bool> can_add;
+    const int max_clients;
 };
 
 #endif

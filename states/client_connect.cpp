@@ -1,5 +1,5 @@
-#include "server_connect.hpp"
-#include "server_connect_waiting.hpp"
+#include "client_connect.hpp"
+#include "client_connect_waiting.hpp"
 #include "window_manager/def.hpp"
 #include <SFML/Network.hpp>
 #include <iostream>
@@ -12,7 +12,7 @@ static const int ip_length = 15;
 static const int name_length = 20;
 static const float resizing_factor = 0.2f;
 enum BTN {
-    SUBMIT,
+    ENTER,
     RETURN,
     QUIT
 };
@@ -20,48 +20,38 @@ enum BTN {
 static const unsigned int txt_size = 25;
 static const float mb_default_width_txt = 150.f;
 static const std::unordered_map<std::string, BTN> mb_actions = { 
-    {"Enter the server", SUBMIT}, {"Return to main menu", RETURN}, {"Quit", QUIT}
+    {"Enter the server", ENTER}, {"Return to main menu", RETURN}, {"Quit", QUIT}
 };
 
-void ServerConnectState::handle_resize_menu(unsigned int width, unsigned int height, float factor) {
+void ClientConnectState::handle_resize_menu(unsigned int width, unsigned int height, float factor) {
     MenuState::handle_resize_menu(width, height, resizing_factor);
 }
 
-static void set_validator(ControlField* field_to_check, 
-                         ControlField* field_to_modify,
-                         const std::string& new_value) {
-    std::string new_content = "";
-    if (!field_to_check->is_valid()) {
-        new_content = new_value;
-    }
-    field_to_modify->set_content(new_content);
-}
-
-void ServerConnectState::update(float) {
+void ClientConnectState::update(float) {
     set_validator(menu.get_named_field("IP"), menu.get_named_field("VALID_IP"), "Invalid ip <example:0.0.0.0>");
-    set_validator(menu.get_named_field("PORT"), menu.get_named_field("VALID_PORT"), "Invalid port <must be bigger than 1025>");
+    set_validator(menu.get_named_field("PORT"), menu.get_named_field("VALID_PORT"), "Invalid port <must be ( bigger than 1024 ) or 0>");
 
     menu.update();
 }
 
-void ServerConnectState::handle_btn_pressed() {
+void ClientConnectState::handle_btn_pressed() {
     auto&& btn = menu.get_pressed_btn();
     std::string ip_address, port, name;
     if (btn) {
-        auto it = mb_actions.find(btn->get_text());
+        auto it = mb_actions.find(btn->get_content());
         if (it == mb_actions.end()) {
             return;
         }
         switch (it->second) {
-        case SUBMIT:
+        case ENTER:
             if (menu.get_named_field("IP")->is_valid() &&
                 menu.get_named_field("PORT")->is_valid() &&
                 menu.get_named_field("NAME")->is_valid()) {
-                    window_manager.change_state(std::make_unique<ServerWaitingState>(window_manager,
+                    window_manager.change_state(std::make_unique<ClientConnectWaitingState>(window_manager,
                         view,
-                        menu.get_named_field("IP")->get_text(),
-                        std::stoi(menu.get_named_field("PORT")->get_text()),
-                        menu.get_named_field("NAME")->get_text()));
+                        menu.get_named_field("IP")->get_content(),
+                        std::stoi(menu.get_named_field("PORT")->get_content()),
+                        menu.get_named_field("NAME")->get_content()));
                 }
             break;
         case RETURN:
@@ -74,7 +64,7 @@ void ServerConnectState::handle_btn_pressed() {
     }
 }
 
-ServerConnectState::ServerConnectState(WindowManager& mngr, const sf::View& view):
+ClientConnectState::ClientConnectState(WindowManager& mngr, const sf::View& view):
         MenuState(mngr, view),
         menu_btn_style( sf::Color::Transparent,
                         sf::Color::Transparent,
