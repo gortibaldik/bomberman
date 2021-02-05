@@ -32,8 +32,11 @@ void ClientConnectWaitingState::update(float) {
     case ClientStatus::TryingToConnect:
         new_value = "Connecting...";
         break;
-    case ClientStatus::Failed:
+    case ClientStatus::Failed: case ClientStatus::Terminated:
         new_value = "Failed to connect, please return to main menu!";
+        break;
+    case ClientStatus::Duplicate:
+        new_value = "Server already contains player with the selected name!";
         break;
     default:
         new_value = "";
@@ -86,9 +89,15 @@ ClientConnectWaitingState::ClientConnectWaitingState(WindowManager& mngr, const 
         client(name) {
     sf::Vector2f pos(100, 100);
     menu.initialize(pos.x, pos.y, txt_size, mb_default_width_txt, &menu_btn_style, &menu_txt_style);
-    client_runner = std::thread([this, &ip, port](){
+    using namespace std::chrono_literals;
+    client_runner = std::thread([this, ip, port](){
                                     client.connect(ip, port);
-                                    while(client.is_connected()) {}
+                                    sf::Clock c;
+                                    c.restart();
+                                    while(client.is_connected()) {
+                                        std::this_thread::sleep_for(100ms);
+                                        client.update(c.restart());
+                                    }
                                     client.terminate(); });
     menu.add_non_clickable("CONNECTION_STATUS", "Not started yet");
     menu.add_non_clickable("");

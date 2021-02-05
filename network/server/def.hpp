@@ -40,8 +40,8 @@ using Clients = std::unordered_map<std::string, ClientInfo>;
 
 class Server {
 public:
-    Server(): max_clients(2), running(false), can_add(true) {}
-    Server(int max_clients): max_clients(max_clients), running(false), can_add(true) {}
+    Server(int max_clients): max_clients(max_clients), running(false), can_add(true){}
+    Server(): Server(2) {}
     ~Server();
     bool start(PortNumber port);
     void listen();
@@ -51,6 +51,7 @@ public:
     void enable_adding_new_players() { can_add = true; }
     void terminate();
     bool is_running() { return running; }
+    std::vector<std::string> get_connected_clients();
 protected:
     void update_time_overflow();
     ClientInfo* find_by_ip_port(const sf::IpAddress&, PortNumber);

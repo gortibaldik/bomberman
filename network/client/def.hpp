@@ -14,7 +14,8 @@ enum class ClientStatus {
     TryingToConnect,
     Failed,
     NotStarted,
-    Terminated
+    Terminated,
+    Duplicate
 };
 
 class Client {
@@ -22,11 +23,13 @@ public:
     Client(const std::string& player_name): player_name(player_name), status(ClientStatus::NotStarted) {}
     bool connect(const sf::IpAddress&, PortNumber);
     void listen();
+    void update(const sf::Time& dt);
     ClientStatus get_status() { return status; }
     bool is_connected() { return status == ClientStatus::Connected; }
     void terminate();
 protected:
     bool handle_first_server_answer(sf::Packet&, sf::Int8);
+    void update_time_overflow();
     friend class CA; /* Client Accessor */
     std::string player_name;
 
@@ -34,6 +37,7 @@ protected:
     sf::IpAddress server_ip;
     PortNumber server_port_out, server_port_in;
     sf::Time server_time;
+    sf::Time last_heart_beat;   
 
     sf::UdpSocket socket;
     std::mutex socket_mutex;

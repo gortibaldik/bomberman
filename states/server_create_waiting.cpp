@@ -6,7 +6,8 @@
 static const int port_n_length = 4;
 static const int ip_length = 15;
 static const int name_length = 20;
-static const float resizing_factor = 0.3f;
+static const float resizing_factor = 0.2f;
+static const int max_players = 4;
 enum BTN {
     SUBMIT,
     MM_RETURN,
@@ -24,22 +25,14 @@ void ServerCreateWaitingState::handle_resize_menu(unsigned int width, unsigned i
 }
 
 void ServerCreateWaitingState::update(float) {
-    std::string new_value;
-    switch(client.get_status()) {
-    case ClientStatus::Connected:
-        new_value = "Connected! Waiting for server to start game!";
-        break;
-    case ClientStatus::TryingToConnect:
-        new_value = "Connecting...";
-        break;
-    case ClientStatus::Failed:
-        new_value = "Failed to connect, please return to main menu!";
-        break;
-    default:
-        new_value = "";
-        break;
+    int i = 0;
+    for (auto&& client : server.get_connected_clients()) {
+        menu.get_named_field(std::to_string(i))->set_content("   " + client);
+        i++;
     }
-    menu.get_named_field("CONNECTION_STATUS")->set_content(new_value);
+    for (;i < max_players;i++){
+        menu.get_named_field(std::to_string(i))->set_content("");
+    }
     menu.update();
 }
 
@@ -82,24 +75,40 @@ ServerCreateWaitingState::ServerCreateWaitingState(WindowManager& mngr, const sf
                         mngr.get_font("main_font"),
                         1.f),
         client(name),
-        server(4),
-        run_server(true) {
-    sf::Vector2f pos(100, 100);
+        server(max_players),
+        run_server(true),
+        run_client(true) {
+    sf::Vector2f pos(view.getSize());
+    pos *= resizing_factor;
     menu.initialize(pos.x, pos.y, txt_size, mb_default_width_txt, &menu_btn_style, &menu_txt_style);
+    using namespace std::chrono_literals;
     server_runner = std::thread([this, port]() {
                                     server.start(port);
                                     sf::Clock c;
                                     c.restart();
                                     while(run_server && server.is_running()) {
                                         server.update(c.restart());
+                                        std::this_thread::sleep_for(100ms);
                                     }
+                                    std::cout << "Server terminating" << std::endl;
                                     server.terminate();});
     client_runner = std::thread([this, ip, port](){
                                     client.connect(ip, port);
-                                    while(run_client && client.is_connected()) {}
-                                    client.terminate();});
-    menu.add_non_clickable("CONNECTION_STATUS", "Not started yet");
+                                    sf::Clock c;
+                                    c.restart();
+                                    while(client.is_connected()) {
+                                        std::this_thread::sleep_for(100ms);
+                                        client.update(c.restart());
+                                    }
+                                    std::cout << "Client terminating" << std::endl;
+                                    client.terminate(); });
+    menu.add_non_clickable("IP of the server: "+ip.toString()+":"+std::to_string(port)); 
+    menu.add_non_clickable("Connected players:");
+    for (int i = 0; i < max_players; i++) {
+        menu.add_non_clickable(std::to_string(i), "");
+    }
     menu.add_non_clickable("");
+    menu.add_button("Start game");
     menu.add_button("Return to main menu");
     menu.add_button("Quit");
 }

@@ -25,7 +25,6 @@ void Server::listen() {
     while (is_running()) {
         packet.clear();
         auto status = incoming_socket.receive(packet, ip, port);
-        std::cout << "received" << std::endl;
         if (status != sf::Socket::Done) { continue; }
 
         sf::Int8 id;
@@ -42,20 +41,18 @@ void Server::listen() {
                 continue;
             }
             sf::Packet p;
+            p.clear();
+            std::unique_lock<std::mutex> l(clients_mutex);
             auto it = connected_clients.find(name);
             if (it != connected_clients.end()){ 
                 std::cout << "Duplicate name!" << std::endl;
                 add_type_to_packet(p, PacketType::Duplicate);
-            } else if (can_add) {
+            } else if (can_add && (connected_clients.size() <= max_clients)) {
                 // send ack packet
                 std::cout << "Adding " << name << " to the list of connected clients!" << std::endl;
                 add_type_to_packet(p, PacketType::Connect);
 
-                std::unique_lock<std::mutex> l(clients_mutex);
                 connected_clients.insert(std::make_pair(name, ClientInfo(ip, port, c_time)));
-                if (connected_clients.size() >= max_clients) {
-                    disable_adding_new_players();
-                }
             } else {
                 std::cout << "Cannot add any more users" << std::endl;
                 add_type_to_packet(p, PacketType::Invalid);
@@ -73,6 +70,7 @@ void Server::listen() {
                 std::cout << "Got HeartBeat, haven't waited for it!" << std::endl;
                 continue;
             }
+            std::cout << "HeartBeat from " << ptr->ip << std::endl;
             ptr->uncheck_heartbeat(c_time);
             continue;
         }
@@ -132,9 +130,18 @@ void Server::terminate() {
     }
 }
 
+std::vector<std::string> Server::get_connected_clients() {
+    std::unique_lock<std::mutex> l(clients_mutex);
+    std::vector<std::string> result;
+    for (auto&& client: connected_clients) {
+        result.push_back(client.first);
+    }
+    return result;
+}
+
 void Server::update(const sf::Time& dt) {
     c_time += dt;
-    if (c_time.asMilliseconds() > Network::HighestTimeStamp) {
+    if (c_time.asMilliseconds() < 0) {
         update_time_overflow();
     }
     to_be_erased.clear();
@@ -154,6 +161,7 @@ void Server::update(const sf::Time& dt) {
     }
     std::unique_lock<std::mutex> l(clients_mutex);
     for (auto&& client : to_be_erased) {
+        std::cout << "removing " << client.first << std::endl;
         connected_clients.erase(client.first);
     }
 }

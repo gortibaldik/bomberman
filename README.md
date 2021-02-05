@@ -23,3 +23,7 @@ cmake ..
 
 ### Notice
 - developed on linux, tested both on windows and linux
+
+### Actual issues
+- bug in client connecting - after unsuccessfull duplicate connection, another
+    connection is marked as duplicate even if it isn't

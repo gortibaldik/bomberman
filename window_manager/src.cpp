@@ -2,6 +2,7 @@
 
 #include <SFML/System.hpp>
 #include <stdexcept>
+#include <iostream>
 
 void WindowManager::push_state(GSPtr&& state) {
     states.push_back(std::move(state));
@@ -13,6 +14,7 @@ void WindowManager::pop_states(int n) {
             throw std::runtime_error("Couldn't pop as many states!");
         } else {
             states.erase(states.end()-2);
+            n--;
         }
     }
     remove_top = true;
@@ -40,6 +42,7 @@ void WindowManager::loop() {
     while(window.isOpen()) {
         if (remove_top) {
             states.pop_back();
+            std::cout << states.size() << std::endl;
             remove_top = false;
         }
         sf::Time elapsed = clock.restart();

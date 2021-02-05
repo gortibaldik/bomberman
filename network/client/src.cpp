@@ -29,6 +29,7 @@ public:
             return CONTINUE;
         }
         if (!(packet >> ptype)) { return FAILURE; }
+        std::cout << "from " << receiver_port << std::endl;
         return SUCCESS;
     }
     
@@ -85,7 +86,8 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
         if (result == FAILURE) { break; }
         if (ptype == PacketType::Duplicate) {
             std::cout << "Duplicate name !" << std::endl;
-            break;
+            status = ClientStatus::Duplicate;
+            return false;
         }
         if ((result == CONTINUE) || (ptype != PacketType::Connect)) { continue; }
         if (!handle_first_server_answer(CA::packet, CA::ptype)) { break; };
@@ -116,6 +118,7 @@ void Client::listen() {
             sf::Int32 t;
             CA::packet >> t;
             server_time = sf::milliseconds(t);
+            last_heart_beat = sf::milliseconds(t);
             add_type_to_packet(packet, PacketType::HeartBeat);
             if (socket.send(packet, this->server_ip, this->server_port_in) != sf::Socket::Done) {
                 std::cout << "Failed to respond to a heartbeat!" << std::endl;
@@ -123,6 +126,23 @@ void Client::listen() {
         }
     }
     status = ClientStatus::Terminated;
+}
+
+void Client::update_time_overflow() {
+    server_time -= sf::milliseconds(Network::HighestTimeStamp);
+    last_heart_beat = server_time;
+}
+
+void Client::update(const sf::Time& dt) {
+    if (!is_connected()) { return; }
+    server_time += dt;
+    if (server_time.asMilliseconds() < 0) {
+        update_time_overflow();
+    }
+    if (server_time.asMilliseconds() - last_heart_beat.asMilliseconds() >= Network::ClientTimeOut) {
+        std::cout << "Timed out!" << std::endl;
+        terminate();
+    }
 }
 
 void Client::terminate() {
