@@ -5,7 +5,7 @@
 #include "controls/control_grid.hpp"
 #include <vector>
 #include <SFML/Graphics.hpp>
-class MenuState: public GameState {
+class MenuState: public State {
 public:
     void draw(float dt) override;
     void update(float dt) override;

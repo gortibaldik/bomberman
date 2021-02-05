@@ -1,5 +1,6 @@
 #include "start.hpp"
 #include "server_create.hpp"
+#include "game_state.hpp"
 #include "client_connect.hpp"
 #include "window_manager/def.hpp"
 #include <iostream>
@@ -26,6 +27,9 @@ void StartState::handle_btn_pressed() {
             return;
         }
         switch (it->second) {
+        case NEW_GAME:
+            window_manager.push_state(std::make_unique<GameState>(window_manager, view));
+            break;
         case CREATE:
             window_manager.push_state(std::make_unique<ServerCreateState>(window_manager, view));
             break;

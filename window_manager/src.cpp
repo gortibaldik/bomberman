@@ -2,7 +2,9 @@
 
 #include <SFML/System.hpp>
 #include <stdexcept>
-#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <unordered_map>
 
 void WindowManager::push_state(GSPtr&& state) {
     states.push_back(std::move(state));
@@ -42,7 +44,6 @@ void WindowManager::loop() {
     while(window.isOpen()) {
         if (remove_top) {
             states.pop_back();
-            std::cout << states.size() << std::endl;
             remove_top = false;
         }
         sf::Time elapsed = clock.restart();
@@ -61,14 +62,27 @@ void WindowManager::loop() {
     }
 }
 
-void WindowManager::load_textures() {
-    texture_manager.load_texture("background", "media/background.jpeg");
-}
+enum CONFIG_TYPES {
+    TEXTURE,
+    FONT
+};
 
-void WindowManager::load_fonts() {
-    sf::Font f;
-    f.loadFromFile("media/font.ttf");
-    fonts["main_font"] = std::move(f);
+void WindowManager::load_from_config(const std::string& name_of_file) {
+    std::fstream ifs(name_of_file);
+    if (!ifs) {
+        throw std::runtime_error("Couldn't load media config files!");
+    }
+
+    std::string line;
+    const std::unordered_map<std::string, CONFIG_TYPES> cfg_type = { {"TEXTURE", TEXTURE},
+                                                                     {"FONT", FONT}};
+    while (std::getline(ifs, line)) {
+        std::stringstream ss(line);
+        std::string token;
+        if (!(ss >> token)) {
+            continue; // ignore blank lines
+        }
+    }
 }
 
 void WindowManager::resize_window(unsigned int width, unsigned int height) {
@@ -97,8 +111,7 @@ const sf::Font* WindowManager::get_font(const std::string& name) {
 }
 
 WindowManager::WindowManager(): null_placeholder() {
-    load_textures();
-    load_fonts();
+    load_from_config("media/config.cfg");
     window.create(sf::VideoMode(800,600), "Bomberman");
     window.setFramerateLimit(60);
     background.setTexture(texture_manager.get_ref("background"));

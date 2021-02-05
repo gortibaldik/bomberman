@@ -4,10 +4,6 @@
 #include <unordered_map>
 
 void MenuState::draw(float dt) {
-    sf::Vector2f r(window_manager.window.getSize());
-    if (view.getSize() != r) {
-        view.setSize(r.x, r.y);
-    }
     window_manager.window.setView(view);
     window_manager.window.draw(window_manager.background);
     menu.render(&window_manager.window);
@@ -32,6 +28,7 @@ void MenuState::handle_input() {
         case sf::Event::Resized:
             handle_resize_menu(event.size.width, event.size.height);
             view.setSize(event.size.width, event.size.height);
+            view.setCenter(event.size.width / 2, event.size.height / 2);
             window_manager.resize_window(event.size.width, event.size.height);
             break;
         case sf::Event::MouseMoved: case sf::Event::MouseButtonPressed:
@@ -46,15 +43,16 @@ void MenuState::handle_input() {
     }
 }
 
-MenuState::MenuState(WindowManager& mngr): GameState(mngr) {
+MenuState::MenuState(WindowManager& mngr): State(mngr) {
     sf::Vector2f pos(mngr.window.getSize());
     view.setSize(pos);
     pos *= 0.5f;
     view.setCenter(pos);
 }
 
-MenuState::MenuState(WindowManager& mngr, const sf::View& view): GameState(mngr) {
-    this->view = view;
+MenuState::MenuState(WindowManager& mngr, const sf::View& view): State(mngr), view(view) {
+    sf::Vector2f fr(view.getSize());
+    window_manager.resize_window(fr.x, fr.y);
 }
 
 void MenuState::update(float dt) {

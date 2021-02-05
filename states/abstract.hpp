@@ -7,21 +7,21 @@
 
 class WindowManager;
 
-class GameState {
+class State {
 public:
     virtual void draw(float dt) = 0;
     virtual void update(float dt) = 0;
     virtual void handle_input() = 0;
-    virtual ~GameState() = default;
+    virtual ~State() = default;
 protected:
-    GameState(WindowManager& window_manager):
+    State(WindowManager& window_manager):
         window_manager(window_manager){}
     void update_mouse_pos();
 
     sf::Vector2f mouse_pos;
     WindowManager& window_manager;
 };
-using GSPtr = std::unique_ptr<GameState>;
+using GSPtr = std::unique_ptr<State>;
 
 void set_validator(ControlField* field_to_check, 
                     ControlField* field_to_modify,

@@ -20,7 +20,6 @@ protected:
     void handle_resize_menu(unsigned int, unsigned int, float) override;
 private:
     GStyle menu_btn_style, menu_txt_style;
-    ControlGrid connected_players;
     Client client;
     Server server;
     std::atomic<bool> run_server;

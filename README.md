@@ -6,7 +6,7 @@
 
 - download `SFML` library, version `2.5.1`
     - __possibility 1:__ install it system-wide and add relevant binaries to the `PATH` variable
-    - __possibility 2:__download non-OS-specific sources from [the official web site](https://www.sfml-dev.org/files/SFML-2.5.1-sources.zip) and extract it in the same directory as `main.cpp`, then build it using the same configuration as the sources for this project
+    - __possibility 2:__ download non-OS-specific sources from [the official web site](https://www.sfml-dev.org/files/SFML-2.5.1-sources.zip) and extract it in the same directory as `main.cpp`, then build it using the same configuration as the sources for this project
         
 ## Linux
 - quick guide to run the executable

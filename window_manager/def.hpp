@@ -2,9 +2,10 @@
 #define STATE_MANAGER_HPP
 
 #include <deque>
+#include <string>
 #include <SFML/Graphics.hpp>
 #include "states/abstract.hpp"
-#include "texture_manager/def.hpp"
+#include "texture_handling/texture_manager.hpp"
 
 class WindowManager {
 public:
@@ -24,8 +25,7 @@ public:
 
     WindowManager();
 private:
-    void load_textures();
-    void load_fonts();
+    void load_from_config(const std::string& name_of_file);
 
     GSPtr null_placeholder;
     bool remove_top = false;
