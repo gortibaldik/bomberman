@@ -3,6 +3,7 @@
 
 #include "abstract.hpp"
 #include "controls/control_grid.hpp"
+#include "texture_handling/texture_manager.hpp"
 #include <vector>
 #include <SFML/Graphics.hpp>
 class GameState: public State {
@@ -11,9 +12,9 @@ public:
     void update(float dt) override;
     void handle_input() override;
     
-    GameState(WindowManager&);
     GameState(WindowManager&, const sf::View&);
 protected:
     sf::View view;
+    const Animation& animation;
 };
 #endif

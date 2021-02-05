@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <fstream>
+#include <iostream>
 #include <unordered_map>
 
 void WindowManager::push_state(GSPtr&& state) {
@@ -64,23 +65,79 @@ void WindowManager::loop() {
 
 enum CONFIG_TYPES {
     TEXTURE,
-    FONT
+    FONT,
+    ANIMATION
 };
+
+static std::string config_file_error = "Invalid config file";
+
+static void load_animation(TextureManager& tm, std::istream& is) {
+    std::string animation_name, texture_name;
+    int duration, milliseconds_frame_change;
+    std::string line;
+    std::getline(is, line);
+    std::stringstream _ss(line);
+    if (!(_ss >> animation_name >> duration >> milliseconds_frame_change >> texture_name)) {
+        throw std::runtime_error(config_file_error);
+    }
+    std::cout << "Creating animation dur:" << duration << "; mfc: " << milliseconds_frame_change << std::endl;
+    tm.create_animation(animation_name, texture_name, milliseconds_frame_change);
+    while (duration > 0) {
+        int size_x, size_y, x, y;
+        std::getline(is, line);
+        std::stringstream ss(line);
+        if (!(ss >> size_x >> size_y >> x >> y)) {
+            throw std::runtime_error(config_file_error);
+        }
+        std::cout << "Creating animation state " << size_x << "," << size_y << ","  << x << "," << y << std::endl;
+        tm.add_animation_state(animation_name, size_x, size_y, x, y);
+        duration--;
+    }
+}
+
+static void load_texture(TextureManager& tm, std::istream& is) {
+    std::string file_name, texture_name;
+    if (!(is >> file_name >> texture_name) || !tm.load_texture(texture_name, file_name)) {
+        throw std::runtime_error(config_file_error);
+    }
+}
+
+static void load_font(Fonts& fonts, std::istream& is) {
+    std::string file_name, font_name;
+    if (!(is >> file_name >> font_name) || !fonts[font_name].loadFromFile(file_name)) {
+        throw std::runtime_error(config_file_error);
+    }
+}
 
 void WindowManager::load_from_config(const std::string& name_of_file) {
     std::fstream ifs(name_of_file);
     if (!ifs) {
-        throw std::runtime_error("Couldn't load media config files!");
+        throw std::runtime_error("Couldn't load media config file!");
     }
 
     std::string line;
     const std::unordered_map<std::string, CONFIG_TYPES> cfg_type = { {"TEXTURE", TEXTURE},
-                                                                     {"FONT", FONT}};
+                                                                     {"FONT", FONT},
+                                                                     {"ANIMATION", ANIMATION}};
     while (std::getline(ifs, line)) {
         std::stringstream ss(line);
         std::string token;
         if (!(ss >> token)) {
             continue; // ignore blank lines
+        }
+        if (cfg_type.find(token) == cfg_type.end()) {
+            throw std::runtime_error(config_file_error);
+        }
+        switch(cfg_type.at(token)) {
+            case TEXTURE:
+                load_texture(texture_manager, ss);
+                break;
+            case FONT:
+                load_font(fonts, ss);
+                break;
+            case ANIMATION:
+                load_animation(texture_manager, ifs);
+                break;
         }
     }
 }

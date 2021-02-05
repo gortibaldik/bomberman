@@ -3,5 +3,4 @@ target_sources(Bomberman
   PUBLIC
     texture_manager.hpp
     texture_manager.cpp
-    sheet_manager.hpp
-    sheet_manager.cpp)
+)
