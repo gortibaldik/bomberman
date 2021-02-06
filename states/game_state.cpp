@@ -23,7 +23,7 @@ void GameState::handle_input() {
 GameState::GameState(WindowManager& mngr, const sf::View& view)
                     : State(mngr)
                     , view(view)
-                    , animation(window_manager.get_tm().get_animation("p1")) {
+                    , animation(window_manager.get_tm().get_anim_object("p1")) {
     sf::Vector2f fr(view.getSize());
     window_manager.resize_window(fr.x, fr.y);
 }

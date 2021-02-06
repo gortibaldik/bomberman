@@ -15,6 +15,6 @@ public:
     GameState(WindowManager&, const sf::View&);
 protected:
     sf::View view;
-    const Animation& animation;
+    AnimObject animation;
 };
 #endif
