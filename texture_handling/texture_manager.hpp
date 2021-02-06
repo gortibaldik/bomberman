@@ -37,13 +37,16 @@ private:
 
 class AnimObject {
 public:
-    AnimObject(const sf::Sprite&, float milliseconds_frame_change, const Animation& animation, Direction default_direction);
+    AnimObject(const sf::Sprite&, float milliseconds_frame_change, const Animation* animation, Direction default_direction);
     void set_position(const sf::Vector2f& pos);
+    void set_position(float, float);
+    sf::FloatRect get_global_bounds() { return sprite.getGlobalBounds(); }
+    void scale(float, float);
     void update(float);
     const sf::Sprite& get_sprite() const { return sprite; }
 private:
     sf::Sprite sprite;
-    const Animation& animation;
+    const Animation* animation;
     float milliseconds_frame_change;
     float c_time;
     int c_anim_index = 0;

@@ -4,6 +4,7 @@
 #include "abstract.hpp"
 #include "controls/control_grid.hpp"
 #include "texture_handling/texture_manager.hpp"
+#include "game/map.hpp"
 #include <vector>
 #include <SFML/Graphics.hpp>
 class GameState: public State {
@@ -15,6 +16,6 @@ public:
     GameState(WindowManager&, const sf::View&);
 protected:
     sf::View view;
-    AnimObject animation;
+    GameMap game_map;
 };
 #endif

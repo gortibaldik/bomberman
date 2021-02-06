@@ -6,7 +6,7 @@
 void GameState::draw(float dt) {
     window_manager.window.setView(view);
     window_manager.window.draw(window_manager.background);
-    window_manager.window.draw(animation.get_sprite());
+    game_map.render(&window_manager.window);
 }
 
 void GameState::handle_input() {
@@ -23,11 +23,12 @@ void GameState::handle_input() {
 GameState::GameState(WindowManager& mngr, const sf::View& view)
                     : State(mngr)
                     , view(view)
-                    , animation(window_manager.get_tm().get_anim_object("p1")) {
+                    , game_map("media/map_basic.cfg", mngr.get_tm()) {
     sf::Vector2f fr(view.getSize());
     window_manager.resize_window(fr.x, fr.y);
+    game_map.fit_to_window(fr.x, fr.y);
 }
 
 void GameState::update(float dt) {
-    animation.update(dt);
+    //animation.update(dt);
 }

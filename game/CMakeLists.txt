@@ -3,5 +3,5 @@ target_sources(Bomberman
   PUBLIC
     map.hpp
     map.cpp
-    tile.hpp
-    tile.cpp)
+    entity.hpp
+    entity.cpp)

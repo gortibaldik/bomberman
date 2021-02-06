@@ -6,7 +6,6 @@ Animation::Animation(const sf::Texture& texture
                     , Direction default_direction)
                     : default_direction(default_direction) {
     sprite.setTexture(texture);
-    sprite.scale(4.f,4.f);
 }
 
 const std::tuple<int, int, int, int>& Animation::get_idx(Direction dir, std::size_t idx) const {
@@ -40,7 +39,7 @@ AnimObject Animation::get_anim_object() const {
         (directions.at(default_direction).size() == 0)) {
         throw std::runtime_error("Couldn't load non_existent anim object");
     }
-    return AnimObject(sprite, frame_rates.at(default_direction), *this, default_direction);
+    return AnimObject(sprite, frame_rates.at(default_direction), this, default_direction);
 }
 
 const std::size_t Animation::size(Direction dir) const {
@@ -52,7 +51,7 @@ const std::size_t Animation::size(Direction dir) const {
 
 AnimObject::AnimObject(const sf::Sprite& sprite
                        , float milliseconds_frame_change
-                       , const Animation& animation
+                       , const Animation* animation
                        , Direction default_direction)
                       : sprite(sprite)
                       , milliseconds_frame_change(milliseconds_frame_change)
@@ -64,13 +63,21 @@ void AnimObject::set_position(const sf::Vector2f& pos) {
     sprite.setPosition(pos);
 }
 
+void AnimObject::set_position(float x, float y) {
+    sprite.setPosition(x, y);
+}
+
+void AnimObject::scale(float x, float y) {
+    sprite.scale(x, y);
+}
+
 void AnimObject::update(float dt) {
-    if (animation.size(actual_direction) == 1) { return; }
+    if (animation->size(actual_direction) == 1) { return; }
     c_time += dt;
-    if (c_time < milliseconds_frame_change) {return;}
+    if (c_time < milliseconds_frame_change) { return; }
     c_time = 0.f;
-    c_anim_index = (c_anim_index + 1) % animation.size(actual_direction);
-    auto& [size_x, size_y, x, y] = animation.get_idx(actual_direction, c_anim_index);
+    c_anim_index = (c_anim_index + 1) % animation->size(actual_direction);
+    auto& [size_x, size_y, x, y] = animation->get_idx(actual_direction, c_anim_index);
     sprite.setTextureRect(sf::IntRect(x, y, size_x, size_y));
 }
 
