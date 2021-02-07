@@ -106,26 +106,41 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
     return false;
 }
 
-void Client::listen() {
+void Client::handle_heartbeat(sf::Packet& p) {
+    sf::Int32 t;
     sf::Packet packet;
+    if (!p >> t) {
+        std::cout << "Invalid heartbeat!" << std::endl;
+    }
+    server_time = sf::milliseconds(t);
+    last_heart_beat = server_time;
+    add_type_to_packet(packet, PacketType::HeartBeat);
+    if (socket.send(packet, this->server_ip, this->server_port_in) != sf::Socket::Done) {
+        std::cout << "Failed to respond to a heartbeat!" << std::endl;
+    }
+}
+
+void Client::listen() {
     while (is_connected()) {
-        packet.clear();
+        sf::Packet packet;
+        CA::packet = packet;
         auto result = CA::listen_to_server(*this);
         if (result == FAILURE) { break; }
         if (result == CONTINUE) { continue; }
-        auto ptype = (PacketType)CA::ptype;
-        if (ptype == PacketType::HeartBeat) {
-            sf::Int32 t;
-            CA::packet >> t;
-            server_time = sf::milliseconds(t);
-            last_heart_beat = sf::milliseconds(t);
-            add_type_to_packet(packet, PacketType::HeartBeat);
-            if (socket.send(packet, this->server_ip, this->server_port_in) != sf::Socket::Done) {
-                std::cout << "Failed to respond to a heartbeat!" << std::endl;
-            }
+        switch(static_cast<PacketType>(CA::ptype)) {
+        case PacketType::HeartBeat:
+            handle_heartbeat(CA::packet);
+            break;
+        case PacketType::Disconnect:
+            socket.unbind();
+            status = ClientStatus::Terminated;
+            break;
+        default:
+            received_messages.enqueue(std::move(CA::packet), static_cast<PacketType>(CA::ptype));
         }
     }
     status = ClientStatus::Terminated;
+    std::cout << "Listener terminated!" << std::endl;
 }
 
 void Client::update_time_overflow() {
@@ -149,7 +164,8 @@ void Client::terminate() {
     if(is_connected()) {
         status = ClientStatus::Terminated;
         sf::Packet p;
-        add_type_to_packet(p, PacketType::Invalid);
+        add_type_to_packet(p, PacketType::Disconnect);
+        socket.send(p, server_ip, server_port_in);
         socket.send(p, sf::IpAddress::getLocalAddress(), socket.getLocalPort());
         std::cout << "sent terminate socket" << std::endl;
         socket.unbind();
@@ -161,4 +177,13 @@ void Client::terminate() {
 
 bool Client::handle_first_server_answer(sf::Packet& p, sf::Int8 ptype) {
     return true;
+}
+
+Client::~Client() {
+    if (worker.joinable()) {
+        std::cout << "Listener thread still joinable, going to join it!" << std::endl;
+        worker.join();
+    } else {
+        std::cout << "Listener thread already joined!" << std::endl;
+    }
 }

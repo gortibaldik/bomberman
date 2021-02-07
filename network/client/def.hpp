@@ -8,6 +8,7 @@
 #include <string>
 #include "network/network_params.hpp"
 #include "network/packet_types.hpp"
+#include "network/utils.hpp"
 
 enum class ClientStatus {
     Connected,
@@ -21,14 +22,18 @@ enum class ClientStatus {
 class Client {
 public:
     Client(const std::string& player_name): player_name(player_name), status(ClientStatus::NotStarted) {}
+    ~Client();
     bool connect(const sf::IpAddress&, PortNumber);
     void listen();
     void update(const sf::Time& dt);
     ClientStatus get_status() { return status; }
     bool is_connected() { return status == ClientStatus::Connected; }
     void terminate();
+
+    ReceiverQueue& get_received_messages() { return received_messages; }
 protected:
     bool handle_first_server_answer(sf::Packet&, sf::Int8);
+    void handle_heartbeat(sf::Packet&);
     void update_time_overflow();
     friend class CA; /* Client Accessor */
     std::string player_name;
@@ -42,6 +47,8 @@ protected:
     sf::UdpSocket socket;
     std::mutex socket_mutex;
     std::thread worker;
+
+    ReceiverQueue received_messages;
 };
 
 #endif

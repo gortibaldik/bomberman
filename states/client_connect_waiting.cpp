@@ -60,6 +60,7 @@ void ClientConnectWaitingState::handle_btn_pressed() {
             if (client_runner.joinable()) {
                 client_runner.join();
             }
+            std::cout << "All the threads joined!" << std::endl;
             break;
         case QUIT:
             window_manager.window.close();

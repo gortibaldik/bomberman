@@ -20,10 +20,17 @@ void GameState::handle_input() {
     }
 }
 
-GameState::GameState(WindowManager& mngr, const sf::View& view)
+GameState::GameState(WindowManager& mngr
+                    , const sf::View& view
+                    , const std::string& map_name
+                    , Client* client
+                    , Server* server)
+
                     : State(mngr)
                     , view(view)
-                    , game_map("media/map_basic.cfg", mngr.get_tm()) {
+                    , game_map(map_name, mngr.get_tm())
+                    , client(client)
+                    , server(server) {
     sf::Vector2f fr(view.getSize());
     window_manager.resize_window(fr.x, fr.y);
     game_map.fit_to_window(fr.x, fr.y);

@@ -1,5 +1,5 @@
 #include "window_manager/def.hpp"
-#include "network/server/def.hpp"
+#include "network/server/server.hpp"
 #include "states/start.hpp"
 
 int main(int argc, char** argv) {

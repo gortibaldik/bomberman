@@ -9,7 +9,7 @@ static const int name_length = 20;
 static const float resizing_factor = 0.2f;
 static const int max_players = 4;
 enum BTN {
-    SUBMIT,
+    START_GAME,
     MM_RETURN,
     QUIT
 };
@@ -17,7 +17,7 @@ enum BTN {
 static const unsigned int txt_size = 25;
 static const float mb_default_width_txt = 150.f;
 static const std::unordered_map<std::string, BTN> mb_actions = { 
-    {"Submit", SUBMIT}, {"Return to main menu", MM_RETURN}, {"Quit", QUIT}
+    {"Start game", START_GAME}, {"Return to main menu", MM_RETURN}, {"Quit", QUIT}
 };
 
 void ServerCreateWaitingState::handle_resize_menu(unsigned int width, unsigned int height, float factor) {
@@ -25,6 +25,7 @@ void ServerCreateWaitingState::handle_resize_menu(unsigned int width, unsigned i
 }
 
 void ServerCreateWaitingState::update(float) {
+    auto&& received_messages = client.get_received_messages();
     int i = 0;
     for (auto&& client : server.get_connected_clients()) {
         menu.get_named_field(std::to_string(i))->set_content("   " + client);
@@ -37,6 +38,9 @@ void ServerCreateWaitingState::update(float) {
 }
 
 void ServerCreateWaitingState::handle_btn_pressed() {
+    if (!server.is_in_waiting_room()) {
+        return; // after starting the server don't accept any other input 
+    }
     auto&& btn = menu.get_pressed_btn();
     if (btn) {
         auto it = mb_actions.find(btn->get_content());
@@ -44,6 +48,9 @@ void ServerCreateWaitingState::handle_btn_pressed() {
             return;
         }
         switch (it->second) {
+        case START_GAME:
+            server.set_ready_game();
+            break;
         case MM_RETURN:
             window_manager.pop_states(1);
             run_client = false;
@@ -86,6 +93,11 @@ ServerCreateWaitingState::ServerCreateWaitingState(WindowManager& mngr, const sf
                                     server.start(port);
                                     sf::Clock c;
                                     c.restart();
+                                    // server update handles only heartbeating
+                                    // we can keep the service running in this
+                                    // manner even after the game was started
+                                    // since listener loop as well as sending one
+                                    // are completely independent of this thread
                                     while(run_server && server.is_running()) {
                                         server.update(c.restart());
                                         std::this_thread::sleep_for(100ms);
@@ -96,7 +108,9 @@ ServerCreateWaitingState::ServerCreateWaitingState(WindowManager& mngr, const sf
                                     client.connect(ip, port);
                                     sf::Clock c;
                                     c.restart();
-                                    while(client.is_connected()) {
+                                    // the same as above, we can keep the thread running
+                                    // for whole duration of the game
+                                    while(run_client && client.is_connected()) {
                                         std::this_thread::sleep_for(100ms);
                                         client.update(c.restart());
                                     }

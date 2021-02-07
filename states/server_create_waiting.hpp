@@ -2,7 +2,7 @@
 #define STATES_SERVER_CREATE_WAITING_HPP
 #include "menu_state.hpp"
 #include "network/client/def.hpp"
-#include "network/server/def.hpp"
+#include "network/server/game_server.hpp"
 #include "network/network_params.hpp"
 #include "controls/control_grid.hpp"
 #include <vector>
@@ -21,9 +21,10 @@ protected:
 private:
     GStyle menu_btn_style, menu_txt_style;
     Client client;
-    Server server;
+    GameServer server;
     std::atomic<bool> run_server;
     std::atomic<bool> run_client;
+    bool is_game_started = false;
     std::thread client_runner;  
     std::thread server_runner;
 };

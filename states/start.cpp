@@ -28,7 +28,9 @@ void StartState::handle_btn_pressed() {
         }
         switch (it->second) {
         case NEW_GAME:
-            window_manager.push_state(std::make_unique<GameState>(window_manager, view));
+            window_manager.push_state(std::make_unique<GameState>(window_manager, view,
+                                                                  "media/map_basic.cfg",
+                                                                  nullptr, nullptr));
             break;
         case CREATE:
             window_manager.push_state(std::make_unique<ServerCreateState>(window_manager, view));

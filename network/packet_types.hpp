@@ -4,7 +4,14 @@
 #include <SFML/Network.hpp>
 
 enum class PacketType {
-    Disconnect = -1, Connect, Duplicate, Message, HeartBeat, Invalid
+    Disconnect = -1,
+    Connect,
+    Duplicate,
+    Message,
+    HeartBeat,
+    GetReady,
+    ClientReady,
+    Invalid
 };
 
 void add_type_to_packet(sf::Packet& packet, PacketType type);

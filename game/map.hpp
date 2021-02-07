@@ -1,9 +1,10 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
-#include <texture_handling/texture_manager.hpp>
+#include "texture_handling/texture_manager.hpp"
+#include "entity.hpp"
 
 using TilesMap = std::vector<AnimObject>;
-using Entities = std::vector<AnimObject>;
+using Entities = std::vector<Entity>;
 
 class GameMap {
 public:
@@ -20,4 +21,5 @@ private:
     float tile_width, tile_height;
     float tile_scale_x, tile_scale_y;
     TilesMap tiles;
+    Entities entities;
 };

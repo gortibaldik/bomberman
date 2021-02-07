@@ -44,6 +44,7 @@ void WindowManager::loop() {
     sf::Clock clock;
     while(window.isOpen()) {
         if (remove_top) {
+            std::cout << "removing state" << std::endl;
             states.pop_back();
             remove_top = false;
         }
