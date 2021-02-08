@@ -30,6 +30,7 @@ void Server::listen() {
         if (!(packet >> id)) {
             continue;
         }
+        std::string client_name;
 
         switch(static_cast<PacketType>(id)){
         case PacketType::Connect:
@@ -42,23 +43,33 @@ void Server::listen() {
             handle_disconnect(ip, port);
             break;
         default:
-            handle_others(packet, static_cast<PacketType>(id));
+            {
+                std::unique_lock<std::mutex> l(clients_mutex);
+                auto iter = find_by_ip_port(ip, port);
+                if (iter == connected_clients.end()) {
+                    break;
+                }
+                client_name = iter->first;
+            }
+            handle_others(client_name, packet, static_cast<PacketType>(id));
         }
     }
     std::cout << "Listener terminated!" << std::endl;
 }
 
 void Server::handle_disconnect(const sf::IpAddress& ip, PortNumber port) {
+    std::unique_lock<std::mutex> l(clients_mutex);
     auto ptr = find_by_ip_port(ip, port);
     if (ptr == connected_clients.end()) {
         return; // ignore non existent client error
     }
-    std::unique_lock<std::mutex> l(clients_mutex);
     std::cout << "erased " << ptr->first << std::endl;
     connected_clients.erase(ptr->first);
+    notify_disconnect(ptr->first);
 }
 
 void Server::handle_heartbeat(const sf::IpAddress& ip, PortNumber port) {
+    std::unique_lock<std::mutex> l(clients_mutex);
     auto ptr = find_by_ip_port(ip, port);
     if (ptr == connected_clients.end()) {
         std::cout << "HeartBeat received from unknown user!" << std::endl;
@@ -67,7 +78,7 @@ void Server::handle_heartbeat(const sf::IpAddress& ip, PortNumber port) {
         std::cout << "Got HeartBeat, haven't waited for it!" << std::endl;
         return;
     }
-    std::cout << "HeartBeat from " << ptr->second.ip << std::endl;
+    //std::cout << "HeartBeat from " << ptr->second.ip << std::endl;
     ptr->second.uncheck_heartbeat(c_time);
 }
 
@@ -101,7 +112,7 @@ void Server::handle_connection_attempt(const sf::IpAddress& ip, PortNumber port,
 }
 
 Clients::iterator Server::find_by_ip_port(const sf::IpAddress& ip, PortNumber port) {
-    std::unique_lock<std::mutex>(clients_mutex);
+    //std::unique_lock<std::mutex> l(clients_mutex);
     for (auto&& client : connected_clients) {
         if ((client.second.ip == ip) && (client.second.port == port)) {
             return connected_clients.find(client.first);

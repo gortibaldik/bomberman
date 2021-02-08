@@ -7,7 +7,7 @@ enum class PacketType {
     Disconnect = -1,
     Connect,
     Duplicate,
-    Message,
+    SpawnPosition,
     HeartBeat,
     GetReady,
     ClientReady,

@@ -5,8 +5,8 @@
 #include "controls/control_grid.hpp"
 #include "texture_handling/texture_manager.hpp"
 #include "game/map.hpp"
-#include "network/client/def.hpp"
-#include "network/server/server.hpp"
+#include "network/client/game_client.hpp"
+#include "network/server/game_server.hpp"
 #include <vector>
 #include <SFML/Graphics.hpp>
 class GameState: public State {
@@ -17,13 +17,11 @@ public:
     
     GameState( WindowManager&
              , const sf::View&
-             , const std::string&
-             , Client*
-             , Server*);
+             , GameClient*
+             , GameServer*);
 protected:
-    Client* client;
-    Server* server;
+    GameClient* client;
+    GameServer* server;
     sf::View view;
-    GameMap game_map;
 };
 #endif

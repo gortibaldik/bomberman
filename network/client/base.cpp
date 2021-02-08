@@ -1,4 +1,4 @@
-#include "def.hpp"
+#include "base.hpp"
 #include "network/packet_types.hpp"
 #include <iostream>
 
@@ -120,6 +120,10 @@ void Client::handle_heartbeat(sf::Packet& p) {
     }
 }
 
+void Client::send(sf::Packet& packet) {
+    socket.send(packet, server_ip, server_port_in);
+}
+
 void Client::listen() {
     while (is_connected()) {
         sf::Packet packet;
@@ -134,9 +138,10 @@ void Client::listen() {
         case PacketType::Disconnect:
             socket.unbind();
             status = ClientStatus::Terminated;
+            notify_disconnect();
             break;
         default:
-            received_messages.enqueue(std::move(CA::packet), static_cast<PacketType>(CA::ptype));
+            handle_others(CA::packet, static_cast<PacketType>(CA::ptype));
         }
     }
     status = ClientStatus::Terminated;

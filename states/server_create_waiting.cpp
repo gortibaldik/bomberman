@@ -1,5 +1,6 @@
 #include "server_create_waiting.hpp"
 #include "window_manager/def.hpp"
+#include "states/game_state.hpp"
 #include <iostream>
 #include <unordered_map>
 
@@ -24,8 +25,25 @@ void ServerCreateWaitingState::handle_resize_menu(unsigned int width, unsigned i
     MenuState::handle_resize_menu(width, height, resizing_factor);
 }
 
+static int last_dt = Network::ConnectionInterval;
+
 void ServerCreateWaitingState::update(float) {
-    auto&& received_messages = client.get_received_messages();
+    if (!server.is_in_waiting_room()) {
+        if (connection_timer.getElapsedTime().asMilliseconds() >= Network::ConnectionInterval) {
+            server.start_game();
+        } else {
+            int dt = Network::ConnectionInterval - connection_timer.getElapsedTime().asMilliseconds();
+            menu.get_named_field("START_TIME")->set_content("Starting in " + std::to_string(dt / 1000) + " seconds.");
+            if (last_dt - dt > 200) {
+                server.set_ready_game();
+                last_dt = dt;
+            }
+        }
+        if (client.is_game_started()) {
+            window_manager.push_state(std::make_unique<GameState>(window_manager, view, &client, &server));
+            return;
+        }
+    }
     int i = 0;
     for (auto&& client : server.get_connected_clients()) {
         menu.get_named_field(std::to_string(i))->set_content("   " + client);
@@ -49,7 +67,8 @@ void ServerCreateWaitingState::handle_btn_pressed() {
         }
         switch (it->second) {
         case START_GAME:
-            server.set_ready_game();
+            server.set_ready_game(map_name);
+            connection_timer.restart();
             break;
         case MM_RETURN:
             window_manager.pop_states(1);
@@ -81,10 +100,11 @@ ServerCreateWaitingState::ServerCreateWaitingState(WindowManager& mngr, const sf
                         sf::Color::Black,
                         mngr.get_font("main_font"),
                         1.f),
-        client(name),
+        client(name, mngr.get_tm()),
         server(max_players),
         run_server(true),
-        run_client(true) {
+        run_client(true),
+        map_name("media/map_basic.cfg") {
     sf::Vector2f pos(view.getSize());
     pos *= resizing_factor;
     menu.initialize(pos.x, pos.y, txt_size, mb_default_width_txt, &menu_btn_style, &menu_txt_style);
@@ -121,6 +141,7 @@ ServerCreateWaitingState::ServerCreateWaitingState(WindowManager& mngr, const sf
     for (int i = 0; i < max_players; i++) {
         menu.add_non_clickable(std::to_string(i), "");
     }
+    menu.add_non_clickable("START_TIME", "");
     menu.add_non_clickable("");
     menu.add_button("Start game");
     menu.add_button("Return to main menu");

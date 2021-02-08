@@ -2,7 +2,7 @@
 #define STATES_CLIENT_CONNECT_WAITING_HPP
 
 #include "menu_state.hpp"
-#include "network/client/def.hpp"
+#include "network/client/game_client.hpp"
 #include "network/network_params.hpp"
 #include "controls/control_grid.hpp"
 #include <vector>
@@ -19,7 +19,7 @@ protected:
     void handle_resize_menu(unsigned int, unsigned int, float) override;
 private:
     GStyle menu_btn_style, menu_txt_style;
-    Client client;
+    GameClient client;
     std::thread client_runner;  
 };
 #endif

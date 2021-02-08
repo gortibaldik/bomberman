@@ -4,20 +4,19 @@
 #include <sstream>
 #include <fstream>
 
-GameMap::GameMap(const std::string& config_file, const TextureManager& tm){
-    load_from_config(config_file, tm);
-}
+GameMapRenderable::GameMapRenderable(const TextureManager& tm)
+                                    : tm(tm) {}
 
 static void throw_error() {
     throw std::runtime_error("Invalid map config file");
 }
 
-void GameMap::load_from_config(const std::string& config_file, const TextureManager& tm) {
+void GameMap::load_from_config(const std::string& config_file) {
     std::ifstream ifs(config_file);
     if (!ifs) {
         throw std::runtime_error("Unable to load config file: " + config_file);
     }
-    std::string token, type, line;
+    std::string token, animation, type, line;
     if (! std::getline(ifs, line)) {
         throw_error();
     }
@@ -35,27 +34,53 @@ void GameMap::load_from_config(const std::string& config_file, const TextureMana
     }
     this->rows = rows;
     this->columns = columns;
-    tiles.clear();
+    initialize();
     for (int i = 0; i < rows * columns; i++) {
         if (!std::getline(ifs, line)) {
             throw_error();
         }
         ss = std::stringstream(line);
         int r, c;
-        if (! (ss >> token >> type >> r >> c) ||
+        if (! (ss >> token >> animation >> type >> r >> c) ||
             (r < 0) || (r >= rows) || (c < 0) || (c >= columns) ||
             (r*columns + c != i)) {
             throw_error();
         }
-        tiles.push_back(tm.get_anim_object(type));
-        if (i == 0) {
-            auto&& fr = tiles[i].get_global_bounds();
-            tile_width = fr.width;
-            tile_height = fr.height;
-        }
-        tiles[i].set_position(c*tile_width, r*tile_height);
-        //tiles[i].scale(2.f,2.f);
+        process_loaded(token, animation, type, r, c);
     }
+}
+
+void GameMapRenderable::process_loaded(const std::string& token, const std::string& animation,
+                                       const std::string& type, int row, int column) {
+    tiles.push_back(tm.get_anim_object(animation));
+    int i = row*columns + column;
+    if (i == 0) {
+        auto&& fr = tiles[i].get_global_bounds();
+        tile_width = fr.width;
+        tile_height = fr.height;
+    }
+    tiles[i].set_position(column*tile_width, row*tile_height);
+}
+
+void GameMapRenderable::initialize() {
+    tiles.clear();
+}
+
+void GameMapLogic::process_loaded(const std::string& token, const std::string& animation,
+                                       const std::string& type, int row, int column) {
+    TilesTypes::TilesTypes t;
+    if (type.compare("NON_WALKABLE") == 0) {
+        t = TilesTypes::NON_WALKABLE;
+    } else if (type.compare("WALKABLE") == 0) {
+        t = TilesTypes::WALKABLE;
+    } else {
+        throw std::runtime_error("Couldn't load tile type!");
+    }
+    tiles.push_back(t);
+}
+
+void GameMapLogic::initialize() {
+    tiles.clear();
 }
 
 void GameMap::generate_config(const std::string& file_name, int rows, int columns) {
@@ -73,25 +98,25 @@ void GameMap::generate_config(const std::string& file_name, int rows, int column
             ofs << "TILE ";
             if ((row_wall && column_wall && (c != columns -2) && (r != rows - 2)) || must_row || must_column) {
                 if (wall_2d) {
-                    ofs << "wall_front ";
+                    ofs << "wall_front NON_WALKABLE ";
                 } else {
-                    ofs << "wall_side ";
+                    ofs << "wall_side NON_WALKABLE ";
                 }
             } else {
-                ofs << "grass ";
+                ofs << "grass WALKABLE ";
             }
             ofs << r << " " << c << std::endl;
         }
     }
 }
 
-void GameMap::render(sf::RenderTarget* rt) {
+void GameMapRenderable::render(sf::RenderTarget* rt) {
     for (auto&& tile : tiles) {
         rt->draw(tile.get_sprite());
     }
 }
 
-void GameMap::fit_to_window(float x, float y) {
+void GameMapRenderable::fit_to_window(float x, float y) {
     std::cout << x << "," << y << std::endl;
     float height = rows * tile_height;
     float width = columns * tile_width;
@@ -108,13 +133,13 @@ void GameMap::fit_to_window(float x, float y) {
     }
 }
 
-AnimObject& GameMap::get(int row, int column) {
+AnimObject& GameMapRenderable::get(int row, int column) {
     if ((row >= rows) || (column >= columns)) {
         throw std::runtime_error("Invalid map coordintates!");
     }
     return unsafe_get(row, column);
 }
 
-AnimObject& GameMap::unsafe_get(int row, int column) {
+AnimObject& GameMapRenderable::unsafe_get(int row, int column) {
     return tiles[row*columns + column];
 }

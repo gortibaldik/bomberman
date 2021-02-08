@@ -1,5 +1,6 @@
 #include "client_connect_waiting.hpp"
 #include "window_manager/def.hpp"
+#include "game_state.hpp"
 #include <iostream>
 #include <unordered_map>
 
@@ -25,22 +26,31 @@ void ClientConnectWaitingState::handle_resize_menu(unsigned int width, unsigned 
 
 void ClientConnectWaitingState::update(float) {
     std::string new_value;
-    switch(client.get_status()) {
-    case ClientStatus::Connected:
-        new_value = "Connected! Waiting for server to start game!";
-        break;
-    case ClientStatus::TryingToConnect:
-        new_value = "Connecting...";
-        break;
-    case ClientStatus::Failed: case ClientStatus::Terminated:
-        new_value = "Failed to connect, please return to main menu!";
-        break;
-    case ClientStatus::Duplicate:
-        new_value = "Server already contains player with the selected name!";
-        break;
-    default:
-        new_value = "";
-        break;
+    if (client.is_game_started()) {
+        window_manager.push_state(std::make_unique<GameState>(window_manager, view, &client, nullptr));
+        return;
+    }
+
+    if (client.is_approved()) {
+        new_value = "Game starts soon!";   
+    } else {
+        switch(client.get_status()) {
+        case ClientStatus::Connected:
+            new_value = "Connected! Waiting for server to start game!";
+            break;
+        case ClientStatus::TryingToConnect:
+            new_value = "Connecting...";
+            break;
+        case ClientStatus::Failed: case ClientStatus::Terminated:
+            new_value = "Failed to connect, please return to main menu!";
+            break;
+        case ClientStatus::Duplicate:
+            new_value = "Server already contains player with the selected name!";
+            break;
+        default:
+            new_value = "";
+            break;
+        }
     }
     menu.get_named_field("CONNECTION_STATUS")->set_content(new_value);
     menu.update();
@@ -87,7 +97,7 @@ ClientConnectWaitingState::ClientConnectWaitingState(WindowManager& mngr, const 
                         sf::Color::Black,
                         mngr.get_font("main_font"),
                         1.f),
-        client(name) {
+        client(name, mngr.get_tm()) {
     sf::Vector2f pos(100, 100);
     menu.initialize(pos.x, pos.y, txt_size, mb_default_width_txt, &menu_btn_style, &menu_txt_style);
     using namespace std::chrono_literals;

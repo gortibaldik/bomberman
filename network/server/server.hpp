@@ -27,8 +27,8 @@ public:
 
     void update(const sf::Time& dt);
 
-    void disable_adding_new_players() { can_add = false; }
-    void enable_adding_new_players() { can_add = true; }
+    void disable_adding_new_clients() { can_add = false; }
+    void enable_adding_new_clients() { can_add = true; }
 
     void terminate();
 
@@ -38,7 +38,8 @@ protected:
     void handle_heartbeat(const sf::IpAddress&, PortNumber);
     void handle_connection_attempt(const sf::IpAddress&, PortNumber, sf::Packet&);
     void handle_disconnect(const sf::IpAddress&, PortNumber);
-    virtual void handle_others(sf::Packet&, PacketType) = 0;
+    virtual void handle_others(const std::string& client_name, sf::Packet&, PacketType) = 0;
+    virtual void notify_disconnect(const std::string& name) = 0;
     void update_time_overflow();
     Clients::iterator find_by_ip_port(const sf::IpAddress&, PortNumber);
 

@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.13.0)
 target_sources(Bomberman
   PUBLIC
-    def.hpp
-    src.cpp)
+    game_client.hpp
+    game_client.cpp
+    base.hpp
+    base.cpp
+)

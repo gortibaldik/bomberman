@@ -6,7 +6,10 @@
 void GameState::draw(float dt) {
     window_manager.window.setView(view);
     window_manager.window.draw(window_manager.background);
-    game_map.render(&window_manager.window);
+    if (client == nullptr) {
+        return;
+    }
+    client->get_game_map().render(&window_manager.window);
 }
 
 void GameState::handle_input() {
@@ -22,20 +25,21 @@ void GameState::handle_input() {
 
 GameState::GameState(WindowManager& mngr
                     , const sf::View& view
-                    , const std::string& map_name
-                    , Client* client
-                    , Server* server)
+                    , GameClient* client
+                    , GameServer* server)
 
                     : State(mngr)
                     , view(view)
-                    , game_map(map_name, mngr.get_tm())
                     , client(client)
                     , server(server) {
     sf::Vector2f fr(view.getSize());
     window_manager.resize_window(fr.x, fr.y);
-    game_map.fit_to_window(fr.x, fr.y);
+    client->get_game_map().fit_to_window(fr.x, fr.y);
 }
 
 void GameState::update(float dt) {
-    //animation.update(dt);
+    if ((client == nullptr) || !client->is_game_started()) {
+        window_manager.pop_states(1);
+        client = nullptr;
+    }
 }

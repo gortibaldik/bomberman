@@ -6,6 +6,7 @@ namespace Network {
         HighestTimeStamp = 2147483647,
         ClientTimeOut = 10000, /* milliseconds */
         ClientConnectTimeOut = 5000, /* milliseconds */
+        ConnectionInterval = 5000,
         NullID = -1,
         HeartBeatInterval = 1000, /* milliseconds */
         NumberOfRetries = 10

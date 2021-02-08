@@ -1,6 +1,5 @@
 #include "start.hpp"
 #include "server_create.hpp"
-#include "game_state.hpp"
 #include "client_connect.hpp"
 #include "window_manager/def.hpp"
 #include <iostream>
@@ -14,9 +13,9 @@ enum BTN {
 };
 
 static const unsigned int mb_txt_size = 30;
-static const std::vector<std::string> mb_entries = { "New Game", "Create a server", "Connect to a server", "Quit" };
+static const std::vector<std::string> mb_entries = { "Create a server", "Connect to a server", "Quit" };
 static const std::unordered_map<std::string, BTN> mb_actions = { 
-    {"Quit", QUIT}, {"Connect to a server", CONNECT}, {"Create a server", CREATE}, {"New Game", NEW_GAME},
+    {"Quit", QUIT}, {"Connect to a server", CONNECT}, {"Create a server", CREATE}
 };
 
 void StartState::handle_btn_pressed() {
@@ -27,11 +26,6 @@ void StartState::handle_btn_pressed() {
             return;
         }
         switch (it->second) {
-        case NEW_GAME:
-            window_manager.push_state(std::make_unique<GameState>(window_manager, view,
-                                                                  "media/map_basic.cfg",
-                                                                  nullptr, nullptr));
-            break;
         case CREATE:
             window_manager.push_state(std::make_unique<ServerCreateState>(window_manager, view));
             break;
