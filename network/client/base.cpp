@@ -109,7 +109,7 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
 void Client::handle_heartbeat(sf::Packet& p) {
     sf::Int32 t;
     sf::Packet packet;
-    if (!p >> t) {
+    if (!(p >> t)) {
         std::cout << "Invalid heartbeat!" << std::endl;
     }
     server_time = sf::milliseconds(t);

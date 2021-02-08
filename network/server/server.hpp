@@ -49,7 +49,7 @@ protected:
     sf::Time c_time; /* default constructor sets the time to zero \*/
     sf::UdpSocket incoming_socket, outcoming_socket;
 
-    std::thread worker;
+    std::thread listener;
     std::mutex clients_mutex;
     std::atomic<bool> running;
     std::atomic<bool> can_add;

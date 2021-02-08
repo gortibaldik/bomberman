@@ -13,7 +13,7 @@ bool Server::start(PortNumber port) {
     std::cout << "Local IP address: " << sf::IpAddress::getLocalAddress() << std::endl;
     std::cout << "Incoming port: " << incoming_socket.getLocalPort() << std::endl;
     std::cout << "Outcoming port: " << outcoming_socket.getLocalPort() << std::endl;
-    worker = std::thread(&Server::listen, this);
+    listener = std::thread(&Server::listen, this);
     running = true;
     return true;
 }
@@ -143,8 +143,8 @@ void Server::terminate() {
         outcoming_socket.send(p, sf::IpAddress::getLocalAddress(), incoming_socket.getLocalPort());
         std::cout << "sent terminate socket" << std::endl;
         incoming_socket.unbind();
-        if (worker.joinable()) {
-            worker.join();
+        if (listener.joinable()) {
+            listener.join();
         }
     }
 }
@@ -199,7 +199,7 @@ void Server::update_time_overflow() {
 }
 
 Server::~Server() {
-    if (worker.joinable()) {
-        worker.join();
+    if (listener.joinable()) {
+        listener.join();
     }
 }

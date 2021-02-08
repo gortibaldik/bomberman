@@ -1,6 +1,7 @@
 #ifndef SERVER_COMMUNICATION_MANAGER_HPP
 #define SERVER_COMMUNICATION_MANAGER_HPP
 #include "server.hpp"
+#include "server_entity.hpp"
 #include "game/map.hpp"
 
 namespace ServerState {
@@ -11,13 +12,7 @@ namespace ServerState {
     };
 };
 
-struct PlayerInfo {
-    std::string name;
-
-    PlayerInfo(const std::string& client_name): name(client_name) {}
-};
-
-using Players = std::unordered_map<std::string, PlayerInfo>;
+using Players = std::unordered_map<std::string, ServerPlayerEntity>;
 
 class GameServer: public Server {
 public:
@@ -32,6 +27,8 @@ protected:
     ServerState::ServerState state;
     Players players;
     GameMapLogic map;
+
+    std::thread notifier;
 };
 
 #endif

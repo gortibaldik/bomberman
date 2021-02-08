@@ -98,13 +98,13 @@ void TextField::handle_special_keys(sf::Uint32 c) {
 void TextField::handle_input(const sf::Vector2f& mouse_position, const sf::Event& e) {
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
         if (shape.getGlobalBounds().contains(mouse_position)) {
-            state = ACTIVE;
+            state = CONTROL_STATE::ACTIVE;
         } else {
-            state = IDLE;
+            state = CONTROL_STATE::IDLE;
         }
     }
 
-    if (state == ACTIVE) {
+    if (state == CONTROL_STATE::ACTIVE) {
         if (e.type == sf::Event::TextEntered) {
             handle_text_entered(e.text.unicode);
         } else if (e.type == sf::Event::KeyPressed) {
@@ -114,7 +114,7 @@ void TextField::handle_input(const sf::Vector2f& mouse_position, const sf::Event
 }
 
 void TextField::update() {
-    if (state == ACTIVE) {
+    if (state == CONTROL_STATE::ACTIVE) {
         shape.setFillColor(style->cbackground_highlight);
     } else {
         shape.setFillColor(style->cbackground);

@@ -31,10 +31,12 @@ struct GStyle {
                             border_size(bsize) {}
 };
 
-enum CONTROL_STATE {
-    IDLE,
-    HOVER,
-    ACTIVE
+namespace CONTROL_STATE {
+    enum CONTROL_STATE {
+        IDLE,
+        HOVER,
+        ACTIVE
+    };
 };
 
 class ControlGrid;
@@ -66,7 +68,7 @@ protected:
     sf::FloatRect bounding_box;
     GStyle* style;
     ControlGrid* grid;
-    CONTROL_STATE state;
+    CONTROL_STATE::CONTROL_STATE state;
     float letter_width;
     sf::Text text;
 };

@@ -4,4 +4,5 @@ target_sources(Bomberman
     map.hpp
     map.cpp
     entity.hpp
-    entity.cpp)
+    entity.cpp
+)

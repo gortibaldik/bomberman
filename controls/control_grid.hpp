@@ -9,7 +9,13 @@
 
 class ControlGrid {
 public:
-    ControlGrid() {}
+    ControlGrid(): button_style(nullptr)
+                 , text_field_style(nullptr)
+                 , which_pressed(nullptr)
+                 , default_width(0.f)
+                 , last_x(0.f)
+                 , last_y(0.f)
+                 , letter_size(0) {}
 
     void initialize(float x,
                     float y,

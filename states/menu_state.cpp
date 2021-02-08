@@ -12,10 +12,10 @@ void MenuState::draw(float dt) {
 void MenuState::handle_resize_menu(unsigned int width, unsigned int height, float factor /*=0.38*/) {
     float before = (float(view.getSize().x) + float(view.getSize().y)) / 2.f;
     float after = (float(width) + float(height)) / 2.f;
-    sf::Vector2f pos = sf::Vector2f(width, height);
+    sf::Vector2f pos = sf::Vector2f(static_cast<float>(width), static_cast<float>(height));
     pos *= factor;
     pos = window_manager.window.mapPixelToCoords(sf::Vector2i(pos), view);
-    menu.move_pos(after/before, pos.x, pos.y);
+    menu.move_pos(after/before, static_cast<unsigned int>(pos.x), static_cast<unsigned int>(pos.y));
 }
 
 void MenuState::handle_input() {
@@ -27,7 +27,7 @@ void MenuState::handle_input() {
             break;
         case sf::Event::Resized:
             handle_resize_menu(event.size.width, event.size.height);
-            view.setSize(event.size.width, event.size.height);
+            view.setSize(static_cast<float>(event.size.width), static_cast<float>(event.size.height));
             view.setCenter(event.size.width / 2, event.size.height / 2);
             window_manager.resize_window(event.size.width, event.size.height);
             break;

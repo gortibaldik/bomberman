@@ -9,7 +9,8 @@ namespace Network {
         ConnectionInterval = 5000,
         NullID = -1,
         HeartBeatInterval = 1000, /* milliseconds */
-        NumberOfRetries = 10
+        NumberOfRetries = 10,
+        Delimiter = -2
     };
 }
 

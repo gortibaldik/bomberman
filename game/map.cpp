@@ -1,11 +1,10 @@
 #include "map.hpp"
+#include "entity.hpp"
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 
-GameMapRenderable::GameMapRenderable(const TextureManager& tm)
-                                    : tm(tm) {}
 
 static void throw_error() {
     throw std::runtime_error("Invalid map config file");
@@ -50,39 +49,6 @@ void GameMap::load_from_config(const std::string& config_file) {
     }
 }
 
-void GameMapRenderable::process_loaded(const std::string& token, const std::string& animation,
-                                       const std::string& type, int row, int column) {
-    tiles.push_back(tm.get_anim_object(animation));
-    int i = row*columns + column;
-    if (i == 0) {
-        auto&& fr = tiles[i].get_global_bounds();
-        tile_width = fr.width;
-        tile_height = fr.height;
-    }
-    tiles[i].set_position(column*tile_width, row*tile_height);
-}
-
-void GameMapRenderable::initialize() {
-    tiles.clear();
-}
-
-void GameMapLogic::process_loaded(const std::string& token, const std::string& animation,
-                                       const std::string& type, int row, int column) {
-    TilesTypes::TilesTypes t;
-    if (type.compare("NON_WALKABLE") == 0) {
-        t = TilesTypes::NON_WALKABLE;
-    } else if (type.compare("WALKABLE") == 0) {
-        t = TilesTypes::WALKABLE;
-    } else {
-        throw std::runtime_error("Couldn't load tile type!");
-    }
-    tiles.push_back(t);
-}
-
-void GameMapLogic::initialize() {
-    tiles.clear();
-}
-
 void GameMap::generate_config(const std::string& file_name, int rows, int columns) {
     std::ofstream ofs(file_name);
     ofs << "MAP" << std::endl;
@@ -110,10 +76,34 @@ void GameMap::generate_config(const std::string& file_name, int rows, int column
     }
 }
 
+GameMapRenderable::GameMapRenderable(const TextureManager& tm)
+                                    : tm(tm), tile_scale_x(1), tile_scale_y(1) {}
+
+void GameMapRenderable::process_loaded(const std::string& token, const std::string& animation,
+                                       const std::string& type, int row, int column) {
+    tiles.push_back(tm.get_anim_object(animation));
+    int i = row*columns + column;
+    if (i == 0) {
+        auto&& fr = tiles[i].get_global_bounds();
+        tile_width = fr.width;
+        tile_height = fr.height;
+    }
+    tiles[i].set_position(column*tile_width, row*tile_height);
+}
+
+void GameMapRenderable::initialize() {
+    tiles.clear();
+}
+
 void GameMapRenderable::render(sf::RenderTarget* rt) {
     for (auto&& tile : tiles) {
         rt->draw(tile.get_sprite());
     }
+}
+
+void GameMapRenderable::transform(AnimObject& anim_object, EntityCoords pos) {
+    anim_object.set_position(pos.first*tile_width*tile_scale_x, pos.second*tile_height*tile_scale_y);
+    anim_object.scale(tile_scale_x, tile_scale_y);
 }
 
 void GameMapRenderable::fit_to_window(float x, float y) {
@@ -121,14 +111,13 @@ void GameMapRenderable::fit_to_window(float x, float y) {
     float height = rows * tile_height;
     float width = columns * tile_width;
     std::cout << width << "," << height << std::endl;
-    float transform_width = x / width;
-    float transform_height = y / height;
-    std::cout << "scaling factors: " << transform_width << "," << transform_height << std::endl;
-    float min = (transform_width < transform_height) ? transform_width : transform_height;
+    tile_scale_x = x / width;
+    tile_scale_y = y / height;
+    std::cout << "scaling factors: " << tile_scale_x << "," << tile_scale_y << std::endl;
     for (int r = 0; r < rows; r++) {
         for (int c = 0; c < columns; c++) {
-            get(r, c).set_position(c*tile_width*transform_width, r*tile_height*transform_height);
-            get(r, c).scale(transform_width, transform_height);
+            get(r, c).set_position(c*tile_width*tile_scale_x, r*tile_height*tile_scale_y);
+            get(r, c).scale(tile_scale_x, tile_scale_y);
         }
     }
 }
@@ -143,3 +132,29 @@ AnimObject& GameMapRenderable::get(int row, int column) {
 AnimObject& GameMapRenderable::unsafe_get(int row, int column) {
     return tiles[row*columns + column];
 }
+std::tuple<int, int, int> GameMapLogic::get_spawn_pos() {
+    auto tpl = std::move(spawn_positions.back());
+    spawn_positions.pop_back();
+    return tpl;
+}
+
+void GameMapLogic::process_loaded(const std::string& token, const std::string& animation,
+                                       const std::string& type, int row, int column) {
+    TilesTypes::TilesTypes t;
+    if (type.compare("NON_WALKABLE") == 0) {
+        t = TilesTypes::NON_WALKABLE;
+    } else if (type.compare("WALKABLE") == 0) {
+        t = TilesTypes::WALKABLE;
+    } else if (type.compare("SPAWN") == 0) {
+        t = TilesTypes::WALKABLE;
+        spawn_positions.emplace_back(row, column, spawn_positions.size());
+    } else {
+        throw std::runtime_error("Couldn't load tile type!");
+    }
+    tiles.push_back(t);
+}
+
+void GameMapLogic::initialize() {
+    tiles.clear();
+}
+

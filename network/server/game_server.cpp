@@ -38,9 +38,13 @@ void GameServer::handle_others(const std::string& client_name, sf::Packet& packe
 
 void GameServer::start_game() {
     state = ServerState::RUNNING;
+    sf::Packet p;
+    add_type_to_packet(p, PacketType::SpawnPosition);
     for (auto&& player : players) {
-        sf::Packet p;
-        add_type_to_packet(p, PacketType::SpawnPosition);
+        p << sf::Int8(Network::Delimiter);
+        p << player.second;
+    }
+    for (auto&& player : players) {
         send(player.second.name, p);
     }
 }
@@ -49,7 +53,9 @@ void GameServer::handle_starting_state(const std::string& client_name, sf::Packe
     if (ptype == PacketType::ClientReady) {
         auto iter = players.find(client_name);
         if (iter != players.end()) { return; }
-        players.emplace(client_name, PlayerInfo(client_name));
+        auto [row, column, type] = map.get_spawn_pos();
+        std::pair<int, int> coords(row, column);
+        players.emplace(client_name, ServerPlayerEntity(client_name, coords, coords, EntityDirection::UP, type));
         std::cout << "player " << client_name << " approved starting the game!" << std::endl;
     }
 }

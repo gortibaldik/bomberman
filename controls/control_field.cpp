@@ -9,8 +9,8 @@ sf::FloatRect ControlField::move_position(  float factor,
                                             float default_height /*=0 .f*/) {
     letter_width *= factor;
 
-    text.setCharacterSize(letter_width);
-    text.setPosition(new_x, new_y);
+    text.setCharacterSize(static_cast<int>(letter_width));
+    text.setPosition(static_cast<float>(new_x), static_cast<float>(new_y));
 
     auto&& fr = text.getGlobalBounds();
     shape.setSize(sf::Vector2f( default_width == 0.f ? fr.width : default_width,
@@ -30,13 +30,13 @@ ControlField::ControlField( float x,
                 GStyle* gstyle,
                 ControlGrid* grid):  style(gstyle),
                                 text("", *style->font),
-                                state(IDLE),
+                                state(CONTROL_STATE::IDLE),
                                 letter_width(letter_width),
                                 grid(grid) {
     
     text.setFillColor(style->ctext);
     text.setPosition(x, y);
-    text.setCharacterSize(this->letter_width);
+    text.setCharacterSize(static_cast<unsigned int>(this->letter_width));
 
     shape.setFillColor(style->cbackground);
     shape.setOutlineThickness(style->border_size);
@@ -65,11 +65,11 @@ void ControlField::render(sf::RenderTarget* target) {
 }
 
 void ControlField::handle_input(const sf::Vector2f& mouse_position, const sf::Event& e) {
-    state = IDLE;
+    state = CONTROL_STATE::IDLE;
     if (shape.getGlobalBounds().contains(mouse_position)) {
-        state = HOVER;
+        state = CONTROL_STATE::HOVER;
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-            state = ACTIVE;
+            state = CONTROL_STATE::ACTIVE;
             grid->which_pressed = this;
         }
     }
@@ -77,12 +77,12 @@ void ControlField::handle_input(const sf::Vector2f& mouse_position, const sf::Ev
 
 void ControlField::update() {
     switch(state) {
-    case IDLE:
+    case CONTROL_STATE::IDLE:
         text.setFillColor(style->ctext);
         shape.setFillColor(style->cbackground);
         shape.setOutlineColor(style->cborder);
         break;
-    case HOVER:
+    case CONTROL_STATE::HOVER:
         text.setFillColor(style->ctext_highlight);
         shape.setFillColor(style->cbackground_highlight);
         shape.setOutlineColor(style->cborder_highlight);

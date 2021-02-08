@@ -3,6 +3,8 @@ target_sources(Bomberman
   PUBLIC
     server.hpp
     server.cpp
+    server_entity.hpp
+    server_entity.cpp
     client_info.hpp
     client_info.cpp
     game_server.hpp

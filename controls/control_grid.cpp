@@ -127,6 +127,6 @@ void ControlGrid::move_pos(float factor, unsigned int new_x, unsigned int new_y)
     float button_height = buttons.begin()->get()->get_height();
     for (auto&& button : buttons) {
         button->move_pos(factor, new_x, new_y);
-        new_y += button_height * SPACING_FACTOR;
+        new_y += static_cast<int>(button_height * SPACING_FACTOR);
     }
 }

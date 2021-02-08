@@ -62,7 +62,7 @@ target_include_directories(Bomberman
   )
 
 # Link executable to target libraries
-target_link_libraries(Bomberman sfml-graphics sfml-network)
+target_link_libraries(Bomberman sfml-graphics sfml-network sfml-window)
 
 # Install target
 install(TARGETS Bomberman DESTINATION "${CMAKE_SOURCE_DIR}/bin")
