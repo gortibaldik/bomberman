@@ -103,6 +103,16 @@ void GameClient::server_state_update(sf::Packet& packet) {
         case PacketType::ServerEraseExplosion:
             erase_explosion(packet);
             break;
+        case PacketType::ServerNotifyPlayerDied:
+            {
+                std::string name = "";
+                packet >> name;
+                if (this->player_name.compare(name) == 0) {
+                    only_viewer = true;
+                }
+                players.erase(name);
+            }
+            break;
         }
     }
 }

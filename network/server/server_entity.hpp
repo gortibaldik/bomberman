@@ -9,18 +9,25 @@
 class ServerPlayerEntity : public PlayerEntity {
 public:
     sf::Int8 type;
+    float spawn_protection = 1.f;
     bool updated;
     int c_deployed;
     EntityCoords spawn_pos;
+    int lives;
     ServerPlayerEntity(const std::string& name
                        , EntityCoords spawn_pos
                        , EntityCoords actual_pos
                        , EntityDirection::EntityDirection direction
-                       , sf::Int8 type)
+                       , sf::Int8 type
+                       , int lives)
                        : PlayerEntity(name, actual_pos, direction)
                        , type(type)
                        , spawn_pos(spawn_pos)
-                       , c_deployed(0) {}
+                       , c_deployed(0)
+                       , lives(lives) {}
+    void update(float dt);
+    bool is_attackable() { return spawn_protection == 0.f; }
+    void respawn() { spawn_protection = 1.f; }
     void update_pos_dir(EntityCoords&&, EntityDirection::EntityDirection);
     bool can_deploy() { return c_deployed < 3; }
     void deploy() { c_deployed++; }

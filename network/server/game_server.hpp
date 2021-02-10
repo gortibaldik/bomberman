@@ -42,6 +42,7 @@ protected:
     int n_deployed_bombs = 0;
     int n_exploded_squares = 0;
     float move_factor = 0.15f;
+    int player_lives = 3;
 };
 
 #endif

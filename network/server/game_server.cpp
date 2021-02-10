@@ -52,7 +52,9 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
         case PacketType::ClientMove:
             {
                 std::unique_lock<std::mutex> l(players_mutex);
-                auto&& p = players.at(client_name);
+                auto it = players.find(client_name);
+                if (it == players.end()) { return; }
+                auto&& p = it->second;
                 sf::Int8 dir = 0, row = 0, col = 0;
                 if(!(packet >> row >> col >> dir) ){
                     std::cout << "Invalid packet!" << std::endl;
@@ -68,7 +70,9 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
         case PacketType::ClientDeployBomb:
             {
                 std::unique_lock<std::mutex> l(players_mutex);
-                auto&& p = players.at(client_name);
+                auto it = players.find(client_name);
+                if (it == players.end()) { return; }
+                auto&& p = it->second;
                 if (!p.can_deploy()) {
                     return;
                 }
@@ -90,13 +94,32 @@ void GameServer::game_notify_loop() {
         bool at_least_one = false;
         sf::Packet packet;
         add_type_to_packet(packet, PacketType::Update);
+        sf::Time time = clock.restart();
         for(auto&& p : players) {
-            for (auto&& exp : explosions) {
-                if (naive_bbox_intersect(p.second.actual_pos, exp.second.actual_pos)) {
-                    std::cout << p.first << " is hit!" << std::endl;
+            p.second.update(time.asSeconds());
+            bool died = false;
+            if (p.second.is_attackable()) {
+                for (auto&& exp : explosions) {
+                    if (naive_bbox_intersect(p.second.actual_pos, exp.second.actual_pos)) {
+                        std::cout << p.first << " is hit!" << std::endl;
+                        p.second.actual_pos = p.second.spawn_pos;
+                        if (p.second.lives == 1) {
+                            at_least_one = true;
+                            packet << sf::Int8(Network::Delimiter);
+                            add_type_to_packet(packet, PacketType::ServerNotifyPlayerDied);
+                            packet << p.first;
+                            players.erase(p.first);
+                            died = true;
+                        } else {
+                            p.second.lives--;
+                            p.second.respawn();
+                            p.second.updated = true;
+                        }
+                        break;
+                    }
                 }
             }
-            if (p.second.updated) {
+            if (p.second.updated && !died) {
                 p.second.updated = false;
                 at_least_one = true;
                 packet << sf::Int8(Network::Delimiter);
@@ -104,7 +127,6 @@ void GameServer::game_notify_loop() {
                 packet << p.second;
             }
         }
-        sf::Time time = clock.restart();
         std::vector<int> bombs_to_erase;
         for (auto&&b : bombs) {
             b.second.update(time.asSeconds());
@@ -181,7 +203,7 @@ void GameServer::handle_starting_state(const std::string& client_name, sf::Packe
         if (iter != players.end()) { return; }
         auto [row, column, type] = map.get_spawn_pos();
         std::pair<int, int> coords(row, column);
-        players.emplace(client_name, ServerPlayerEntity(client_name, coords, coords, EntityDirection::UP, type));
+        players.emplace(client_name, ServerPlayerEntity(client_name, coords, coords, EntityDirection::UP, type, player_lives));
         std::cout << "player " << client_name << " approved starting the game!" << std::endl;
     }
 }

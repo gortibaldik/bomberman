@@ -14,6 +14,14 @@ void ServerPlayerEntity::update_pos_dir(EntityCoords&& coords, EntityDirection::
     direction = dir;
 }
 
+void ServerPlayerEntity::update(float dt) {
+    if (dt >= spawn_protection) {
+        spawn_protection = 0.f;
+    } else {
+        spawn_protection -= dt;
+    }
+}
+
 sf::Packet& operator <<(sf::Packet& packet, const ServerBombEntity& sbe) {
     packet << sf::Int32(sbe.ID);
     packet << sbe.actual_pos.first;
@@ -68,7 +76,6 @@ std::vector<ServerExplosionEntity> ServerBombEntity::explode(GameMapLogic& map, 
             }
         }
     }
-    std::cout << "exploded to " << result.size() << " size" << std::endl;
     return result;
 }
 

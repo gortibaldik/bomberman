@@ -31,6 +31,7 @@ private:
     void erase_explosion(sf::Packet& packet);
     bool game_started = false;
     bool approved = false;
+    bool only_viewer = false;
 
     GameMapRenderable map;
     const TextureManager& tm;
