@@ -23,6 +23,18 @@ public:
     const TextureManager& tm;
 };
 
+class ClientBombEntity: public Entity {
+public:
+    ClientBombEntity(const TextureManager& tm)
+                    : tm(tm)
+                    , anim_object(tm.get_anim_object("bomb_no_explosion"))
+                    , ID(0) {}
+    AnimObject anim_object;
+    sf::Int32 ID;
+    const TextureManager& tm;
+};
+
 sf::Packet& operator >>(sf::Packet&, ClientPlayerEntity&);
+sf::Packet& operator >>(sf::Packet&, ClientBombEntity&);
 
 #endif

@@ -21,6 +21,8 @@ public:
              , GameServer*);
 protected:
     bool check_move(sf::Packet&);
+    bool check_deploy(sf::Packet&);
+    bool can_deploy = true;
     GameClient* client;
     GameServer* server;
     sf::View view;

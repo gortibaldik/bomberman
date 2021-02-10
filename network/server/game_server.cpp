@@ -39,6 +39,8 @@ void GameServer::handle_others(const std::string& client_name, sf::Packet& packe
     }
 }
 
+#define EXPLOSION_TIME 3.f
+
 void GameServer::handle_running_state(const std::string& client_name, sf::Packet& packet, PacketType ptype) {
     if (ptype != PacketType::Update) { return; }
     sf::Int8 t = 0;
@@ -58,17 +60,30 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
                 EntityCoords c(row*move_factor+p.actual_pos.first, col*move_factor+p.actual_pos.second);
                 auto d = (EntityDirection::EntityDirection)dir;
                 map.collision_checking(move_factor, c, d);
-                std::cout << c.first << "," << c.second << std::endl;
                 p.update_pos_dir(std::move(c), d);
                 p.updated = true;
             }
             break;
+        case PacketType::ClientDeployBomb:
+            {
+                std::unique_lock<std::mutex> l(players_mutex);
+                auto&& p = players.at(client_name);
+                if (!p.can_deploy()) {
+                    return;
+                }
+                p.deploy();
+                std::cout << "server deploy bomb ! " << client_name << std::endl;
+                bombs.emplace(n_deployed_bombs, ServerBombEntity(p.actual_pos, EXPLOSION_TIME, n_deployed_bombs, p));
+                n_deployed_bombs++;
+            }
+
         }
     }
 }
 
 void GameServer::game_notify_loop() {
     using namespace std::chrono;
+    sf::Clock clock;
     while(!end_notifier) {
         std::this_thread::sleep_for(100ms);
         std::unique_lock<std::mutex> l(players_mutex);
@@ -80,8 +95,32 @@ void GameServer::game_notify_loop() {
                 p.second.updated = false;
                 at_least_one = true;
                 packet << sf::Int8(Network::Delimiter);
+                add_type_to_packet(packet, PacketType::ServerPlayerUpdate);
                 packet << p.second;
             }
+        }
+        sf::Time time = clock.restart();
+        std::vector<int> bombs_to_erase;
+        for (auto&&b : bombs) {
+            b.second.update(time.asSeconds());
+            if (b.second.is_new()) {
+                at_least_one = true;
+                packet << sf::Int8(Network::Delimiter);
+                add_type_to_packet(packet, PacketType::ServerNewBomb);
+                packet << b.second;
+                std::cout << "server notifying about new bomb!" << std::endl;
+            }
+            if (b.second.is_exploded()) {
+                at_least_one = true;
+                packet << sf::Int8(Network::Delimiter);
+                add_type_to_packet(packet, PacketType::ServerEraseBomb);
+                packet << b.second;
+                b.second.spe.remove_deployed();
+                bombs_to_erase.push_back(b.first);
+            }
+        }
+        for (auto&& i : bombs_to_erase) {
+            bombs.erase(i);
         }
         if (at_least_one) {
             broadcast(packet);
@@ -98,6 +137,7 @@ void GameServer::start_game() {
     add_type_to_packet(p, PacketType::SpawnPosition);
     for (auto&& player : players) {
         p << sf::Int8(Network::Delimiter);
+        add_type_to_packet(p, PacketType::ServerPlayerUpdate);
         p << player.second;
     }
     broadcast(p);

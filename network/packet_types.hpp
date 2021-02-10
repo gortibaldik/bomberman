@@ -12,6 +12,10 @@ enum class PacketType {
     GetReady,
     ClientReady,
     ClientMove,
+    ClientDeployBomb,
+    ServerNewBomb,
+    ServerEraseBomb,
+    ServerPlayerUpdate,
     Update,
     Invalid
 };

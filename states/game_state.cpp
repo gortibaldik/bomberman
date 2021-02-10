@@ -10,7 +10,7 @@ void GameState::draw(float dt) {
         return;
     }
     client->get_game_map().render(&window_manager.window);
-    client->render_players(&window_manager.window);
+    client->render_entities(&window_manager.window);
 }
 
 void GameState::handle_input() {
@@ -66,6 +66,19 @@ bool GameState::check_move(sf::Packet& packet) {
         packet << sf::Int8(Network::Delimiter);
         add_type_to_packet(packet, PacketType::ClientMove);
         packet << sf::Int8(c.first) << sf::Int8(c.second) << sf::Int8(d);
+        can_deploy = true;
+        return true;
+    }
+    return false;
+}
+
+bool GameState::check_deploy(sf::Packet& packet) {
+    if (!can_deploy) { return false; }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+        packet << sf::Int8(Network::Delimiter);
+        add_type_to_packet(packet, PacketType::ClientDeployBomb);
+        can_deploy = false;
+        std::cout << "Deployed bomb!" << std::endl;
         return true;
     }
     return false;
@@ -83,7 +96,10 @@ void GameState::update(float dt) {
         sf::Packet packet;
         last_update_time = c_time;
         add_type_to_packet(packet, PacketType::Update);
-        if (check_move(packet)) {
+        bool send = false;
+        send = send || check_move(packet);
+        send = send || check_deploy(packet);
+        if (send) {
             client->send(packet);
         }
         

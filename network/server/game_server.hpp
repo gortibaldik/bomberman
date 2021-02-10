@@ -13,6 +13,7 @@ namespace ServerState {
 };
 
 using Players = std::unordered_map<std::string, ServerPlayerEntity>;
+using Bombs = std::unordered_map<int, ServerBombEntity>;
 
 class GameServer: public Server {
 public:
@@ -29,11 +30,14 @@ protected:
     void game_notify_loop();
     ServerState::ServerState state;
     Players players;
+    Bombs bombs;
     GameMapLogic map;
 
     std::thread notifier;
     std::atomic<bool> end_notifier = false;
     std::mutex players_mutex;
+
+    int n_deployed_bombs = 0;
     float move_factor = 0.15f;
 };
 

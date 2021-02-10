@@ -26,25 +26,62 @@ void GameClient::get_ready(sf::Packet& packet) {
     send(answer);
 }
 
+void GameClient::update_player(sf::Packet& packet) {
+    ClientPlayerEntity cpe(tm);
+    packet >> cpe;
+    auto it = players.find(cpe.name);
+    if (it == players.end()) {
+        map.transform(cpe.anim_object, cpe.actual_pos, false);
+        players.emplace(cpe.name, cpe);
+        if (cpe.name == player_name) {
+            me = &players.at(cpe.name);
+        }
+        std::cout << cpe.name << " registered! <- client side" << std::endl;
+    } else {
+        it->second.actual_pos = cpe.actual_pos;
+        it->second.direction = cpe.direction;
+        map.transform(it->second.anim_object, it->second.actual_pos, false);
+        it->second.anim_object.set_direction(cpe.direction);
+    }
+}
+
+void GameClient::create_bomb(sf::Packet& packet) {
+    std::cout << "client got message about new bomb!" << std::endl;
+    ClientBombEntity cbe(tm);
+    packet >> cbe;
+    auto it = bombs.find(cbe.ID);
+    if (it == bombs.end()) {
+        map.transform(cbe.anim_object, cbe.actual_pos, true);
+        bombs.emplace(cbe.ID, cbe);
+    }
+}
+
+void GameClient::erase_bomb(sf::Packet& packet) {
+    std::cout << "client erasing bomb" << std::endl;
+    ClientBombEntity cbe(tm);
+    packet >> cbe;
+    auto it = bombs.find(cbe.ID);
+    if (it != bombs.end()) {
+        bombs.erase(cbe.ID);
+    }
+}
+
 void GameClient::server_state_update(sf::Packet& packet) {
     sf::Int8 delimiter;
     std::unique_lock<std::mutex> l(resources_mutex);
     while ((packet >> delimiter) && (delimiter == Network::Delimiter)) {
-        ClientPlayerEntity cpe(tm);
-        packet >> cpe;
-        auto it = players.find(cpe.name);
-        if (it == players.end()) {
-            map.transform(cpe.anim_object, cpe.actual_pos, false);
-            players.emplace(cpe.name, cpe);
-            if (cpe.name == player_name) {
-                me = &players.at(cpe.name);
-            }
-            std::cout << cpe.name << " registered! <- client side" << std::endl;
-        } else {
-            it->second.actual_pos = cpe.actual_pos;
-            it->second.direction = cpe.direction;
-            map.transform(it->second.anim_object, it->second.actual_pos, false);
-            it->second.anim_object.set_direction(cpe.direction);
+        sf::Int8 ptype = 0;
+        packet >> ptype;
+        switch(static_cast<PacketType>(ptype)) {
+        case PacketType::ServerPlayerUpdate:
+            update_player(packet);
+            break;
+        case PacketType::ServerNewBomb:
+            create_bomb(packet);
+            break;
+        case PacketType::ServerEraseBomb:
+            erase_bomb(packet);
+            break;
         }
     }
 }
@@ -80,7 +117,11 @@ void GameClient::notify_disconnect() {
     game_started = false;
 }
 
-void GameClient::render_players(sf::RenderTarget* target) {
+void GameClient::render_entities(sf::RenderTarget* target) {
+    std::unique_lock<std::mutex> l(resources_mutex);
+    for (auto&& b : bombs) {
+        target->draw(b.second.anim_object.get_sprite());
+    }
     for (auto&& p : players) {
         target->draw(p.second.anim_object.get_sprite());
     }

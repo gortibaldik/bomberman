@@ -12,3 +12,9 @@ sf::Packet& operator >>(sf::Packet& packet, ClientPlayerEntity& cpe) {
     packet >> cpe.actual_pos.second;
     return packet;
 }
+
+sf::Packet& operator >>(sf::Packet& packet, ClientBombEntity& cbe) {
+    packet >> cbe.ID;
+    packet >> cbe.actual_pos.first;
+    return packet >> cbe.actual_pos.second;
+}

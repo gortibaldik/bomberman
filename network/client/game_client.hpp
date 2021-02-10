@@ -7,6 +7,7 @@
 #include "client_entity.hpp"
 
 using PlayerEntities = std::unordered_map<std::string, ClientPlayerEntity>;
+using BombEntities = std::unordered_map<int, ClientBombEntity>;
 
 class GameClient : public Client {
 public:
@@ -15,19 +16,23 @@ public:
     bool is_approved() { return approved; }
     GameMapRenderable& get_game_map() { return map; }
     void fit_entities_to_window();
-    void render_players(sf::RenderTarget* target);
+    void render_entities(sf::RenderTarget* target);
     const ClientPlayerEntity* me;
 private:
     void handle_others(sf::Packet&, PacketType) override;
     void get_ready(sf::Packet&);
     void notify_disconnect() override;
     void server_state_update(sf::Packet&);
+    void update_player(sf::Packet& packet);
+    void create_bomb(sf::Packet& packet);
+    void erase_bomb(sf::Packet& packet);
     bool game_started = false;
     bool approved = false;
 
     GameMapRenderable map;
     const TextureManager& tm;
     PlayerEntities players;
+    BombEntities bombs;
     std::mutex resources_mutex;
 };
 #endif
