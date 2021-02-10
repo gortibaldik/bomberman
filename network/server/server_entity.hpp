@@ -66,6 +66,8 @@ public:
     std::vector<ServerExplosionEntity> explode(GameMapLogic&, float till_erasement);
 };
 
+bool naive_bbox_intersect(const EntityCoords& c1, const EntityCoords& c2);
+
 sf::Packet& operator <<(sf::Packet&, const ServerExplosionEntity&);
 sf::Packet& operator <<(sf::Packet&, const ServerBombEntity&);
 sf::Packet& operator <<(sf::Packet&, const ServerPlayerEntity&);

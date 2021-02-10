@@ -40,7 +40,7 @@ void GameServer::handle_others(const std::string& client_name, sf::Packet& packe
 }
 
 #define EXPLOSION_TIME 2.5f
-#define EXPLOSION_VIEW_TIME 1.f
+#define EXPLOSION_VIEW_TIME 0.5f
 
 void GameServer::handle_running_state(const std::string& client_name, sf::Packet& packet, PacketType ptype) {
     if (ptype != PacketType::Update) { return; }
@@ -91,6 +91,11 @@ void GameServer::game_notify_loop() {
         sf::Packet packet;
         add_type_to_packet(packet, PacketType::Update);
         for(auto&& p : players) {
+            for (auto&& exp : explosions) {
+                if (naive_bbox_intersect(p.second.actual_pos, exp.second.actual_pos)) {
+                    std::cout << p.first << " is hit!" << std::endl;
+                }
+            }
             if (p.second.updated) {
                 p.second.updated = false;
                 at_least_one = true;
@@ -154,6 +159,8 @@ void GameServer::game_notify_loop() {
 }
 
 void GameServer::start_game() {
+    // this function isn't synchronized, because
+    // only main thread accesses players container
     if (state == ServerState::RUNNING) { return; }
     state = ServerState::RUNNING;
     sf::Packet p;
@@ -180,9 +187,15 @@ void GameServer::handle_starting_state(const std::string& client_name, sf::Packe
 }
 
 void GameServer::notify_disconnect(const std::string& client_name) {
-    auto iter = players.find(client_name);
-    if (iter == players.end()) { return; }
-    players.erase(client_name);
+    {
+        std::unique_lock<std::mutex> l(players_mutex);
+        auto iter = players.find(client_name);
+        if (iter == players.end()) { return; }
+        players.erase(client_name);
+    }
+    sf::Packet packet;
+    add_type_to_packet(packet, PacketType::ServerNotifyPlayerDisconnect);
+    broadcast(packet);
 }
 
 GameServer::~GameServer() {

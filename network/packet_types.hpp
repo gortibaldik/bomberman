@@ -9,15 +9,16 @@ enum class PacketType {
     Duplicate,
     SpawnPosition,
     HeartBeat,
-    GetReady,
+    GetReady, /* 4 */
     ClientReady,
     ClientMove,
     ClientDeployBomb,
-    ServerNewBomb,
+    ServerNewBomb, /* 8 */
     ServerEraseBomb,
     ServerPlayerUpdate,
     ServerCreateExplosion,
-    ServerEraseExplosion,
+    ServerEraseExplosion, /* 12 */
+    ServerNotifyPlayerDisconnect,
     Update,
     Invalid
 };

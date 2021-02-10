@@ -130,6 +130,13 @@ void GameClient::handle_others(sf::Packet& packet, PacketType ptype) {
         if (!approved) { return; }
         server_state_update(packet);
         break;
+    case PacketType::ServerNotifyPlayerDisconnect:
+        packet >> token;
+        {
+            std::unique_lock<std::mutex> l(resources_mutex);
+            players.erase(token);
+        }
+        break;
     }
 }
 

@@ -58,14 +58,17 @@ void Server::listen() {
 }
 
 void Server::handle_disconnect(const sf::IpAddress& ip, PortNumber port) {
-    std::unique_lock<std::mutex> l(clients_mutex);
-    auto ptr = find_by_ip_port(ip, port);
-    if (ptr == connected_clients.end()) {
-        return; // ignore non existent client error
+    std::string name = "";
+    {
+        std::unique_lock<std::mutex> l(clients_mutex);
+        auto ptr = find_by_ip_port(ip, port);
+        if (ptr == connected_clients.end()) {
+            return; // ignore non existent client error
+        }
+        name = ptr->first;
+        connected_clients.erase(name);
     }
-    std::cout << "erased " << ptr->first << std::endl;
-    connected_clients.erase(ptr->first);
-    notify_disconnect(ptr->first);
+    notify_disconnect(name);
 }
 
 void Server::handle_heartbeat(const sf::IpAddress& ip, PortNumber port) {
