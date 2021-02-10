@@ -34,6 +34,20 @@ public:
     const TextureManager& tm;
 };
 
+class ClientExplosionEntity : public Entity {
+public:
+    ClientExplosionEntity(const TextureManager& tm
+                         , const std::string& sprite_name
+                         , sf::Int32 ID)
+                         : tm(tm)
+                         , ID(ID)
+                         , anim_object(tm.get_anim_object(sprite_name)) {}
+    AnimObject anim_object;
+    sf::Int32 ID;
+    const TextureManager& tm;
+    static ClientExplosionEntity extract_from_packet(const TextureManager& tm, sf::Packet&);
+};
+
 sf::Packet& operator >>(sf::Packet&, ClientPlayerEntity&);
 sf::Packet& operator >>(sf::Packet&, ClientBombEntity&);
 

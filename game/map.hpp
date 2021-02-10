@@ -35,7 +35,7 @@ public:
                         const std::string& type, int row, int column) override;
     void initialize() override;
     std::tuple<int, int, int> get_spawn_pos();
-    void collision_checking(float move_factor, EntityCoords&, EntityDirection::EntityDirection);
+    bool collision_checking(float move_factor, EntityCoords&, EntityDirection::EntityDirection);
 private:
     TilesTypes::TilesTypes unsafe_get(int row, int column);
     std::vector<std::tuple<int, int, int>> spawn_positions;

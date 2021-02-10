@@ -2,7 +2,9 @@
 #define GAME_SERVER_ENTITY_HPP
 
 #include "game/entity.hpp"
+#include "game/map.hpp"
 #include <SFML/Network.hpp>
+#include <vector>
 
 class ServerPlayerEntity : public PlayerEntity {
 public:
@@ -25,6 +27,24 @@ public:
     void remove_deployed() { c_deployed = (c_deployed > 0) ? c_deployed - 1 : c_deployed; }
 };
 
+class ServerExplosionEntity: public Entity {
+public:
+    int ID;
+    float till_erasement;
+    ExplosionType::ExplosionType type;
+    ServerExplosionEntity( EntityCoords pos
+                         , float till_erasement
+                         , int ID
+                         , ExplosionType::ExplosionType type)
+                         : Entity(pos)
+                         , ID(ID)
+                         , till_erasement(till_erasement)
+                         , type(type) {}
+    void update(float dt);
+    bool can_be_erased() { return till_erasement <= 0.f; }
+};
+
+
 class ServerBombEntity: public Entity {
 public:
     int ID;
@@ -41,10 +61,12 @@ public:
                     , ID(ID)
                     , spe(spe) {}
     void update(float dt);
-    bool is_exploded() { return time_to_explosion <= 0.f; }
+    bool can_explode() { return time_to_explosion <= 0.f; }
     bool is_new();
+    std::vector<ServerExplosionEntity> explode(GameMapLogic&, float till_erasement);
 };
 
+sf::Packet& operator <<(sf::Packet&, const ServerExplosionEntity&);
 sf::Packet& operator <<(sf::Packet&, const ServerBombEntity&);
 sf::Packet& operator <<(sf::Packet&, const ServerPlayerEntity&);
 

@@ -39,7 +39,8 @@ void GameServer::handle_others(const std::string& client_name, sf::Packet& packe
     }
 }
 
-#define EXPLOSION_TIME 3.f
+#define EXPLOSION_TIME 2.5f
+#define EXPLOSION_VIEW_TIME 1.f
 
 void GameServer::handle_running_state(const std::string& client_name, sf::Packet& packet, PacketType ptype) {
     if (ptype != PacketType::Update) { return; }
@@ -72,7 +73,6 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
                     return;
                 }
                 p.deploy();
-                std::cout << "server deploy bomb ! " << client_name << std::endl;
                 bombs.emplace(n_deployed_bombs, ServerBombEntity(p.actual_pos, EXPLOSION_TIME, n_deployed_bombs, p));
                 n_deployed_bombs++;
             }
@@ -108,20 +108,44 @@ void GameServer::game_notify_loop() {
                 packet << sf::Int8(Network::Delimiter);
                 add_type_to_packet(packet, PacketType::ServerNewBomb);
                 packet << b.second;
-                std::cout << "server notifying about new bomb!" << std::endl;
             }
-            if (b.second.is_exploded()) {
+            if (b.second.can_explode()) {
                 at_least_one = true;
                 packet << sf::Int8(Network::Delimiter);
                 add_type_to_packet(packet, PacketType::ServerEraseBomb);
                 packet << b.second;
                 b.second.spe.remove_deployed();
+                for (auto&& exp : b.second.explode(map, EXPLOSION_VIEW_TIME)) {
+                    exp.ID = n_exploded_squares;
+                    packet << sf::Int8(Network::Delimiter);
+                    add_type_to_packet(packet, PacketType::ServerCreateExplosion);
+                    packet << exp; 
+                    explosions.emplace(n_exploded_squares, std::move(exp));
+                    n_exploded_squares++;
+                }
                 bombs_to_erase.push_back(b.first);
+            }
+        }
+
+        std::vector<int> explosions_to_erase;
+        for (auto&& exp: explosions) {
+            exp.second.update(time.asSeconds());
+            if (exp.second.can_be_erased()) {
+                at_least_one = true;
+                packet << sf::Int8(Network::Delimiter);
+                add_type_to_packet(packet, PacketType::ServerEraseExplosion);
+                packet << exp.second;
+                explosions_to_erase.push_back(exp.first);
             }
         }
         for (auto&& i : bombs_to_erase) {
             bombs.erase(i);
         }
+
+        for (auto&& i : explosions_to_erase) {
+            explosions.erase(i);
+        }
+        
         if (at_least_one) {
             broadcast(packet);
         }

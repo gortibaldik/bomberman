@@ -14,6 +14,18 @@ namespace EntityDirection {
     };
 };
 
+namespace ExplosionType {
+    enum ExplosionType {
+        CENTER,
+        HORIZONTAL,
+        VERTICAL,
+        UP_END,
+        DOWN_END,
+        RIGHT_END,
+        LEFT_END
+    };
+};
+
 using EntityCoords = std::pair<float, float>;
 
 class Entity {

@@ -14,6 +14,7 @@ namespace ServerState {
 
 using Players = std::unordered_map<std::string, ServerPlayerEntity>;
 using Bombs = std::unordered_map<int, ServerBombEntity>;
+using Explosions = std::unordered_map<int, ServerExplosionEntity>;
 
 class GameServer: public Server {
 public:
@@ -31,6 +32,7 @@ protected:
     ServerState::ServerState state;
     Players players;
     Bombs bombs;
+    Explosions explosions;
     GameMapLogic map;
 
     std::thread notifier;
@@ -38,6 +40,7 @@ protected:
     std::mutex players_mutex;
 
     int n_deployed_bombs = 0;
+    int n_exploded_squares = 0;
     float move_factor = 0.15f;
 };
 

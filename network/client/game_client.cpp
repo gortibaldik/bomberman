@@ -46,7 +46,6 @@ void GameClient::update_player(sf::Packet& packet) {
 }
 
 void GameClient::create_bomb(sf::Packet& packet) {
-    std::cout << "client got message about new bomb!" << std::endl;
     ClientBombEntity cbe(tm);
     packet >> cbe;
     auto it = bombs.find(cbe.ID);
@@ -57,12 +56,28 @@ void GameClient::create_bomb(sf::Packet& packet) {
 }
 
 void GameClient::erase_bomb(sf::Packet& packet) {
-    std::cout << "client erasing bomb" << std::endl;
     ClientBombEntity cbe(tm);
     packet >> cbe;
     auto it = bombs.find(cbe.ID);
     if (it != bombs.end()) {
         bombs.erase(cbe.ID);
+    }
+}
+
+void GameClient::create_explosion(sf::Packet& packet) {
+    auto cee = ClientExplosionEntity::extract_from_packet(tm, packet);
+    auto it = explosions.find(cee.ID);
+    if (it == explosions.end()) {
+        map.transform(cee.anim_object, cee.actual_pos, true);
+        explosions.emplace(cee.ID, cee);
+    }
+}
+
+void GameClient::erase_explosion(sf::Packet& packet) {
+    auto cee = ClientExplosionEntity::extract_from_packet(tm, packet);
+    auto it = explosions.find(cee.ID);
+    if (it != explosions.end()) {
+        explosions.erase(cee.ID);
     }
 }
 
@@ -81,6 +96,12 @@ void GameClient::server_state_update(sf::Packet& packet) {
             break;
         case PacketType::ServerEraseBomb:
             erase_bomb(packet);
+            break;
+        case PacketType::ServerCreateExplosion:
+            create_explosion(packet);
+            break;
+        case PacketType::ServerEraseExplosion:
+            erase_explosion(packet);
             break;
         }
     }
@@ -121,6 +142,9 @@ void GameClient::render_entities(sf::RenderTarget* target) {
     std::unique_lock<std::mutex> l(resources_mutex);
     for (auto&& b : bombs) {
         target->draw(b.second.anim_object.get_sprite());
+    }
+    for (auto&& exp : explosions) {
+        target->draw(exp.second.anim_object.get_sprite());
     }
     for (auto&& p : players) {
         target->draw(p.second.anim_object.get_sprite());

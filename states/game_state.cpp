@@ -78,7 +78,6 @@ bool GameState::check_deploy(sf::Packet& packet) {
         packet << sf::Int8(Network::Delimiter);
         add_type_to_packet(packet, PacketType::ClientDeployBomb);
         can_deploy = false;
-        std::cout << "Deployed bomb!" << std::endl;
         return true;
     }
     return false;

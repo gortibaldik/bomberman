@@ -8,6 +8,7 @@
 
 using PlayerEntities = std::unordered_map<std::string, ClientPlayerEntity>;
 using BombEntities = std::unordered_map<int, ClientBombEntity>;
+using ExplosionEntities = std::unordered_map<int, ClientExplosionEntity>;
 
 class GameClient : public Client {
 public:
@@ -26,6 +27,8 @@ private:
     void update_player(sf::Packet& packet);
     void create_bomb(sf::Packet& packet);
     void erase_bomb(sf::Packet& packet);
+    void create_explosion(sf::Packet& packet);
+    void erase_explosion(sf::Packet& packet);
     bool game_started = false;
     bool approved = false;
 
@@ -33,6 +36,7 @@ private:
     const TextureManager& tm;
     PlayerEntities players;
     BombEntities bombs;
+    ExplosionEntities explosions;
     std::mutex resources_mutex;
 };
 #endif

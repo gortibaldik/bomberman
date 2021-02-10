@@ -16,6 +16,8 @@ enum class PacketType {
     ServerNewBomb,
     ServerEraseBomb,
     ServerPlayerUpdate,
+    ServerCreateExplosion,
+    ServerEraseExplosion,
     Update,
     Invalid
 };

@@ -189,7 +189,7 @@ static bool try_correct(int free, float& me) {
     return false;
 }
 
-void GameMapLogic::collision_checking(float move_factor, EntityCoords& coords, EntityDirection::EntityDirection dir) {
+bool GameMapLogic::collision_checking(float move_factor, EntityCoords& coords, EntityDirection::EntityDirection dir) {
     int ceil_row = static_cast<int>(ceilf(coords.first));
     int ceil_col = static_cast<int>(ceilf(coords.second));
     int flr_row = static_cast<int>(floorf(coords.first));
@@ -202,42 +202,44 @@ void GameMapLogic::collision_checking(float move_factor, EntityCoords& coords, E
         check_c = unsafe_get(flr_row, ceil_col) == TilesTypes::NON_WALKABLE;
         check_f = unsafe_get(flr_row, flr_col) == TilesTypes::NON_WALKABLE;
         if (!check_c && check_f && try_correct(ceil_col, coords.second)) {
-            return;
+            return true;
         } else if (check_c && !check_f && try_correct(flr_col, coords.second)) {
-            return;
+            return true;
         }
         break;
     case EntityDirection::DOWN:
         check_c = unsafe_get(ceil_row, ceil_col) == TilesTypes::NON_WALKABLE;
         check_f = unsafe_get(ceil_row, flr_col) == TilesTypes::NON_WALKABLE;
         if (!check_c && check_f && try_correct(ceil_col, coords.second)) {
-            return;
+            return true;
         } else if (check_c && !check_f && try_correct(flr_col, coords.second)) {
-            return;
+            return true;
         }
         break;
     case EntityDirection::LEFT:
         check_c = unsafe_get(ceil_row, flr_col) == TilesTypes::NON_WALKABLE;
         check_f = unsafe_get(flr_row, flr_col) == TilesTypes::NON_WALKABLE;
         if (!check_c && check_f && try_correct(ceil_row, coords.first)) {
-            return;
+            return true;
         } else if (check_c && !check_f && try_correct(flr_row, coords.first)) {
-            return;
+            return true;
         }
         break;
     case EntityDirection::RIGHT:
         check_c = unsafe_get(ceil_row, ceil_col) == TilesTypes::NON_WALKABLE;
         check_f = unsafe_get(flr_row, ceil_col) == TilesTypes::NON_WALKABLE;
         if (!check_c && check_f && try_correct(ceil_row, coords.first)) {
-            return;
+            return true;
         } else if (check_c && !check_f && try_correct(flr_row, coords.first)) {
-            return;
+            return true;
         }
         break;
     }
     if (check_c || check_f) {
         go_back(move_factor, coords, dir);
+        return false;
     }
+    return true;
 }
 
 void GameMapLogic::initialize() {
