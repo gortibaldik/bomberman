@@ -17,13 +17,12 @@ class Server {
 public:
     Server(int max_clients): max_clients(max_clients), running(false), can_add(true){}
     Server(): Server(2) {}
-    ~Server();
+    virtual ~Server();
     bool start(PortNumber port);
     void listen();
 
     void send(const std::string&, sf::Packet&);
     void broadcast(sf::Packet&);
-    ReceiverQueue& get_received_messages() { return received_messages; }
 
     void update(const sf::Time& dt);
 
@@ -54,8 +53,6 @@ protected:
     std::atomic<bool> running;
     std::atomic<bool> can_add;
     const int max_clients;
-
-    ReceiverQueue received_messages;
 };
 
 #endif

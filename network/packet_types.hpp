@@ -12,6 +12,7 @@ enum class PacketType {
     GetReady,
     ClientReady,
     ClientMove,
+    Update,
     Invalid
 };
 

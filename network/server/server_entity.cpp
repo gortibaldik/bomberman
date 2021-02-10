@@ -7,3 +7,8 @@ sf::Packet& operator <<(sf::Packet& packet, const ServerPlayerEntity& spe) {
     packet << spe.actual_pos.first;
     return packet << spe.actual_pos.second;
 }
+
+void ServerPlayerEntity::update_pos_dir(EntityCoords&& coords, EntityDirection::EntityDirection dir) {
+    actual_pos = std::move(coords);
+    direction = dir;
+}

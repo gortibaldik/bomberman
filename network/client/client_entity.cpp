@@ -4,7 +4,7 @@ sf::Packet& operator >>(sf::Packet& packet, ClientPlayerEntity& cpe) {
     packet >> cpe.name;
     sf::Int8 token;
     packet >> token;
-    cpe.direction = EntityDirection::EntityDirection(token);
+    cpe.direction = (EntityDirection::EntityDirection)token;
     token = 0;
     packet >> token;
     cpe.anim_object = cpe.tm.get_anim_object("p1");

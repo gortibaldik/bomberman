@@ -22,7 +22,7 @@ enum class ClientStatus {
 class Client {
 public:
     Client(const std::string& player_name): player_name(player_name), status(ClientStatus::NotStarted) {}
-    ~Client();
+    virtual ~Client();
     bool connect(const sf::IpAddress&, PortNumber);
     void listen();
     void send(sf::Packet&);

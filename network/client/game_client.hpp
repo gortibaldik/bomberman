@@ -10,12 +10,13 @@ using PlayerEntities = std::unordered_map<std::string, ClientPlayerEntity>;
 
 class GameClient : public Client {
 public:
-    GameClient(const std::string& name, const TextureManager& tm): Client(name), map(tm), tm(tm) {}
+    GameClient(const std::string& name, const TextureManager& tm): Client(name), map(tm), tm(tm), me(nullptr) {}
     bool is_game_started() { return game_started; }
     bool is_approved() { return approved; }
     GameMapRenderable& get_game_map() { return map; }
     void fit_entities_to_window();
     void render_players(sf::RenderTarget* target);
+    const ClientPlayerEntity* me;
 private:
     void handle_others(sf::Packet&, PacketType) override;
     void get_ready(sf::Packet&);

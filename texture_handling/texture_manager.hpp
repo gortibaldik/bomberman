@@ -5,6 +5,8 @@
 #include <string>
 #include <map>
 #include <tuple>
+#include <game/entity.hpp>
+
 
 enum class Direction {
     UP,
@@ -40,6 +42,8 @@ public:
     AnimObject(const sf::Sprite&, float milliseconds_frame_change, const Animation* animation, Direction default_direction);
     void set_position(const sf::Vector2f& pos);
     void set_position(float, float);
+    void set_direction(EntityDirection::EntityDirection);
+
     sf::FloatRect get_global_bounds() { return sprite.getGlobalBounds(); }
     void scale(float, float);
     void update(float);
@@ -50,7 +54,8 @@ private:
     float milliseconds_frame_change;
     float c_time;
     int c_anim_index = 0;
-    Direction actual_direction;
+    EntityDirection::EntityDirection actual_direction;
+    Direction anim_direction;
 };
 
 class TextureManager {

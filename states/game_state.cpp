@@ -43,25 +43,32 @@ static float client_update_constant = 0.05f;
 
 using Coords = std::pair<int, int>;
 
-void GameState::check_move(sf::Packet& packet) {
-    static const std::unordered_map<sf::Keyboard::Key, Coords> key_to_dir =
-        { {sf::Keyboard::Left, Coords(-1,0)},
-          {sf::Keyboard::Right, Coords(1,0)},
-          {sf::Keyboard::Up, Coords(0,-1)},
-          {sf::Keyboard::Down, Coords(0,1)} };
+bool GameState::check_move(sf::Packet& packet) {
+    using coords_dir = std::pair<Coords, EntityDirection::EntityDirection>;
+    static const std::unordered_map<sf::Keyboard::Key, coords_dir> key_to_dir =
+        { {sf::Keyboard::Left, {Coords(0,-1), EntityDirection::LEFT}},
+          {sf::Keyboard::Right, {Coords(0,1), EntityDirection::RIGHT}},
+          {sf::Keyboard::Up, {Coords(-1,0), EntityDirection::UP}},
+          {sf::Keyboard::Down, {Coords(1,0), EntityDirection::DOWN}} };
 
     Coords c(0,0);
+    auto d = client->me->direction;
+    
     for (auto&& key : key_to_dir) {
         if (sf::Keyboard::isKeyPressed(key.first)) {
-            c.first += key.second.first;
-            c.second += key.second.second;
+            c.first += key.second.first.first;
+            c.second += key.second.first.second;
+            d = key.second.second;
+            break;
         }
     }
     if (c != Coords(0,0)) {
-        add_type_to_packet(packet, PacketType::ClientMove);
-        packet << sf::Int8(c.first) << sf::Int8(c.second);
         packet << sf::Int8(Network::Delimiter);
+        add_type_to_packet(packet, PacketType::ClientMove);
+        packet << sf::Int8(c.first) << sf::Int8(c.second) << sf::Int8(d);
+        return true;
     }
+    return false;
 }
 
 void GameState::update(float dt) {
@@ -75,6 +82,10 @@ void GameState::update(float dt) {
     if (delta >= client_update_constant) {
         sf::Packet packet;
         last_update_time = c_time;
-        check_move(packet);
+        add_type_to_packet(packet, PacketType::Update);
+        if (check_move(packet)) {
+            client->send(packet);
+        }
+        
     }
 }

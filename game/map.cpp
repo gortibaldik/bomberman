@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <math.h>
 
 
 static void throw_error() {
@@ -101,9 +102,11 @@ void GameMapRenderable::render(sf::RenderTarget* rt) {
     }
 }
 
-void GameMapRenderable::transform(AnimObject& anim_object, EntityCoords pos) {
-    anim_object.set_position(pos.first*tile_width*tile_scale_x, pos.second*tile_height*tile_scale_y);
-    anim_object.scale(tile_scale_x, tile_scale_y);
+void GameMapRenderable::transform(AnimObject& anim_object, EntityCoords pos, bool scale /*=true*/) {
+    float tsx = scale ? tile_scale_x : 1.f;
+    float tsy = scale ? tile_scale_y : 1.f;
+    anim_object.set_position(pos.second*tile_width*tile_scale_x, pos.first*tile_height*tile_scale_y);
+    anim_object.scale(tsx, tsy);
 }
 
 void GameMapRenderable::fit_to_window(float x, float y) {
@@ -152,6 +155,62 @@ void GameMapLogic::process_loaded(const std::string& token, const std::string& a
         throw std::runtime_error("Couldn't load tile type!");
     }
     tiles.push_back(t);
+}
+
+TilesTypes::TilesTypes GameMapLogic::unsafe_get(int row, int column) {
+    return tiles[row*columns + column];
+}
+
+static void go_back(float move_factor, EntityCoords& coords, EntityDirection::EntityDirection dir) {
+    switch(dir) {
+    case EntityDirection::UP:
+        coords.first += move_factor;
+        break;
+    case EntityDirection::DOWN:
+        coords.first -= move_factor;
+        break;
+    case EntityDirection::LEFT:
+        coords.second += move_factor;
+        break;
+    case EntityDirection::RIGHT:
+        coords.second -= move_factor;
+        break;
+    }
+}
+
+void GameMapLogic::collision_checking(float move_factor, EntityCoords& coords, EntityDirection::EntityDirection dir) {
+    int ceil_row = static_cast<int>(ceilf(coords.first));
+    int ceil_col = static_cast<int>(ceilf(coords.second));
+    int flr_row = static_cast<int>(floorf(coords.first));
+    int flr_col = static_cast<int>(floorf(coords.second));
+    float mid_row = (ceil_row + flr_row) / 2.f;
+    float mid_col = (ceil_col + flr_col) / 2.f;
+    switch(dir) {
+    case EntityDirection::UP:
+        if (unsafe_get(flr_row, ceil_col) == TilesTypes::NON_WALKABLE
+            || unsafe_get(flr_row, flr_col) == TilesTypes::NON_WALKABLE) {
+                go_back(move_factor, coords, dir);
+        }
+        break;
+    case EntityDirection::DOWN:
+        if (unsafe_get(ceil_row, ceil_col) == TilesTypes::NON_WALKABLE
+            || unsafe_get(ceil_row, flr_col) == TilesTypes::NON_WALKABLE) {
+                go_back(move_factor, coords, dir);
+        }
+        break;
+    case EntityDirection::LEFT:
+        if (unsafe_get(flr_row, flr_col) == TilesTypes::NON_WALKABLE
+            || unsafe_get(ceil_row, flr_col) == TilesTypes::NON_WALKABLE) {
+                go_back(move_factor, coords, dir);
+        }
+        break;
+    case EntityDirection::RIGHT:
+        if (unsafe_get(flr_row, ceil_col) == TilesTypes::NON_WALKABLE
+            || unsafe_get(ceil_row, ceil_col) == TilesTypes::NON_WALKABLE) {
+                go_back(move_factor, coords, dir);
+        }
+        break;
+    }
 }
 
 void GameMapLogic::initialize() {

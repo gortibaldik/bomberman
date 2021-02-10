@@ -20,7 +20,7 @@ public:
              , GameClient*
              , GameServer*);
 protected:
-    void check_move(sf::Packet&);
+    bool check_move(sf::Packet&);
     GameClient* client;
     GameServer* server;
     sf::View view;

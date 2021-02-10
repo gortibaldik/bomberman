@@ -34,14 +34,17 @@ void GameClient::server_state_update(sf::Packet& packet) {
         packet >> cpe;
         auto it = players.find(cpe.name);
         if (it == players.end()) {
-            map.transform(cpe.anim_object, cpe.actual_pos);
+            map.transform(cpe.anim_object, cpe.actual_pos, false);
             players.emplace(cpe.name, cpe);
+            if (cpe.name == player_name) {
+                me = &players.at(cpe.name);
+            }
             std::cout << cpe.name << " registered! <- client side" << std::endl;
         } else {
             it->second.actual_pos = cpe.actual_pos;
             it->second.direction = cpe.direction;
-            it->second.anim_object = std::move(cpe.anim_object);
-            map.transform(it->second.anim_object, it->second.actual_pos);
+            map.transform(it->second.anim_object, it->second.actual_pos, false);
+            it->second.anim_object.set_direction(cpe.direction);
         }
     }
 }
@@ -62,8 +65,11 @@ void GameClient::handle_others(sf::Packet& packet, PacketType ptype) {
         break;
     case PacketType::SpawnPosition:
         if (!approved) { return; }
-        std::cout << "Gonna start the game!" << std::endl;
         game_started = true;
+        server_state_update(packet);
+        break;
+    case PacketType::Update:
+        if (!approved) { return; }
         server_state_update(packet);
         break;
     }

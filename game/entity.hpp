@@ -6,14 +6,15 @@
 
 namespace EntityDirection {
     enum EntityDirection {
-        UP,
-        DOWN,
-        RIGHT,
-        LEFT
+        UP = 0,
+        DOWN = 1,
+        RIGHT = 2,
+        LEFT = 3,
+        STATIC
     };
 };
 
-using EntityCoords = std::pair<int, int>;
+using EntityCoords = std::pair<float, float>;
 
 class Entity {
 public:
