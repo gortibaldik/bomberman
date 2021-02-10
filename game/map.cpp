@@ -178,38 +178,65 @@ static void go_back(float move_factor, EntityCoords& coords, EntityDirection::En
     }
 }
 
+#define TOLERANCE 0.35f
+
+static bool try_correct(int free, float& me) {
+    auto val = abs(me - free);
+    if (val <= TOLERANCE) {
+        me = free;
+        return true;
+    }
+    return false;
+}
+
 void GameMapLogic::collision_checking(float move_factor, EntityCoords& coords, EntityDirection::EntityDirection dir) {
     int ceil_row = static_cast<int>(ceilf(coords.first));
     int ceil_col = static_cast<int>(ceilf(coords.second));
     int flr_row = static_cast<int>(floorf(coords.first));
     int flr_col = static_cast<int>(floorf(coords.second));
+    bool check_f = false, check_c = false;
     float mid_row = (ceil_row + flr_row) / 2.f;
     float mid_col = (ceil_col + flr_col) / 2.f;
     switch(dir) {
     case EntityDirection::UP:
-        if (unsafe_get(flr_row, ceil_col) == TilesTypes::NON_WALKABLE
-            || unsafe_get(flr_row, flr_col) == TilesTypes::NON_WALKABLE) {
-                go_back(move_factor, coords, dir);
+        check_c = unsafe_get(flr_row, ceil_col) == TilesTypes::NON_WALKABLE;
+        check_f = unsafe_get(flr_row, flr_col) == TilesTypes::NON_WALKABLE;
+        if (!check_c && check_f && try_correct(ceil_col, coords.second)) {
+            return;
+        } else if (check_c && !check_f && try_correct(flr_col, coords.second)) {
+            return;
         }
         break;
     case EntityDirection::DOWN:
-        if (unsafe_get(ceil_row, ceil_col) == TilesTypes::NON_WALKABLE
-            || unsafe_get(ceil_row, flr_col) == TilesTypes::NON_WALKABLE) {
-                go_back(move_factor, coords, dir);
+        check_c = unsafe_get(ceil_row, ceil_col) == TilesTypes::NON_WALKABLE;
+        check_f = unsafe_get(ceil_row, flr_col) == TilesTypes::NON_WALKABLE;
+        if (!check_c && check_f && try_correct(ceil_col, coords.second)) {
+            return;
+        } else if (check_c && !check_f && try_correct(flr_col, coords.second)) {
+            return;
         }
         break;
     case EntityDirection::LEFT:
-        if (unsafe_get(flr_row, flr_col) == TilesTypes::NON_WALKABLE
-            || unsafe_get(ceil_row, flr_col) == TilesTypes::NON_WALKABLE) {
-                go_back(move_factor, coords, dir);
+        check_c = unsafe_get(ceil_row, flr_col) == TilesTypes::NON_WALKABLE;
+        check_f = unsafe_get(flr_row, flr_col) == TilesTypes::NON_WALKABLE;
+        if (!check_c && check_f && try_correct(ceil_row, coords.first)) {
+            return;
+        } else if (check_c && !check_f && try_correct(flr_row, coords.first)) {
+            return;
         }
         break;
     case EntityDirection::RIGHT:
-        if (unsafe_get(flr_row, ceil_col) == TilesTypes::NON_WALKABLE
-            || unsafe_get(ceil_row, ceil_col) == TilesTypes::NON_WALKABLE) {
-                go_back(move_factor, coords, dir);
+        check_c = unsafe_get(ceil_row, ceil_col) == TilesTypes::NON_WALKABLE;
+        check_f = unsafe_get(flr_row, ceil_col) == TilesTypes::NON_WALKABLE;
+        if (!check_c && check_f && try_correct(ceil_row, coords.first)) {
+            return;
+        } else if (check_c && !check_f && try_correct(flr_row, coords.first)) {
+            return;
         }
         break;
+    }
+    if (check_c || check_f) {
+        go_back(move_factor, coords, dir);
     }
 }
 

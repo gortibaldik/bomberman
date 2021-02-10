@@ -58,6 +58,7 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
                 EntityCoords c(row*move_factor+p.actual_pos.first, col*move_factor+p.actual_pos.second);
                 auto d = (EntityDirection::EntityDirection)dir;
                 map.collision_checking(move_factor, c, d);
+                std::cout << c.first << "," << c.second << std::endl;
                 p.update_pos_dir(std::move(c), d);
                 p.updated = true;
             }
