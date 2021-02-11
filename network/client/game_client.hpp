@@ -9,6 +9,7 @@
 using PlayerEntities = std::unordered_map<std::string, ClientPlayerEntity>;
 using BombEntities = std::unordered_map<int, ClientBombEntity>;
 using ExplosionEntities = std::unordered_map<int, ClientExplosionEntity>;
+using SoftBlocks = std::unordered_map<int, ClientSoftBlockEntity>;
 
 class GameClient : public Client {
 public:
@@ -36,6 +37,9 @@ private:
     void erase_bomb(sf::Packet& packet);
     void create_explosion(sf::Packet& packet);
     void erase_explosion(sf::Packet& packet);
+    void erase_player(sf::Packet& packet);
+    void create_soft_block(sf::Packet& packet);
+    void destroy_soft_block(sf::Packet& packet);
     bool game_started = false;
     bool approved = false;
     bool only_viewer = false;
@@ -46,6 +50,7 @@ private:
     PlayerEntities players;
     BombEntities bombs;
     ExplosionEntities explosions;
+    SoftBlocks soft_blocks;
     std::mutex resources_mutex;
 };
 #endif

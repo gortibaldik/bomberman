@@ -17,8 +17,10 @@ namespace EntityDirection {
 namespace ExplosionType {
     enum ExplosionType {
         CENTER,
-        HORIZONTAL,
-        VERTICAL,
+        HORIZONTAL_RIGHT,
+        HORIZONTAL_LEFT,
+        VERTICAL_UP,
+        VERTICAL_DOWN,
         UP_END,
         DOWN_END,
         RIGHT_END,

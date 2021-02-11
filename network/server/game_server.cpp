@@ -21,7 +21,6 @@ void GameServer::set_ready_game(const std::string& name_of_map) {
     sf::Packet packet;
     add_type_to_packet(packet, PacketType::GetReady);
     packet << name_of_map;
-    std::cout << "Broadcasting GetReady packet!" << std::endl;
     broadcast(packet);
 }
 
@@ -85,6 +84,45 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
     }
 }
 
+bool GameServer::check_explosions(sf::Packet& packet) {
+    bool result = false;
+    for (auto&& exp : explosions) {
+        for (auto&& p : players) {
+            if (!p.second.is_attackable()) { continue; }
+            if (naive_bbox_intersect(p.second.actual_pos, exp.second.actual_pos)) {
+                std::cout << p.first << " is hit!" << std::endl;
+                p.second.actual_pos = p.second.spawn_pos;
+                if (p.second.lives == 1) {
+                    result = true;
+                    packet << sf::Int8(Network::Delimiter);
+                    add_type_to_packet(packet, PacketType::ServerNotifyPlayerDied);
+                    packet << p.first;
+                    players.erase(p.first);
+                } else {
+                    p.second.lives--;
+                    p.second.respawn();
+                    p.second.updated = true;
+                }
+                break;
+            }
+        }
+        size_t i = -1;
+        for (auto&& exists : map.get_soft_blocks()) {
+            i++;
+            if (!exists) { continue; }
+            auto pair = map.transform_to_coords(i);
+            if (naive_bbox_intersect(pair, exp.second.actual_pos)) {
+                map.erase_soft_block(i);
+                result = true;
+                packet << sf::Int8(Network::Delimiter);
+                add_type_to_packet(packet, PacketType::ServerNotifySoftBlockDestroyed);
+                packet << sf::Int32(i);
+            }
+        }
+    }
+    return result;
+}
+
 void GameServer::game_notify_loop() {
     using namespace std::chrono;
     sf::Clock clock;
@@ -95,31 +133,10 @@ void GameServer::game_notify_loop() {
         sf::Packet packet;
         add_type_to_packet(packet, PacketType::Update);
         sf::Time time = clock.restart();
+        at_least_one = at_least_one || check_explosions(packet);
         for(auto&& p : players) {
             p.second.update(time.asSeconds());
-            bool died = false;
-            if (p.second.is_attackable()) {
-                for (auto&& exp : explosions) {
-                    if (naive_bbox_intersect(p.second.actual_pos, exp.second.actual_pos)) {
-                        std::cout << p.first << " is hit!" << std::endl;
-                        p.second.actual_pos = p.second.spawn_pos;
-                        if (p.second.lives == 1) {
-                            at_least_one = true;
-                            packet << sf::Int8(Network::Delimiter);
-                            add_type_to_packet(packet, PacketType::ServerNotifyPlayerDied);
-                            packet << p.first;
-                            players.erase(p.first);
-                            died = true;
-                        } else {
-                            p.second.lives--;
-                            p.second.respawn();
-                            p.second.updated = true;
-                        }
-                        break;
-                    }
-                }
-            }
-            if (p.second.updated && !died) {
+            if (p.second.updated) {
                 p.second.updated = false;
                 at_least_one = true;
                 packet << sf::Int8(Network::Delimiter);
@@ -183,15 +200,26 @@ void GameServer::game_notify_loop() {
 void GameServer::start_game() {
     // this function isn't synchronized, because
     // only main thread accesses players container
+    // at the moment of starting the game
     if (state == ServerState::RUNNING) { return; }
     state = ServerState::RUNNING;
     sf::Packet p;
-    // create the packet with all the plazer positions
+    // create the packet with all the player positions
     add_type_to_packet(p, PacketType::SpawnPosition);
     for (auto&& player : players) {
         p << sf::Int8(Network::Delimiter);
         add_type_to_packet(p, PacketType::ServerPlayerUpdate);
         p << player.second;
+    }
+    // and all the positions of the soft blocks
+    int i = -1;
+    for (auto&& b : map.get_soft_blocks()) {
+        i++;
+        if (b) {
+            p << sf::Int8(Network::Delimiter);
+            add_type_to_packet(p, PacketType::ServerNotifySoftBlockExists);
+            p << sf::Int32(i);
+        }
     }
     broadcast(p);
     notifier = std::thread([this]() { game_notify_loop(); });

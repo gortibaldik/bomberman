@@ -70,9 +70,16 @@ void GameMap::generate_config(const std::string& file_name, int rows, int column
                     ofs << "wall_side NON_WALKABLE ";
                 }
             } else {
-                ofs << "grass WALKABLE ";
+                ofs << "grass FREE ";
             }
             ofs << r << " " << c << std::endl;
         }
     }
+}
+
+std::pair<int, int> GameMap::transform_to_coords(int i) {
+    std::pair<int, int> result;
+    result.first = i / columns;
+    result.second = i % columns;
+    return result;
 }

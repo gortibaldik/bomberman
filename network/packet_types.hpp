@@ -20,6 +20,8 @@ enum class PacketType {
     ServerEraseExplosion, /* 12 */
     ServerNotifyPlayerDisconnect,
     ServerNotifyPlayerDied,
+    ServerNotifySoftBlockDestroyed,
+    ServerNotifySoftBlockExists,
     Update,
     Invalid
 };

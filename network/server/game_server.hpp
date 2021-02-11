@@ -29,6 +29,7 @@ protected:
     void handle_starting_state(const std::string& client_name, sf::Packet&, PacketType);
     void handle_running_state(const std::string& client_name, sf::Packet&, PacketType);
     void game_notify_loop();
+    bool check_explosions(sf::Packet& packet);
     ServerState::ServerState state;
     Players players;
     Bombs bombs;

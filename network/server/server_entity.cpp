@@ -49,14 +49,14 @@ std::vector<ServerExplosionEntity> ServerBombEntity::explode(GameMapLogic& map, 
     std::vector<ServerExplosionEntity> result;
     result.emplace_back(actual_pos, till_erasement, 0, ExplosionType::CENTER);
     using type_coords = std::pair<std::pair<ExplosionType::ExplosionType, EntityDirection::EntityDirection>, EntityCoords>;
-    const std::vector<type_coords> to_right = {{{ExplosionType::HORIZONTAL, EntityDirection::RIGHT},    EntityCoords(0,  1)},
-                                               {{ExplosionType::RIGHT_END,   EntityDirection::RIGHT},    EntityCoords(0,  1)}};
-    const std::vector<type_coords> to_left  = {{{ExplosionType::HORIZONTAL,  EntityDirection::LEFT},     EntityCoords(0, -1)},
-                                               {{ExplosionType::LEFT_END,    EntityDirection::LEFT},     EntityCoords(0, -1)}};
-    const std::vector<type_coords> up       = {{{ExplosionType::VERTICAL,    EntityDirection::UP},       EntityCoords(-1, 0)},
-                                               {{ExplosionType::UP_END,      EntityDirection::UP},       EntityCoords(-1, 0)}};
-    const std::vector<type_coords> down     = {{{ExplosionType::VERTICAL,    EntityDirection::DOWN},     EntityCoords(1,  0)},
-                                               {{ExplosionType::DOWN_END,    EntityDirection::DOWN},     EntityCoords(1,  0)}};
+    const std::vector<type_coords> to_right = {{{ExplosionType::HORIZONTAL_RIGHT,   EntityDirection::RIGHT},    EntityCoords(0,  1)},
+                                               {{ExplosionType::RIGHT_END,          EntityDirection::RIGHT},    EntityCoords(0,  1)}};
+    const std::vector<type_coords> to_left  = {{{ExplosionType::HORIZONTAL_LEFT,    EntityDirection::LEFT},     EntityCoords(0, -1)},
+                                               {{ExplosionType::LEFT_END,           EntityDirection::LEFT},     EntityCoords(0, -1)}};
+    const std::vector<type_coords> up       = {{{ExplosionType::VERTICAL_UP,        EntityDirection::UP},       EntityCoords(-1, 0)},
+                                               {{ExplosionType::UP_END,             EntityDirection::UP},       EntityCoords(-1, 0)}};
+    const std::vector<type_coords> down     = {{{ExplosionType::VERTICAL_DOWN,      EntityDirection::DOWN},     EntityCoords(1,  0)},
+                                               {{ExplosionType::DOWN_END,           EntityDirection::DOWN},     EntityCoords(1,  0)}};
     const auto all_dirs = { to_left, to_right, up, down };
     for (auto&& d : all_dirs) {
         EntityCoords c;
@@ -70,8 +70,12 @@ std::vector<ServerExplosionEntity> ServerBombEntity::explode(GameMapLogic& map, 
                 c.first += tc.second.first;
                 c.second += tc.second.second;
             }
-            if (map.collision_checking(0.f, c, tc.first.second)) {
+            auto collision = map.collision_checking(0.f, c, tc.first.second);
+            if (collision == Collision::NONE) {
                 result.emplace_back(ServerExplosionEntity(c, till_erasement, 0, tc.first.first));
+            } else if (collision == Collision::SOFT_BLOCK) {
+                result.emplace_back(ServerExplosionEntity(c, till_erasement, 0, tc.first.first));
+                break;
             } else {
                 break;
             }
@@ -95,15 +99,17 @@ void ServerExplosionEntity::update(float dt) {
     }
 }
 
+#define INTERSECT_TOLERANCE 0.2f
+
 /* Naive, because of the assumption, that both c1 and c2 are coordinates
  *  of top left corner of a square with a side of length 1
  * 
  * @return true if the squares intersect
  */ 
 bool naive_bbox_intersect(const EntityCoords& c1, const EntityCoords& c2) {
-    bool rows_intersect = ((c1.first >= c2.first) && (c1.first - 1.f <= c2.first)) ||
-                          ((c2.first >= c1.first) && (c2.first - 1.f <= c1.first));
-    bool cols_intersect = ((c1.second >= c2.second) && (c1.second - 1.f <= c2.second)) ||
-                          ((c2.second >= c1.second) && (c2.second - 1.f <= c1.second));
+    bool rows_intersect = ((c1.first >= c2.first) && (c1.first - 1.f + INTERSECT_TOLERANCE <= c2.first)) ||
+                          ((c2.first >= c1.first) && (c2.first - 1.f + INTERSECT_TOLERANCE <= c1.first));
+    bool cols_intersect = ((c1.second >= c2.second) && (c1.second - 1.f + INTERSECT_TOLERANCE <= c2.second)) ||
+                          ((c2.second >= c1.second) && (c2.second - 1.f + INTERSECT_TOLERANCE <= c1.second));
     return rows_intersect && cols_intersect;
 }

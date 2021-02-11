@@ -64,6 +64,13 @@ public:
     static ClientExplosionEntity extract_from_packet(const TextureManager& tm, sf::Packet&);
 };
 
+class ClientSoftBlockEntity : public Entity {
+public:
+    ClientSoftBlockEntity( AnimObject&& anim_object)
+                         : anim_object(std::move(anim_object)) {}
+    AnimObject anim_object;
+};
+
 sf::Packet& operator >>(sf::Packet&, ClientPlayerEntity&);
 sf::Packet& operator >>(sf::Packet&, ClientBombEntity&);
 

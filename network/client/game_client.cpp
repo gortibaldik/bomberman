@@ -89,6 +89,34 @@ void GameClient::erase_explosion(sf::Packet& packet) {
     }
 }
 
+void GameClient::erase_player(sf::Packet& packet) {
+    std::string name = "";
+    packet >> name;
+    if (this->player_name.compare(name) == 0) {
+        only_viewer = true;
+    }
+    players.erase(name);
+}
+
+void GameClient::create_soft_block(sf::Packet& packet) {
+    sf::Int32 i = 0;
+    packet >> i;
+    auto it = soft_blocks.find(i);
+    if (it == soft_blocks.end()) {
+        soft_blocks.emplace(i, tm.get_anim_object("soft_block"));
+        map.transform(soft_blocks.at(i).anim_object, map.transform_to_coords(i), true);
+    }
+}
+
+void GameClient::destroy_soft_block(sf::Packet& packet) {
+    sf::Int32 i = 0;
+    packet >> i;
+    auto it = soft_blocks.find(i);
+    if (it != soft_blocks.end()) {
+        soft_blocks.erase(i);
+    }
+}
+
 void GameClient::server_state_update(sf::Packet& packet) {
     sf::Int8 delimiter;
     std::unique_lock<std::mutex> l(resources_mutex);
@@ -112,14 +140,13 @@ void GameClient::server_state_update(sf::Packet& packet) {
             erase_explosion(packet);
             break;
         case PacketType::ServerNotifyPlayerDied:
-            {
-                std::string name = "";
-                packet >> name;
-                if (this->player_name.compare(name) == 0) {
-                    only_viewer = true;
-                }
-                players.erase(name);
-            }
+            erase_player(packet);
+            break;
+        case PacketType::ServerNotifySoftBlockExists:
+            create_soft_block(packet);
+            break;
+        case PacketType::ServerNotifySoftBlockDestroyed:
+            destroy_soft_block(packet);
             break;
         }
     }
@@ -165,6 +192,9 @@ void GameClient::notify_disconnect() {
 
 void GameClient::render_entities(sf::RenderTarget* target) {
     std::unique_lock<std::mutex> l(resources_mutex);
+    for (auto&& s_b : soft_blocks) {
+        target->draw(s_b.second.anim_object.get_sprite());
+    }
     for (auto&& b : bombs) {
         target->draw(b.second.anim_object.get_sprite());
     }

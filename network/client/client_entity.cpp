@@ -63,13 +63,15 @@ sf::Packet& operator >>(sf::Packet& packet, ClientBombEntity& cbe) {
 
 ClientExplosionEntity ClientExplosionEntity::extract_from_packet(const TextureManager& tm, sf::Packet& packet) {
     const std::unordered_map<ExplosionType::ExplosionType, std::string> exp_to_str = {
-        {ExplosionType::CENTER, "exp_center"},
-        {ExplosionType::HORIZONTAL, "exp_horizontal"},
-        {ExplosionType::VERTICAL, "exp_vertical"},
-        {ExplosionType::RIGHT_END, "exp_right"},
-        {ExplosionType::LEFT_END, "exp_left"},
-        {ExplosionType::UP_END, "exp_up"},
-        {ExplosionType::DOWN_END, "exp_down"}
+        {ExplosionType::CENTER,             "exp_center"},
+        {ExplosionType::HORIZONTAL_LEFT,    "exp_horizontal"},
+        {ExplosionType::HORIZONTAL_RIGHT,   "exp_horizontal"},
+        {ExplosionType::VERTICAL_DOWN,      "exp_vertical"},
+        {ExplosionType::VERTICAL_UP,        "exp_vertical"},
+        {ExplosionType::RIGHT_END,          "exp_right"},
+        {ExplosionType::LEFT_END,           "exp_left"},
+        {ExplosionType::UP_END,             "exp_up"},
+        {ExplosionType::DOWN_END,           "exp_down"}
     };
     sf::Int32 id = 0;
     sf::Int8 type = 0;
