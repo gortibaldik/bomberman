@@ -29,7 +29,7 @@ ControlField::ControlField( float x,
                 float letter_width,
                 GStyle* gstyle,
                 ControlGrid* grid):  style(gstyle),
-                                text("", *style->font),
+                                text("", style->font),
                                 state(CONTROL_STATE::IDLE),
                                 letter_width(letter_width),
                                 grid(grid) {

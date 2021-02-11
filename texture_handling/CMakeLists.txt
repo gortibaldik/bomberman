@@ -3,4 +3,6 @@ target_sources(Bomberman
   PUBLIC
     texture_manager.hpp
     texture_manager.cpp
+    texture_loader.hpp
+    texture_loader.cpp
 )

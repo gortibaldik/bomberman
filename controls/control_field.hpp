@@ -11,7 +11,7 @@ struct GStyle {
     sf::Color cborder_highlight;
     sf::Color ctext;
     sf::Color ctext_highlight;
-    const sf::Font* font;
+    const sf::Font& font;
     float border_size;
 
     GStyle(const sf::Color& cbackground,
@@ -20,7 +20,7 @@ struct GStyle {
             const sf::Color& cbord_high,
             const sf::Color& ctext,
             const sf::Color& ctext_high,
-            const sf::Font* font,
+            const sf::Font& font,
             float bsize):   cbackground(cbackground),
                             cbackground_highlight(cback_high),
                             cborder(cbord),

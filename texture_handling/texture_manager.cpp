@@ -159,6 +159,14 @@ bool TextureManager::load_texture(const std::string& name, const std::string& fi
     return textures[name].loadFromFile(filename);
 }
 
+bool TextureManager::load_font(const std::string& name, const std::string& filename) {
+    return fonts[name].loadFromFile(filename);
+}
+
+const sf::Font& TextureManager::get_font(const std::string& name) const {
+    return fonts.at(name);
+}
+
 sf::Texture& TextureManager::get_ref(const std::string& texture) {
     return textures[texture];
 }

@@ -7,8 +7,6 @@
 #include "states/abstract.hpp"
 #include "texture_handling/texture_manager.hpp"
 
-using Fonts = std::map<std::string, sf::Font>;
-
 class WindowManager {
 public:
     sf::RenderWindow window;
@@ -23,17 +21,14 @@ public:
     void resize_window(unsigned int width, unsigned int height);
 
     const GSPtr& peek_state();
-    const sf::Font* get_font(const std::string&);
     const TextureManager& get_tm() { return texture_manager; }
 
     WindowManager();
 private:
-    void load_from_config(const std::string& name_of_file);
 
     GSPtr null_placeholder;
     bool remove_top = false;
     std::deque<GSPtr> states;
-    Fonts fonts;
     TextureManager texture_manager;
 };
 

@@ -47,7 +47,7 @@ StartState::StartState(WindowManager& mngr):
                         sf::Color::Transparent,
                         sf::Color::Black,
                         sf::Color::Blue,
-                        mngr.get_font("main_font"),
+                        mngr.get_tm().get_font("main_font"),
                         1.f){
     sf::Vector2f pos(mngr.window.getSize());
     pos *= 0.38f;

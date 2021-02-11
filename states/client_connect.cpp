@@ -72,7 +72,7 @@ ClientConnectState::ClientConnectState(WindowManager& mngr, const sf::View& view
                         sf::Color::Transparent,
                         sf::Color::Black,
                         sf::Color::Blue,
-                        mngr.get_font("main_font"),
+                        mngr.get_tm().get_font("main_font"),
                         1.f),
         menu_txt_style( sf::Color::Transparent,
                         sf::Color(250, 188, 188, 50),
@@ -80,7 +80,7 @@ ClientConnectState::ClientConnectState(WindowManager& mngr, const sf::View& view
                         sf::Color::Black,
                         sf::Color::Black,
                         sf::Color::Black,
-                        mngr.get_font("main_font"),
+                        mngr.get_tm().get_font("main_font"),
                         1.f) {
     sf::Vector2f pos(mngr.window.getSize());
     pos *= resizing_factor;

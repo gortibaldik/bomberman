@@ -20,6 +20,7 @@ class AnimObject;
 using Steps = std::vector<std::tuple<int, int, int, int>>;
 using Directions = std::map<Direction, Steps>;
 using FrameRates = std::map<Direction, float>;
+using Fonts = std::map<std::string, sf::Font>;
 
 class Animation {
 public:
@@ -68,8 +69,11 @@ public:
     AnimObject get_anim_object(const std::string& name) const;
     bool load_texture(const std::string& name, const std::string& filename);
     sf::Texture& get_ref(const std::string& texture);
+    bool load_font(const std::string& name, const std::string& filename);
+    const sf::Font& get_font(const std::string& font_name) const;
 private:
     std::map<std::string, Animation> animations;
     std::map<std::string, sf::Texture> textures;
+    Fonts fonts;
 };
 #endif

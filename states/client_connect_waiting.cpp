@@ -87,7 +87,7 @@ ClientConnectWaitingState::ClientConnectWaitingState(WindowManager& mngr, const 
                         sf::Color::Transparent,
                         sf::Color::Black,
                         sf::Color::Blue,
-                        mngr.get_font("main_font"),
+                        mngr.get_tm().get_font("main_font"),
                         1.f),
         menu_txt_style( sf::Color::Transparent,
                         sf::Color(250, 188, 188, 50),
@@ -95,9 +95,9 @@ ClientConnectWaitingState::ClientConnectWaitingState(WindowManager& mngr, const 
                         sf::Color::Black,
                         sf::Color::Black,
                         sf::Color::Black,
-                        mngr.get_font("main_font"),
+                        mngr.get_tm().get_font("main_font"),
                         1.f),
-        client(name, mngr.get_tm(), *mngr.get_font("game_font")) {
+        client(name, mngr.get_tm(), mngr.get_tm().get_font("game_font")) {
     sf::Vector2f pos(100, 100);
     menu.initialize(pos.x, pos.y, txt_size, mb_default_width_txt, &menu_btn_style, &menu_txt_style);
     using namespace std::chrono_literals;
