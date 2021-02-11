@@ -7,19 +7,29 @@
 
 class ClientPlayerEntity: public PlayerEntity {
 public:
-    ClientPlayerEntity(const TextureManager& tm)
+    ClientPlayerEntity( const TextureManager& tm
+                      , const sf::Font& font)
                       : tm(tm)
-                      , anim_object(tm.get_anim_object("p1")) {}    
-    ClientPlayerEntity(const std::string& name
+                      , anim_object(tm.get_anim_object("p1"))
+                      , player_name_renderable("", font, 20) {
+        player_name_renderable.setFillColor(sf::Color::White);
+        
+    }    
+    ClientPlayerEntity( const std::string& name
                       , EntityCoords spawn_pos
                       , EntityCoords actual_pos
                       , EntityDirection::EntityDirection direction
                       , AnimObject anim_object
-                      , const TextureManager& tm)
+                      , const TextureManager& tm
+                      , const sf::Font& font)
                       : PlayerEntity(name, actual_pos, direction)
                       , anim_object(anim_object)
-                      , tm(tm) {}
+                      , tm(tm)
+                      , player_name_renderable(name, font) {}
+    void update_position();
     AnimObject anim_object;
+    sf::Text player_name_renderable;
+    
     const TextureManager& tm;
 };
 

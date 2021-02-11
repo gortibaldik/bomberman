@@ -4,6 +4,7 @@
 
 sf::Packet& operator >>(sf::Packet& packet, ClientPlayerEntity& cpe) {
     packet >> cpe.name;
+    cpe.player_name_renderable.setString(cpe.name);
     sf::Int8 token;
     packet >> token;
     cpe.direction = (EntityDirection::EntityDirection)token;
@@ -13,6 +14,16 @@ sf::Packet& operator >>(sf::Packet& packet, ClientPlayerEntity& cpe) {
     packet >> cpe.actual_pos.first;
     packet >> cpe.actual_pos.second;
     return packet;
+}
+
+#define SPACING_FACTOR 1.5f
+
+void ClientPlayerEntity::update_position() {
+    auto rectangle = anim_object.get_global_bounds();
+    auto width = rectangle.width;
+    auto text_rectangle = player_name_renderable.getGlobalBounds();
+    auto text_width = text_rectangle.width;
+    player_name_renderable.setPosition(rectangle.left + width / 2 - text_width / 2, rectangle.top - SPACING_FACTOR * text_rectangle.height);
 }
 
 sf::Packet& operator >>(sf::Packet& packet, ClientBombEntity& cbe) {

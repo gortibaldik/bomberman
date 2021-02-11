@@ -97,7 +97,7 @@ ClientConnectWaitingState::ClientConnectWaitingState(WindowManager& mngr, const 
                         sf::Color::Black,
                         mngr.get_font("main_font"),
                         1.f),
-        client(name, mngr.get_tm()) {
+        client(name, mngr.get_tm(), *mngr.get_font("game_font")) {
     sf::Vector2f pos(100, 100);
     menu.initialize(pos.x, pos.y, txt_size, mb_default_width_txt, &menu_btn_style, &menu_txt_style);
     using namespace std::chrono_literals;

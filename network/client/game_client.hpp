@@ -12,7 +12,14 @@ using ExplosionEntities = std::unordered_map<int, ClientExplosionEntity>;
 
 class GameClient : public Client {
 public:
-    GameClient(const std::string& name, const TextureManager& tm): Client(name), map(tm), tm(tm), me(nullptr) {}
+    GameClient( const std::string& name
+              , const TextureManager& tm
+              , const sf::Font& font)
+              : Client(name)
+              , map(tm)
+              , tm(tm)
+              , me(nullptr)
+              , font(font) {}
     bool is_game_started() { return game_started; }
     bool is_approved() { return approved; }
     GameMapRenderable& get_game_map() { return map; }
@@ -35,6 +42,7 @@ private:
 
     GameMapRenderable map;
     const TextureManager& tm;
+    const sf::Font& font;
     PlayerEntities players;
     BombEntities bombs;
     ExplosionEntities explosions;

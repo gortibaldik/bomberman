@@ -100,7 +100,7 @@ ServerCreateWaitingState::ServerCreateWaitingState(WindowManager& mngr, const sf
                         sf::Color::Black,
                         mngr.get_font("main_font"),
                         1.f),
-        client(name, mngr.get_tm()),
+        client(name, mngr.get_tm(), *mngr.get_font("game_font")),
         server(max_players),
         run_server(true),
         run_client(true),
