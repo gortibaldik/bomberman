@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <mutex>
 #include "base.hpp"
-#include "game/map.hpp"
+#include "game/map_renderable.hpp"
 #include "client_entity.hpp"
 
 using PlayerEntities = std::unordered_map<std::string, ClientPlayerEntity>;

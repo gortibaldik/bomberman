@@ -2,7 +2,7 @@
 #define SERVER_COMMUNICATION_MANAGER_HPP
 #include "server.hpp"
 #include "server_entity.hpp"
-#include "game/map.hpp"
+#include "game/map_logic.hpp"
 
 namespace ServerState {
     enum ServerState {

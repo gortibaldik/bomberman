@@ -2,7 +2,7 @@
 #define GAME_SERVER_ENTITY_HPP
 
 #include "game/entity.hpp"
-#include "game/map.hpp"
+#include "game/map_logic.hpp"
 #include <SFML/Network.hpp>
 #include <vector>
 
