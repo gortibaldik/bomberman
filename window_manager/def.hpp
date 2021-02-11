@@ -20,7 +20,7 @@ public:
     void close_window();
     void resize_window(unsigned int width, unsigned int height);
 
-    const GSPtr& peek_state();
+    GSPtr peek_state();
     const TextureManager& get_tm() { return texture_manager; }
 
     WindowManager();

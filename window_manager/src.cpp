@@ -9,27 +9,22 @@ void WindowManager::push_state(GSPtr&& state) {
 }
 
 void WindowManager::pop_states(int n) {
-    while (n > 1) {
+    while (n > 0) {
         if (states.empty()) {
             throw std::runtime_error("Couldn't pop as many states!");
         } else {
-            states.erase(states.end()-2);
+            states.pop_back();
             n--;
         }
     }
-    remove_top = true;
 }
 
 void WindowManager::change_state(GSPtr&& state) {
-    if (!states.empty()) {
-        pop_states(1);
-        states.insert(states.end()-1, std::move(state));
-    } else {
-        push_state(std::move(state));
-    }
+    pop_states(1);
+    push_state(std::move(state));
 }
 
-const GSPtr& WindowManager::peek_state() {
+GSPtr WindowManager::peek_state() {
     if (states.empty()) {
         return null_placeholder;
     } else {
@@ -40,11 +35,6 @@ const GSPtr& WindowManager::peek_state() {
 void WindowManager::loop() {
     sf::Clock clock;
     while(window.isOpen()) {
-        if (remove_top) {
-            std::cout << "removing state" << std::endl;
-            states.pop_back();
-            remove_top = false;
-        }
         sf::Time elapsed = clock.restart();
         float dt = elapsed.asSeconds();
 

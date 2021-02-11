@@ -21,7 +21,7 @@ protected:
     sf::Vector2f mouse_pos;
     WindowManager& window_manager;
 };
-using GSPtr = std::unique_ptr<State>;
+using GSPtr = std::shared_ptr<State>;
 
 void set_validator(ControlField* field_to_check, 
                     ControlField* field_to_modify,
