@@ -31,7 +31,10 @@ void GameClient::update_player(sf::Packet& packet) {
     packet >> cpe;
     auto it = players.find(cpe.name);
     if (it == players.end()) {
+        cpe.anim_object = tm.get_anim_object("p1");
         map.transform(cpe.anim_object, cpe.actual_pos, false);
+        cpe.update_hearts(cpe.lives);
+        cpe.player_name_renderable.setString(cpe.name);
         cpe.update_position();
         players.emplace(cpe.name, cpe);
         if (cpe.name == player_name) {
@@ -41,6 +44,9 @@ void GameClient::update_player(sf::Packet& packet) {
     } else {
         it->second.actual_pos = cpe.actual_pos;
         it->second.direction = cpe.direction;
+        if (it->second.lives != cpe.lives) {
+            it->second.update_hearts(cpe.lives);
+        }
         map.transform(it->second.anim_object, it->second.actual_pos, false);
         it->second.update_position();
         it->second.anim_object.set_direction(cpe.direction);
@@ -166,7 +172,6 @@ void GameClient::render_entities(sf::RenderTarget* target) {
         target->draw(exp.second.anim_object.get_sprite());
     }
     for (auto&& p : players) {
-        target->draw(p.second.anim_object.get_sprite());
-        target->draw(p.second.player_name_renderable);
+        p.second.render(target);
     }
 }

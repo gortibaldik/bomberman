@@ -4,6 +4,9 @@
 #include "game/entity.hpp"
 #include "texture_handling/texture_manager.hpp"
 #include <SFML/Network.hpp>
+#include <vector>
+
+using HeartSprites = std::vector<AnimObject>;
 
 class ClientPlayerEntity: public PlayerEntity {
 public:
@@ -13,7 +16,6 @@ public:
                       , anim_object(tm.get_anim_object("p1"))
                       , player_name_renderable("", font, 20) {
         player_name_renderable.setFillColor(sf::Color::White);
-        
     }    
     ClientPlayerEntity( const std::string& name
                       , EntityCoords spawn_pos
@@ -27,6 +29,10 @@ public:
                       , tm(tm)
                       , player_name_renderable(name, font) {}
     void update_position();
+    void update_hearts(int lives);
+    void render(sf::RenderTarget*);
+    HeartSprites hearts;
+    sf::Int8 lives;
     AnimObject anim_object;
     sf::Text player_name_renderable;
     

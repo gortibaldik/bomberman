@@ -4,13 +4,17 @@
 
 sf::Packet& operator >>(sf::Packet& packet, ClientPlayerEntity& cpe) {
     packet >> cpe.name;
-    cpe.player_name_renderable.setString(cpe.name);
-    sf::Int8 token;
-    packet >> token;
-    cpe.direction = (EntityDirection::EntityDirection)token;
-    token = 0;
-    packet >> token;
-    cpe.anim_object = cpe.tm.get_anim_object("p1");
+    sf::Int8 direction = 0;
+    packet >> direction;
+    cpe.direction = static_cast<EntityDirection::EntityDirection>(direction);
+    sf::Int8 lives = 0;
+    packet >> lives;
+    cpe.lives = lives;
+    sf::Int8 player_token_type = 0;
+    // token is a type of player object
+    // now it's just a mockup the functionality
+    // will be implemented later
+    packet >> player_token_type;
     packet >> cpe.actual_pos.first;
     packet >> cpe.actual_pos.second;
     return packet;
@@ -19,11 +23,36 @@ sf::Packet& operator >>(sf::Packet& packet, ClientPlayerEntity& cpe) {
 #define SPACING_FACTOR 1.5f
 
 void ClientPlayerEntity::update_position() {
-    auto rectangle = anim_object.get_global_bounds();
+    auto&& rectangle = anim_object.get_global_bounds();
     auto width = rectangle.width;
-    auto text_rectangle = player_name_renderable.getGlobalBounds();
+    auto&& text_rectangle = player_name_renderable.getGlobalBounds();
     auto text_width = text_rectangle.width;
-    player_name_renderable.setPosition(rectangle.left + width / 2 - text_width / 2, rectangle.top - SPACING_FACTOR * text_rectangle.height);
+    auto text_height = text_rectangle.height;
+    auto&& heart_rectangle = hearts[0].get_global_bounds();
+    auto heart_width = heart_rectangle.width;
+    auto heart_height = heart_rectangle.height;
+    auto hearts_width = heart_width * hearts.size();
+    for (int i = 0; i < hearts.size(); i++) {
+        hearts[i].set_position(rectangle.left + width / 2 - (hearts_width - i*2*heart_width) / 2, rectangle.top - SPACING_FACTOR * heart_height);
+    }
+    player_name_renderable.setPosition(rectangle.left + width / 2 - text_width / 2, rectangle.top - SPACING_FACTOR * text_rectangle.height
+                                                                                                  - SPACING_FACTOR * heart_height);
+}
+
+void ClientPlayerEntity::render(sf::RenderTarget* target) {
+    target->draw(anim_object.get_sprite());
+    target->draw(player_name_renderable);
+    for (auto&& heart : hearts) {
+        target->draw(heart.get_sprite());
+    }
+}
+
+void ClientPlayerEntity::update_hearts(int lives) {
+    this->lives = lives;
+    hearts.clear();
+    for (int i = 0; i < lives; i++) {
+        hearts.push_back(tm.get_anim_object("heart"));
+    }
 }
 
 sf::Packet& operator >>(sf::Packet& packet, ClientBombEntity& cbe) {
