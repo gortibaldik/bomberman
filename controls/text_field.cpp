@@ -24,7 +24,7 @@ TextField::TextField(   float x,
                         float letter_width,
                         unsigned int max_length,
                         float default_width,
-                        GStyle* gstyle,
+                        const GStyle* gstyle,
                         ControlGrid* grid,
                         std::function<bool(char)>&& in_f,
                         std::function<bool(const std::string&)>&& val_f):

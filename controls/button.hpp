@@ -11,7 +11,7 @@ public:
             float y,
             float letter_width,
             const std::string& text,
-            GStyle* style,
+            const GStyle* style,
             ControlGrid* grid);
 };
 
@@ -21,7 +21,7 @@ public:
                         float y,
                         float letter_width,
                         const std::string& text,
-                        GStyle* style,
+                        const GStyle* style,
                         ControlGrid* grid);
     void handle_input(const sf::Vector2f& mouse_position, const sf::Event& e) override;
     void update() override;

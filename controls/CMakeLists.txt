@@ -8,4 +8,7 @@ target_sources(Bomberman
     text_field.cpp
     text_field.hpp
     control_grid.hpp
-    control_grid.cpp)
+    control_grid.cpp
+    style_loader.hpp
+    style_loader.cpp
+)

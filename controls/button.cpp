@@ -7,7 +7,7 @@ Button::Button( float x,
                 float y,
                 float letter_width,
                 const std::string& text,
-                GStyle* gstyle,
+                const GStyle* gstyle,
                 ControlGrid* grid):  ControlField(x, y, letter_width, gstyle, grid) {
     
     this->text.setString(text);
@@ -20,7 +20,7 @@ NonClickableButton::NonClickableButton( float x,
                                         float y,
                                         float letter_width,
                                         const std::string& text,
-                                        GStyle* gstyle,
+                                        const GStyle* gstyle,
                                         ControlGrid* grid): ControlField(x, y, letter_width, gstyle, grid) {
     if (text.size() == 0) {
         this->text.setString(DUMMY);

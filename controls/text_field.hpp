@@ -13,7 +13,7 @@ public:
                 float letter_width,
                 unsigned int max_length,
                 float default_width,
-                GStyle* gstyle,
+                const GStyle* gstyle,
                 ControlGrid* grid,
                 std::function<bool(char)>&&,
                 std::function<bool(const std::string&)>&&);

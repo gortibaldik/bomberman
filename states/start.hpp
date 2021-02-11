@@ -12,6 +12,6 @@ public:
 protected:
     void handle_btn_pressed() override;
 private:
-    GStyle menu_btn_style;
+    const GStyle& menu_btn_style;
 };
 #endif

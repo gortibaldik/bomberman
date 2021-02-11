@@ -20,20 +20,20 @@ public:
     void initialize(float x,
                     float y,
                     unsigned int letter_size,
-                    GStyle* button_style);
+                    const GStyle* button_style);
 
     void initialize(float x,
                     float y,
                     unsigned int letter_size,
                     float default_width,
-                    GStyle* text_field_style);
+                    const GStyle* text_field_style);
 
     void initialize(float x,
                     float y,
                     unsigned int letter_size,
                     float default_width,
-                    GStyle* button_style,
-                    GStyle* text_field_style);
+                    const GStyle* button_style,
+                    const GStyle* text_field_style);
     void add_button(const std::string& button_title);
     void add_text_field(const std::string& name_of_field,
                         std::function<bool(char)>&& in_f,
@@ -56,8 +56,8 @@ private:
     float last_x, last_y, default_width;
     unsigned int letter_size;
 
-    GStyle* button_style;
-    GStyle* text_field_style;
+    const GStyle* button_style;
+    const GStyle* text_field_style;
 
     std::vector<CFPtr> buttons;
     std::map<std::string, ControlField*> named_fields;

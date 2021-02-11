@@ -6,6 +6,7 @@
 #include <SFML/Graphics.hpp>
 #include "states/abstract.hpp"
 #include "texture_handling/texture_manager.hpp"
+#include "controls/style_loader.hpp"
 
 class WindowManager {
 public:
@@ -22,6 +23,7 @@ public:
 
     GSPtr peek_state();
     const TextureManager& get_tm() { return texture_manager; }
+    const StylesHolder& get_sh() { return styles_holder; }
 
     WindowManager();
 private:
@@ -30,6 +32,7 @@ private:
     bool remove_top = false;
     std::deque<GSPtr> states;
     TextureManager texture_manager;
+    StylesHolder styles_holder;
 };
 
 #endif

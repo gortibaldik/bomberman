@@ -66,22 +66,8 @@ void ClientConnectState::handle_btn_pressed() {
 
 ClientConnectState::ClientConnectState(WindowManager& mngr, const sf::View& view):
         MenuState(mngr, view),
-        menu_btn_style( sf::Color::Transparent,
-                        sf::Color::Transparent,
-                        sf::Color::Transparent,
-                        sf::Color::Transparent,
-                        sf::Color::Black,
-                        sf::Color::Blue,
-                        mngr.get_tm().get_font("main_font"),
-                        1.f),
-        menu_txt_style( sf::Color::Transparent,
-                        sf::Color(250, 188, 188, 50),
-                        sf::Color::Black,
-                        sf::Color::Black,
-                        sf::Color::Black,
-                        sf::Color::Black,
-                        mngr.get_tm().get_font("main_font"),
-                        1.f) {
+        menu_btn_style( mngr.get_sh().get_style("button")),
+        menu_txt_style( mngr.get_sh().get_style("txt")) {
     sf::Vector2f pos(mngr.window.getSize());
     pos *= resizing_factor;
     menu.initialize(pos.x, pos.y, txt_size, mb_default_width_txt, &menu_btn_style, &menu_txt_style);

@@ -27,7 +27,7 @@ void ControlField::move_pos(float factor, unsigned int new_x, unsigned int new_y
 ControlField::ControlField( float x,
                 float y,
                 float letter_width,
-                GStyle* gstyle,
+                const GStyle* gstyle,
                 ControlGrid* grid):  style(gstyle),
                                 text("", style->font),
                                 state(CONTROL_STATE::IDLE),

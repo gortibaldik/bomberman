@@ -57,7 +57,7 @@ protected:
     ControlField( float x,
             float y,
             float letter_width,
-            GStyle* style,
+            const GStyle* style,
             ControlGrid* grid);
     sf::FloatRect move_position(float,
                                 unsigned int,
@@ -66,7 +66,7 @@ protected:
                                 float default_height = 0.f);
     sf::RectangleShape shape;
     sf::FloatRect bounding_box;
-    GStyle* style;
+    const GStyle* style;
     ControlGrid* grid;
     CONTROL_STATE::CONTROL_STATE state;
     float letter_width;

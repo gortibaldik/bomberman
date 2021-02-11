@@ -10,8 +10,8 @@ void ControlGrid::initialize(float x,
                     float y,
                     unsigned int letter_size,
                     float default_width,
-                    GStyle* button_style,
-                    GStyle* text_field_style) {
+                    const GStyle* button_style,
+                    const GStyle* text_field_style) {
     buttons.clear();
     last_x = x;
     last_y = y;
@@ -25,14 +25,14 @@ void ControlGrid::initialize(float x,
                     float y,
                     unsigned int letter_size,
                     float default_width,
-                    GStyle* text_field_style) {
+                    const GStyle* text_field_style) {
     initialize(x, y, letter_size, default_width, nullptr, text_field_style);
 }
 
 void ControlGrid::initialize(float x,
                 float y,
                 unsigned int letter_size,
-                GStyle* button_style) {
+                const GStyle* button_style) {
     initialize(x, y, letter_size, 0.f, button_style, nullptr);
 }
 
