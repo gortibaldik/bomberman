@@ -5,4 +5,8 @@ target_sources(Bomberman
     texture_manager.cpp
     texture_loader.hpp
     texture_loader.cpp
+    anim_object.hpp
+    anim_object.cpp
+    animation.hpp
+    animation.cpp
 )

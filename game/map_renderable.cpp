@@ -1,4 +1,5 @@
 #include "map_renderable.hpp"
+#include "texture_handling/anim_object.hpp"
 #include <stdexcept>
 
 GameMapRenderable::GameMapRenderable(const TextureManager& tm)

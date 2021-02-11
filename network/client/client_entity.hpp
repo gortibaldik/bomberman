@@ -3,6 +3,7 @@
 
 #include "game/entity.hpp"
 #include "texture_handling/texture_manager.hpp"
+#include "texture_handling/anim_object.hpp"
 #include <SFML/Network.hpp>
 #include <vector>
 
