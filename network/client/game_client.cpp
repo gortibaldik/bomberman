@@ -32,6 +32,9 @@ void GameClient::update_player(sf::Packet& packet) {
     auto it = players.find(cpe.name);
     if (it == players.end()) {
         cpe.anim_object = tm.get_anim_object("p1");
+        // players shall be scaled during fitting of the window
+        // at the receiving the initial socket with all the info
+        // about the game, thus they aren't scaled afterwards
         map.transform(cpe.anim_object, cpe.actual_pos, false);
         cpe.update_hearts(cpe.lives);
         cpe.player_name_renderable.setString(cpe.name);
@@ -104,7 +107,7 @@ void GameClient::create_soft_block(sf::Packet& packet) {
     auto it = soft_blocks.find(i);
     if (it == soft_blocks.end()) {
         soft_blocks.emplace(i, tm.get_anim_object("soft_block"));
-        map.transform(soft_blocks.at(i).anim_object, map.transform_to_coords(i), true);
+        map.transform(soft_blocks.at(i).anim_object, map.transform_to_coords(i), false);
     }
 }
 
@@ -156,6 +159,11 @@ void GameClient::fit_entities_to_window() {
     std::unique_lock<std::mutex> l(resources_mutex);
     for (auto&& player : players) {
         map.transform(player.second.anim_object, player.second.actual_pos);
+    }
+    int i = -1;
+    for (auto&& s_b : soft_blocks) {
+        i++;
+        map.transform(s_b.second.anim_object, map.transform_to_coords(s_b.first));
     }
 }
 

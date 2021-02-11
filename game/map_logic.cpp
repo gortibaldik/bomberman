@@ -9,7 +9,7 @@ std::tuple<int, int, int> GameMapLogic::get_spawn_pos() {
 }
 
 // probability of soft box is PROB_SOFT / 10.f
-#define PROB_SOFT 5
+#define PROB_SOFT 6
 
 void GameMapLogic::process_loaded(const std::string& token, const std::string& animation,
                                        const std::string& type, int row, int column) {
