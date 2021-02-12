@@ -37,7 +37,6 @@ protected:
     virtual void notify_disconnect() = 0;
     void update_time_overflow();
     void update_loop();
-    friend class CA; /* Client Accessor */
     std::string player_name;
 
     std::atomic<ClientStatus> status;

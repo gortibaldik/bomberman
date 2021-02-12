@@ -8,59 +8,52 @@ enum WAIT_RESULT {
     FAILURE
 };
 
-/* Client Accessor */
-class CA {
-public:
-    static void initialize_init_packet(const Client& c, sf::Packet& p) {
-        add_type_to_packet(p, PacketType::Connect);
-        p << c.player_name;
+static void initialize_init_packet(const std::string& name, sf::Packet& p) {
+    add_type_to_packet(p, PacketType::Connect);
+    p << name;
+}
+
+static bool try_send_to_server(sf::UdpSocket& socket,
+                                sf::Packet& p,
+                                const sf::IpAddress& server_ip,
+                                PortNumber server_port) {
+    return (socket.send(p, server_ip, server_port) == sf::Socket::Done);
+}
+
+static WAIT_RESULT wait_for_server(  sf::UdpSocket& socket
+                                   , const sf::IpAddress& server_ip
+                                   , sf::Packet& packet
+                                   , sf::IpAddress& receiver_ip
+                                   , PortNumber& receiver_port
+                                   , PacketType& ptype) {
+    auto status = socket.receive(packet, receiver_ip, receiver_port);
+    if (status != sf::Socket::Done || receiver_ip != server_ip) {
+        return CONTINUE;
     }
+    sf::Int8 raw_ptype = 0;
+    if (!(packet >> raw_ptype)) { return FAILURE; }
+    ptype = static_cast<PacketType>(raw_ptype);
+    return SUCCESS;
+}
 
-    static bool try_send_to_server(Client& c,
-                                  sf::Packet& p,
-                                  const sf::IpAddress& server_ip,
-                                  PortNumber server_port) {
-        return (c.socket.send(p, server_ip, server_port) == sf::Socket::Done);
+static WAIT_RESULT listen_to_server( sf::UdpSocket& socket
+                                   , const sf::IpAddress& server_ip
+                                   , sf::Packet& packet
+                                   , sf::IpAddress& receiver_ip
+                                   , PortNumber& receiver_port
+                                   , PacketType& ptype) {
+    auto status = socket.receive(packet, receiver_ip, receiver_port);
+    if (status != sf::Socket::Done) {
+        return FAILURE; 
     }
-
-    static WAIT_RESULT wait_for_server(Client& c, const sf::IpAddress& server_ip) {
-        auto status = c.socket.receive(packet, receiver_ip, receiver_port);
-        if (status != sf::Socket::Done || receiver_ip != server_ip) {
-            return CONTINUE;
-        }
-        if (!(packet >> ptype)) { return FAILURE; }
-        std::cout << "from " << receiver_port << std::endl;
-        return SUCCESS;
-    }
-    
-    static WAIT_RESULT listen_to_server(Client& c) {
-        auto status = c.socket.receive(packet, receiver_ip, receiver_port);
-        if (status != sf::Socket::Done) {
-            if (c.is_connected()) {
-                return CONTINUE;
-            }
-            // packet receiving failed because the connection was closed
-            return FAILURE; 
-        }
-        // unknown sender, or undecodable packet
-        if ((receiver_ip != c.server_ip) || !(packet >> ptype)) { return CONTINUE; }
-        auto t = (PacketType)ptype;
-        // invalid type of packet
-        if ((t < PacketType::Disconnect) || (t >= PacketType::Invalid)) { return CONTINUE; }
-        return SUCCESS;
-
-    }
-
-    static sf::Int8 ptype;
-    static sf::IpAddress receiver_ip;
-    static PortNumber receiver_port;
-    static sf::Packet packet;
-
-};
-sf::Int8 CA::ptype;
-sf::IpAddress CA::receiver_ip;
-PortNumber CA::receiver_port;
-sf::Packet CA::packet;
+    // unknown sender, or undecodable packet
+    sf::Int8 raw_ptype = 0;
+    if ((receiver_ip != server_ip) || !(packet >> raw_ptype)) { return CONTINUE; }
+    ptype = static_cast<PacketType>(raw_ptype);
+    // invalid type of packet
+    if ((ptype < PacketType::Disconnect) || (ptype >= PacketType::Invalid)) { return CONTINUE; }
+    return SUCCESS;
+}
 
 bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
     if (is_connected()) {
@@ -70,8 +63,8 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
     socket.bind(sf::Socket::AnyPort);
     std::cout << "Client sending and listening on: " << socket.getLocalPort() << std::endl;
     sf::Packet packet;
-    CA::initialize_init_packet(*this, packet);
-    if (! CA::try_send_to_server(*this, packet, server_ip, server_port)) {
+    initialize_init_packet(player_name, packet);
+    if (!try_send_to_server(socket, packet, server_ip, server_port)) {
         socket.unbind();
         status = ClientStatus::Failed;
         return false;
@@ -81,8 +74,11 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
     timer.restart();
     std::cout << "Connecting to " << server_ip << ":" << server_port << std::endl;
     while (timer.getElapsedTime().asMilliseconds() < sf::Int32(Network::ClientConnectTimeOut)) {
-        auto result = CA::wait_for_server(*this, server_ip);
-        auto ptype = (PacketType)CA::ptype;
+        packet.clear();
+        sf::IpAddress receiver_ip;
+        PortNumber receiver_port;
+        PacketType ptype = PacketType::Invalid;
+        auto result = wait_for_server(socket, server_ip, packet, receiver_ip, receiver_port, ptype);
         if (result == FAILURE) { break; }
         if (ptype == PacketType::Duplicate) {
             std::cout << "Duplicate name !" << std::endl;
@@ -90,8 +86,8 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
             return false;
         }
         if ((result == CONTINUE) || (ptype != PacketType::Connect)) { continue; }
-        this->server_ip = CA::receiver_ip;
-        this->server_port_out = CA::receiver_port;
+        this->server_ip = receiver_ip;
+        this->server_port_out = receiver_port;
         this->server_port_in = server_port;
 
         status = ClientStatus::Connected;
@@ -154,13 +150,15 @@ void Client::send(sf::Packet& packet) {
 void Client::listen() {
     while (is_connected()) {
         sf::Packet packet;
-        CA::packet = packet;
-        auto result = CA::listen_to_server(*this);
-        if (result == FAILURE) { break; }
-        if (result == CONTINUE) { continue; }
-        switch(static_cast<PacketType>(CA::ptype)) {
+        sf::IpAddress receiver_ip;
+        PortNumber receiver_port;
+        PacketType ptype = PacketType::Invalid;
+        auto result = listen_to_server(socket, server_ip, packet, receiver_ip, receiver_port, ptype);
+        if ((result == FAILURE) && !is_connected()) { break; }
+        if ((result == CONTINUE) || (result == FAILURE)) { continue; }
+        switch(ptype) {
         case PacketType::HeartBeat:
-            handle_heartbeat(CA::packet);
+            handle_heartbeat(packet);
             break;
         case PacketType::Disconnect:
             socket.unbind();
@@ -168,7 +166,7 @@ void Client::listen() {
             notify_disconnect();
             break;
         default:
-            handle_others(CA::packet, static_cast<PacketType>(CA::ptype));
+            handle_others(packet, ptype);
         }
     }
     status = ClientStatus::Terminated;
