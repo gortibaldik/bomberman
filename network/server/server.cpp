@@ -2,12 +2,12 @@
 #include <iostream>
 #include "network/packet_types.hpp"
 
-bool Server::start(PortNumber port) {
+PortNumber Server::start(PortNumber port) {
     if (running) {
-        return false;
+        return 0;
     }
     if (incoming_socket.bind(port) != sf::Socket::Done) {
-        return false;
+        return 0;
     }
     outcoming_socket.bind(sf::Socket::AnyPort);
     std::cout << "Local IP address: " << sf::IpAddress::getLocalAddress() << std::endl;
@@ -16,7 +16,7 @@ bool Server::start(PortNumber port) {
     running = true;
     updater = std::thread(&Server::update_loop, this);
     listener = std::thread(&Server::listen, this);
-    return true;
+    return incoming_socket.getLocalPort();
 }
 
 void Server::listen() {

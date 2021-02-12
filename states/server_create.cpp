@@ -41,6 +41,7 @@ void ServerCreateState::handle_btn_pressed() {
         case CREATE:
             if (menu.get_named_field("PORT")->is_valid() &&
                 menu.get_named_field("NAME")->is_valid()) {
+                    std::cout << "Creating server waiting state!" << std::endl;
                     window_manager.change_state(std::make_unique<ServerCreateWaitingState>(window_manager,
                         view,
                         local_address,

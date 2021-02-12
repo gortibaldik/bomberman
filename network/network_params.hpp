@@ -15,6 +15,6 @@ namespace Network {
 }
 
 using ClientID = int;
-using PortNumber = unsigned short;
+using PortNumber = unsigned short int;
 
 #endif

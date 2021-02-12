@@ -3,6 +3,7 @@
 #include "states/game_state.hpp"
 #include <iostream>
 #include <unordered_map>
+#include <stdexcept>
 
 static const int port_n_length = 4;
 static const int ip_length = 15;
@@ -96,9 +97,14 @@ ServerCreateWaitingState::ServerCreateWaitingState( WindowManager& mngr
     sf::Vector2f pos(view.getSize());
     pos *= resizing_factor;
     menu.initialize(pos.x, pos.y, txt_size, mb_default_width_txt, &menu_btn_style, &menu_txt_style);
-    server.start(port);
-    client.connect(ip, port);
-    menu.add_non_clickable("IP of the server: "+ip.toString()+":"+std::to_string(port)); 
+    auto in_port = server.start(port);
+    if (in_port == -1) {
+        throw std::runtime_error("SERVER_CREATE_WAITING -- Couldn't start the server!");
+    }
+    if (!client.connect(ip, in_port)) {
+        throw std::runtime_error("SERVER_CREATE_WAITING -- Couldn't connect to the server!");
+    }
+    menu.add_non_clickable("IP of the server: "+ip.toString()+":"+std::to_string(in_port)); 
     menu.add_non_clickable("Connected players:");
     for (int i = 0; i < max_players; i++) {
         menu.add_non_clickable(std::to_string(i), "");

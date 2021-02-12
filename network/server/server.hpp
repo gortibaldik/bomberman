@@ -18,12 +18,11 @@ public:
     Server(int max_clients): max_clients(max_clients), running(false), can_add(true){}
     Server(): Server(2) {}
     virtual ~Server();
-    bool start(PortNumber port);
+    PortNumber start(PortNumber port);
     void listen();
 
     void send(const std::string&, sf::Packet&);
     void broadcast(sf::Packet&);
-
 
     void disable_adding_new_clients() { can_add = false; }
     void enable_adding_new_clients() { can_add = true; }
