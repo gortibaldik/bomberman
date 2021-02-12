@@ -11,13 +11,10 @@ using HeartSprites = std::vector<AnimObject>;
 
 class ClientPlayerEntity: public PlayerEntity {
 public:
-    ClientPlayerEntity( const TextureManager& tm
-                      , const sf::Font& font)
+    ClientPlayerEntity( const TextureManager& tm)
                       : tm(tm)
                       , anim_object(tm.get_anim_object("p1"))
-                      , player_name_renderable("", font, 20) {
-        player_name_renderable.setFillColor(sf::Color::White);
-    }    
+                      , player_name_renderable() {}    
     ClientPlayerEntity( const std::string& name
                       , EntityCoords spawn_pos
                       , EntityCoords actual_pos

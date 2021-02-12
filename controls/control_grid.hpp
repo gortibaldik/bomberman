@@ -7,6 +7,30 @@
 #include <SFML/Graphics.hpp>
 #include <functional>
 
+struct CGStyle {
+    const GStyle* button_style;
+    const GStyle* txt_style;
+    float default_width;
+    float left_top_x;
+    float left_top_y;
+    unsigned int letter_size;
+    float factor;
+    CGStyle(  const GStyle* button_style
+            , const GStyle* txt_style
+            , float default_width
+            , float left_top_x
+            , float left_top_y
+            , unsigned int letter_size
+            , float factor)
+            : button_style(button_style)
+            , txt_style(txt_style)
+            , default_width(default_width)
+            , left_top_x(left_top_x)
+            , left_top_y(left_top_y)
+            , letter_size(letter_size)
+            , factor(factor) {}  
+};
+
 class ControlGrid {
 public:
     ControlGrid(): button_style(nullptr)
@@ -34,6 +58,7 @@ public:
                     float default_width,
                     const GStyle* button_style,
                     const GStyle* text_field_style);
+    void initialize(const CGStyle& cgstyle, const sf::Vector2f&);
     void add_button(const std::string& button_title);
     void add_text_field(const std::string& name_of_field,
                         std::function<bool(char)>&& in_f,

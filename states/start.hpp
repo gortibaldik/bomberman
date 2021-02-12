@@ -11,7 +11,5 @@ public:
     StartState(WindowManager& window_manager);
 protected:
     void handle_btn_pressed() override;
-private:
-    const GStyle& menu_btn_style;
 };
 #endif

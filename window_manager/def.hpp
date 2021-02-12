@@ -23,7 +23,8 @@ public:
 
     GSPtr peek_state();
     const TextureManager& get_tm() { return texture_manager; }
-    const StylesHolder& get_sh() { return styles_holder; }
+    const StylesHolder<GStyle>& get_sh() { return styles_holder; }
+    const StylesHolder<CGStyle>& get_cgsh() { return cgstyles_holder;} 
 
     WindowManager();
 private:
@@ -33,7 +34,8 @@ private:
     bool remove_top = false;
     std::deque<GSPtr> states;
     TextureManager texture_manager;
-    StylesHolder styles_holder;
+    StylesHolder<GStyle> styles_holder;
+    StylesHolder<CGStyle> cgstyles_holder;
 };
 
 #endif

@@ -12,8 +12,6 @@ enum BTN {
     QUIT
 };
 
-static const std::string button_style = "media/button_style.cfg";
-static const unsigned int mb_txt_size = 30;
 static const std::vector<std::string> mb_entries = { "Create a server", "Connect to a server", "Quit" };
 static const std::unordered_map<std::string, BTN> mb_actions = { 
     {"Quit", QUIT}, {"Connect to a server", CONNECT}, {"Create a server", CREATE}
@@ -41,11 +39,8 @@ void StartState::handle_btn_pressed() {
 }
 
 StartState::StartState(WindowManager& mngr):
-        MenuState(mngr),
-        menu_btn_style(mngr.get_sh().get_style("button")){
-    sf::Vector2f pos(mngr.window.getSize());
-    pos *= 0.38f;
-    menu.initialize(pos.x, pos.y, mb_txt_size, &menu_btn_style);
+        MenuState(mngr, "start_menu"){
+    menu.initialize(mngr.get_cgsh().get_style("start_menu"), sf::Vector2f(mngr.window.getSize()));
     for (auto&& it : mb_entries) {
         menu.add_button(it);
     }

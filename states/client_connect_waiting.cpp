@@ -7,22 +7,15 @@
 static const int port_n_length = 4;
 static const int ip_length = 15;
 static const int name_length = 20;
-static const float resizing_factor = 0.4f;
 enum BTN {
     SUBMIT,
     MM_RETURN,
     QUIT
 };
 
-static const unsigned int txt_size = 25;
-static const float mb_default_width_txt = 150.f;
 static const std::unordered_map<std::string, BTN> mb_actions = { 
     {"Submit", SUBMIT}, {"Return to main menu", MM_RETURN}, {"Quit", QUIT}
 };
-
-void ClientConnectWaitingState::handle_resize_menu(unsigned int width, unsigned int height, float factor) {
-    MenuState::handle_resize_menu(width, height, resizing_factor);
-}
 
 void ClientConnectWaitingState::update(float) {
     std::string new_value;
@@ -74,13 +67,16 @@ void ClientConnectWaitingState::handle_btn_pressed() {
     }
 }
 
-ClientConnectWaitingState::ClientConnectWaitingState(WindowManager& mngr, const sf::View& view, const sf::IpAddress& ip, PortNumber port, const std::string& name):
-        MenuState(mngr, view),
-        menu_btn_style( mngr.get_sh().get_style("button")),
-        menu_txt_style( mngr.get_sh().get_style("txt")),
-        client(name, mngr.get_tm(), mngr.get_tm().get_font("game_font")) {
-    sf::Vector2f pos(100, 100);
-    menu.initialize(pos.x, pos.y, txt_size, mb_default_width_txt, &menu_btn_style, &menu_txt_style);
+ClientConnectWaitingState::ClientConnectWaitingState(WindowManager& mngr
+                                                    , const sf::View& view
+                                                    , const sf::IpAddress& ip
+                                                    , PortNumber port
+                                                    , const std::string& name)
+                                                    : MenuState(mngr, view, "client_wait")
+                                                    , client( name
+                                                            , mngr.get_tm()
+                                                            , mngr.get_tm().get_font("game_font")) {
+    menu.initialize(mngr.get_cgsh().get_style("client_wait"), sf::Vector2f());
     client.connect(ip, port);
     
     menu.add_non_clickable("CONNECTION_STATUS", "Not started yet");

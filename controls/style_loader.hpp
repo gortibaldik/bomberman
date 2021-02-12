@@ -4,26 +4,43 @@
 #include <fstream>
 #include <string>
 #include <unordered_map>
-#include "controls/control_field.hpp"
+#include "control_field.hpp"
+#include "control_grid.hpp"
 #include "texture_handling/texture_manager.hpp"
 
-using Styles = std::unordered_map<std::string, GStyle>;
-
+template<typename T>
 class StylesHolder {
 public:
-    void add_style(const std::string& name, GStyle&& gstyle);
-    const GStyle& get_style(const std::string& name) const;
+    void add_style(const std::string& name, T&& style) {
+        styles.emplace(name, std::move(style));
+    }
+    const T& get_style(const std::string& name) const {
+        auto it = styles.find(name);
+        if (it == styles.end()) {
+            throw std::runtime_error("Unknown style: " + name);
+        }
+        return it->second;
+    }
 private:
-    Styles styles;
+    std::unordered_map<std::string, T> styles;
 };
 
 class StyleLoader {
 public:
     StyleLoader( const std::string& file_name, const TextureManager&);
-    void load(StylesHolder&);
+    void load(StylesHolder<GStyle>&);
 private:
     std::ifstream ifs;
     const TextureManager& tm;
+};
+
+class CGStyleLoader {
+public:
+    CGStyleLoader( const std::string& file_name, const StylesHolder<GStyle>&);
+    void load(StylesHolder<CGStyle>&);
+private:
+    std::ifstream ifs;
+    const StylesHolder<GStyle>& sh;
 };
 
 #endif

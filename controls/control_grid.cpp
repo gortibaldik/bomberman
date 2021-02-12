@@ -21,6 +21,20 @@ void ControlGrid::initialize(float x,
     this->default_width = default_width;
 }
 
+void ControlGrid::initialize(const CGStyle& cgstyle, const sf::Vector2f& pos) {
+    float x = cgstyle.left_top_x, y = cgstyle.left_top_y;
+    if (cgstyle.factor != 0.f) {
+        x = cgstyle.factor * pos.x;
+        y = cgstyle.factor * pos.y;
+    }
+    initialize( x
+              , y
+              , cgstyle.letter_size
+              , cgstyle.default_width
+              , cgstyle.button_style
+              , cgstyle.txt_style);
+}
+
 void ControlGrid::initialize(float x,
                     float y,
                     unsigned int letter_size,

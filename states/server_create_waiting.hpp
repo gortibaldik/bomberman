@@ -12,21 +12,20 @@
 #include <atomic>
 class ServerCreateWaitingState: public MenuState {
 public:
-    ServerCreateWaitingState(WindowManager&, const sf::View&, sf::IpAddress, PortNumber, const std::string& client_name);
-    ~ServerCreateWaitingState();
+    ServerCreateWaitingState(WindowManager&
+                            , const sf::View&
+                            , sf::IpAddress
+                            , PortNumber
+                            , const std::string& client_name);
     void update(float dt) override;
 protected:
     void handle_btn_pressed() override;
-    void handle_resize_menu(unsigned int, unsigned int, float) override;
 private:
-    const GStyle& menu_btn_style, menu_txt_style;
     sf::Clock connection_timer;
 
     GameClient client;
     GameServer server;
     bool is_game_started = false;
-
-    std::string map_name;
 };
 
 #endif

@@ -4,15 +4,6 @@
 #include <unordered_map>
 #include <SFML/Graphics.hpp>
 
-StyleLoader::StyleLoader(const std::string& file_name
-                        , const TextureManager& tm)
-                        : ifs(file_name)
-                        , tm(tm) {
-    if (!ifs) {
-        throw std::runtime_error("Could not load state style config file: " + file_name);
-    }
-}
-
 static void must_getline(std::istream& ifs, std::string& line) {
     if (!std::getline(ifs, line)) {
         throw std::runtime_error("Expecting lines, got eof!");
@@ -101,7 +92,16 @@ static GStyle load_style(std::istream& is, const TextureManager& tm) {
     return GStyle(bck, bck_h, brdr, brdr_h, txt, txt_h, font, size);
 }
 
-void StyleLoader::load(StylesHolder& sh) {
+StyleLoader::StyleLoader(const std::string& file_name
+                        , const TextureManager& tm)
+                        : ifs(file_name)
+                        , tm(tm) {
+    if (!ifs) {
+        throw std::runtime_error("Could not load state style config file: " + file_name);
+    }
+}
+
+void StyleLoader::load(StylesHolder<GStyle>& sh) {
     std::string line, token, name;
     while (std::getline(ifs, line)) {
         std::stringstream ss(line);
@@ -119,14 +119,66 @@ void StyleLoader::load(StylesHolder& sh) {
     }
 }
 
-void StylesHolder::add_style(const std::string& name, GStyle&& style) {
-    styles.emplace(name, std::move(style));
+static CGStyle load_cgstyle(std::istream& is, const StylesHolder<GStyle>& sh) {
+    std::string line, result;
+    must_getline(is, line);
+    must_get_tokens(line, "BUTTON_STYLE", result);
+    const GStyle* btn_style = nullptr;
+    if (result.compare("NULL") != 0) {
+        btn_style = &sh.get_style(result);
+    }
+
+    must_getline(is, line);
+    must_get_tokens(line, "TEXT_STYLE", result);
+    const GStyle* txt_style = nullptr;
+    if (result.compare("NULL") != 0) {
+        txt_style = &sh.get_style(result);
+    }
+
+    must_getline(is, line);
+    must_get_tokens(line, "DEFAULT_WIDTH", result);
+    auto def_width = std::stof(result);
+
+    must_getline(is, line);
+    must_get_tokens(line, "X", result);
+    auto x = std::stof(result);
+
+    must_getline(is, line);
+    must_get_tokens(line, "Y", result);
+    auto y = std::stof(result);
+
+    must_getline(is, line);
+    must_get_tokens(line, "LETTER_SIZE", result);
+    auto letter_size = std::stoi(result);
+
+    must_getline(is, line);
+    must_get_tokens(line, "FACTOR", result);
+    auto factor = std::stof(result);
+
+    return CGStyle(btn_style, txt_style, def_width, x, y, letter_size, factor);
 }
 
-const GStyle& StylesHolder::get_style(const std::string& name) const {
-    auto it = styles.find(name);
-    if (it == styles.end()) {
-        throw std::runtime_error("Unknown style: " + name);
+CGStyleLoader::CGStyleLoader(const std::string& file_name
+                        , const StylesHolder<GStyle>& sh)
+                        : ifs(file_name)
+                        , sh(sh) {
+    if (!ifs) {
+        throw std::runtime_error("Could not load state style config file: " + file_name);
     }
-    return it->second;
+}
+
+void CGStyleLoader::load(StylesHolder<CGStyle>& cgsh) {
+    std::string line, token, name;
+    while (std::getline(ifs, line)) {
+        std::stringstream ss(line);
+        if (!(ss >> token)) {
+            continue; // ignore empty lines
+        }
+        if ((token.compare("MENU") == 0) && (ss >> name )) {
+            auto&& style = load_cgstyle(ifs, sh);
+            cgsh.add_style(name, std::move(style));
+        } else {
+            throw std::runtime_error("INVALID LINE: "+line);
+        }
+    }
 }

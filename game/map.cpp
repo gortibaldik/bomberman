@@ -48,6 +48,7 @@ void GameMap::load_from_config(const std::string& config_file) {
         }
         process_loaded(token, animation, type, r, c);
     }
+    name = config_file;
 }
 
 void GameMap::generate_config(const std::string& file_name, int rows, int columns) {

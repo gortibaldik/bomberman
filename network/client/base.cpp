@@ -61,7 +61,7 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
     }
     status = ClientStatus::TryingToConnect;
     socket.bind(sf::Socket::AnyPort);
-    std::cout << "Client sending and listening on: " << socket.getLocalPort() << std::endl;
+    std::cout << "CLIENT : sending and listening on: " << socket.getLocalPort() << std::endl;
     sf::Packet packet;
     initialize_init_packet(player_name, packet);
     if (!try_send_to_server(socket, packet, server_ip, server_port)) {
@@ -72,7 +72,7 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
     socket.setBlocking(false);
     sf::Clock timer;
     timer.restart();
-    std::cout << "Connecting to " << server_ip << ":" << server_port << std::endl;
+    std::cout << "CLIENT : connecting to " << server_ip << ":" << server_port << std::endl;
     while (timer.getElapsedTime().asMilliseconds() < sf::Int32(Network::ClientConnectTimeOut)) {
         packet.clear();
         sf::IpAddress receiver_ip;
@@ -81,7 +81,7 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
         auto result = wait_for_server(socket, server_ip, packet, receiver_ip, receiver_port, ptype);
         if (result == FAILURE) { break; }
         if (ptype == PacketType::Duplicate) {
-            std::cout << "Duplicate name !" << std::endl;
+            std::cout << "CLIENT : got response from server : DUPLICATE NAME !" << std::endl;
             status = ClientStatus::Duplicate;
             return false;
         }
@@ -94,11 +94,11 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
         socket.setBlocking(true);
         updater = std::thread(&Client::update_loop, this);
         listener = std::thread(&Client::listen, this);
-        std::cout << "SUCCESS" << std::endl;
+        std::cout << "CLIENT : STATUS CONNECTED" << std::endl;
         return true;
     }
     status = ClientStatus::Failed;
-    std::cout << "FAILURE" << std::endl;
+    std::cout << "CLIENT : STATUS FAILURE" << std::endl;
     return false;
 }
 
@@ -121,7 +121,7 @@ void Client::update_loop() {
         // if the client hadn't received the heartbeat response
         // from the server for long enough, it terminates the connection
         if (server_time.asMilliseconds() - last_heart_beat.asMilliseconds() >= Network::ClientTimeOut) {
-            std::cout << "Timed out!" << std::endl;
+            std::cout << "CLIENT : server timed out!" << std::endl;
             terminate();
         }
         std::this_thread::sleep_for(100ms);
@@ -133,13 +133,13 @@ void Client::handle_heartbeat(sf::Packet& p) {
     sf::Int32 t;
     sf::Packet packet;
     if (!(p >> t)) {
-        std::cout << "Invalid heartbeat!" << std::endl;
+        std::cout << "CLIENT : invalid heartbeat!" << std::endl;
     }
     server_time = sf::milliseconds(t);
     last_heart_beat = server_time;
     add_type_to_packet(packet, PacketType::HeartBeat);
     if (socket.send(packet, this->server_ip, this->server_port_in) != sf::Socket::Done) {
-        std::cout << "Failed to respond to a heartbeat!" << std::endl;
+        std::cout << "CLIENT : failed to respond to a heartbeat!" << std::endl;
     }
 }
 
@@ -184,13 +184,13 @@ void Client::terminate() {
         add_type_to_packet(p, PacketType::Disconnect);
         socket.send(p, server_ip, server_port_in);
         socket.send(p, sf::IpAddress::getLocalAddress(), socket.getLocalPort());
-        std::cout << "Client sent terminate socket!" << std::endl;
+        std::cout << "CLIENT : sent terminate socket!" << std::endl;
         socket.unbind();
         if (listener.joinable()) {
-            std::cout << "Joining client listener!" << std::endl;
+            std::cout << "CLIENT : joining listener!" << std::endl;
             listener.join();
         } else {
-            std::cout << "Client listener already joined!" << std::endl;
+            std::cout << "CLIENT : listener already joined!" << std::endl;
         }
     }
 }
@@ -200,16 +200,16 @@ Client::~Client() {
     terminate();
     if (listener.joinable()) {
         listener.join();
-        std::cout << "Joined client listener!" << std::endl;
+        std::cout << "CLIENT : joined listener!" << std::endl;
     } else {
-        std::cout << "Client listener already joined!" << std::endl;
+        std::cout << "CLIENT : listener already joined!" << std::endl;
     }
 
     if (updater.joinable()) {
         updater.join();
-        std::cout << "Joined client updater!" << std::endl;
+        std::cout << "CLIENT : joined updater!" << std::endl;
     }
     else {
-        std::cout << "Client updater already joined!" << std::endl;
+        std::cout << "CLIENT : updater already joined!" << std::endl;
     }
 }

@@ -2,25 +2,31 @@
 #include <unordered_map>
 #include <stdexcept>
 #include <iostream>
+#include <sstream>
 
+GameServer::GameServer(const std::string& name_of_map)
+                      : state(ServerState::WAITING_ROOM) {
+    try {
+        map.load_from_config(name_of_map);
+        max_clients = map.get_max_players();
+    } catch (std::runtime_error& e) {
+        std::stringstream ss;
+        ss << "--- ERROR ---" << std::endl;
+        ss << e.what() << std::endl;
+        ss << "--- in GameServer::set_ready_game";
+        throw std::runtime_error(ss.str());
+    }
+}
 
-void GameServer::set_ready_game(const std::string& name_of_map) {
+void GameServer::set_ready_game() {
     if (state == ServerState::RUNNING) { return; }
     if (state == ServerState::WAITING_ROOM) {
-        try {
-            map.load_from_config(name_of_map);
-        } catch (std::runtime_error& e) {
-            std::cout << "--- ERROR ---" << std::endl;
-            std::cout << e.what() << std::endl;
-            std::cout << "--- in GameServer::set_ready_game";
-            throw std::runtime_error("");
-        }
-        state = ServerState::STARTING;
         disable_adding_new_clients();
     }
+    state = ServerState::STARTING;
     sf::Packet packet;
     add_type_to_packet(packet, PacketType::GetReady);
-    packet << name_of_map;
+    packet << map.get_name();
     broadcast(packet);
 }
 

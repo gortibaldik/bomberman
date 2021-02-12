@@ -15,8 +15,7 @@ using Clients = std::unordered_map<std::string, ClientInfo>;
 
 class Server {
 public:
-    Server(int max_clients): max_clients(max_clients), running(false), can_add(true){}
-    Server(): Server(2) {}
+    Server(): max_clients(0), running(false), can_add(true){}
     virtual ~Server();
     PortNumber start(PortNumber port);
     void listen();
@@ -26,6 +25,8 @@ public:
 
     void disable_adding_new_clients() { can_add = false; }
     void enable_adding_new_clients() { can_add = true; }
+
+    void set_max_clients(int);
 
     void terminate();
 
@@ -53,7 +54,7 @@ protected:
     std::mutex clients_mutex;
     std::atomic<bool> running;
     std::atomic<bool> can_add;
-    const int max_clients;
+    int max_clients;
 };
 
 #endif

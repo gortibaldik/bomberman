@@ -10,22 +10,15 @@
 static const int port_n_length = 5;
 static const int ip_length = 15;
 static const int name_length = 20;
-static const float resizing_factor = 0.2f;
 enum BTN {
     ENTER,
     RETURN,
     QUIT
 };
 
-static const unsigned int txt_size = 25;
-static const float mb_default_width_txt = 150.f;
 static const std::unordered_map<std::string, BTN> mb_actions = { 
     {"Enter the server", ENTER}, {"Return to main menu", RETURN}, {"Quit", QUIT}
 };
-
-void ClientConnectState::handle_resize_menu(unsigned int width, unsigned int height, float factor) {
-    MenuState::handle_resize_menu(width, height, resizing_factor);
-}
 
 void ClientConnectState::update(float) {
     set_validator(menu.get_named_field("IP"), menu.get_named_field("VALID_IP"), "Invalid ip <example:0.0.0.0>");
@@ -64,13 +57,10 @@ void ClientConnectState::handle_btn_pressed() {
     }
 }
 
-ClientConnectState::ClientConnectState(WindowManager& mngr, const sf::View& view):
-        MenuState(mngr, view),
-        menu_btn_style( mngr.get_sh().get_style("button")),
-        menu_txt_style( mngr.get_sh().get_style("txt")) {
-    sf::Vector2f pos(mngr.window.getSize());
-    pos *= resizing_factor;
-    menu.initialize(pos.x, pos.y, txt_size, mb_default_width_txt, &menu_btn_style, &menu_txt_style);
+ClientConnectState::ClientConnectState(WindowManager& mngr
+                                      , const sf::View& view)
+                                      : MenuState(mngr, view, "client_connect") {
+    menu.initialize(mngr.get_cgsh().get_style("client_connect"), sf::Vector2f(mngr.window.getSize()));
     menu.add_non_clickable("Enter your new username:");
     menu.add_text_field("NAME", [](char a){ return std::isalnum(a) || std::ispunct(a); },
                                 [](const std::string& s){ return s.size() > 0; }, name_length);

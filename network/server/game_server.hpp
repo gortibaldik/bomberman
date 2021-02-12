@@ -18,10 +18,11 @@ using Explosions = std::unordered_map<int, ServerExplosionEntity>;
 
 class GameServer: public Server {
 public:
-    GameServer(int max_clients): Server(max_clients), state(ServerState::WAITING_ROOM) {}
+    GameServer(const std::string& map_cfg_name);
     ~GameServer();
-    void set_ready_game(const std::string& = "");
+    void set_ready_game();
     void start_game();
+    int get_max_players() { return map.get_max_players(); }
     bool is_in_waiting_room() { return state == ServerState::WAITING_ROOM; }
 protected:
     void handle_others(const std::string& client_name, sf::Packet&, PacketType) override;

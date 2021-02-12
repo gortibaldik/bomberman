@@ -10,9 +10,9 @@ PortNumber Server::start(PortNumber port) {
         return 0;
     }
     outcoming_socket.bind(sf::Socket::AnyPort);
-    std::cout << "Local IP address: " << sf::IpAddress::getLocalAddress() << std::endl;
-    std::cout << "Incoming port: " << incoming_socket.getLocalPort() << std::endl;
-    std::cout << "Outcoming port: " << outcoming_socket.getLocalPort() << std::endl;
+    std::cout << "SERVER : Local IP address: " << sf::IpAddress::getLocalAddress() << std::endl;
+    std::cout << "SERVER : Incoming port: " << incoming_socket.getLocalPort() << std::endl;
+    std::cout << "SERVER : Outcoming port: " << outcoming_socket.getLocalPort() << std::endl;
     running = true;
     updater = std::thread(&Server::update_loop, this);
     listener = std::thread(&Server::listen, this);
@@ -75,10 +75,10 @@ void Server::handle_heartbeat(const sf::IpAddress& ip, PortNumber port) {
     std::unique_lock<std::mutex> l(clients_mutex);
     auto ptr = find_by_ip_port(ip, port);
     if (ptr == connected_clients.end()) {
-        std::cout << "HeartBeat received from unknown user!" << std::endl;
+        std::cout << "SERVER : HeartBeat received from unknown user!" << std::endl;
         return;
     } else if (!ptr->second.waiting_for_heartbeat) {
-        std::cout << "Got HeartBeat, haven't waited for it!" << std::endl;
+        std::cout << "SERVER : Got HeartBeat, haven't waited for it!" << std::endl;
         return;
     }
     //std::cout << "HeartBeat from " << ptr->second.ip << std::endl;
@@ -86,10 +86,10 @@ void Server::handle_heartbeat(const sf::IpAddress& ip, PortNumber port) {
 }
 
 void Server::handle_connection_attempt(const sf::IpAddress& ip, PortNumber port, sf::Packet& packet) {
-    std::cout << ip << " is trying to connect" << std::endl;
+    std::cout << "SERVER : " <<  ip << " is trying to connect" << std::endl;
     std::string name;
     if (!(packet >> name)) {
-        std::cout << "Invalid connect packet!" << std::endl;
+        std::cout << "SERVER : Invalid connect packet!" << std::endl;
         return;
     }
     sf::Packet p;
@@ -97,31 +97,37 @@ void Server::handle_connection_attempt(const sf::IpAddress& ip, PortNumber port,
     std::unique_lock<std::mutex> l(clients_mutex);
     auto it = connected_clients.find(name);
     if (it != connected_clients.end()){ 
-        std::cout << "Duplicate name!" << std::endl;
+        std::cout << "SERVER : Duplicate name!" << std::endl;
         add_type_to_packet(p, PacketType::Duplicate);
-    } else if (can_add && (connected_clients.size() <= max_clients)) {
+    } else if (can_add && ((connected_clients.size() <= max_clients) || (max_clients == 0))) {
 
         // send ack packet
-        std::cout << "Adding " << name << " to the list of connected clients!" << std::endl;
+        std::cout << "SERVER : Adding " << name << " to the list of connected clients!" << std::endl;
         add_type_to_packet(p, PacketType::Connect);
         connected_clients.insert(std::make_pair(name, ClientInfo(ip, port, c_time)));
     } else {
 
         // refuse connection
-        std::cout << "Cannot add any more users" << std::endl;
+        std::cout << "SERVER : Cannot add any more users" << std::endl;
         add_type_to_packet(p, PacketType::Invalid);
     }
     outcoming_socket.send(p, ip, port);
 }
 
 Clients::iterator Server::find_by_ip_port(const sf::IpAddress& ip, PortNumber port) {
-    //std::unique_lock<std::mutex> l(clients_mutex);
     for (auto&& client : connected_clients) {
         if ((client.second.ip == ip) && (client.second.port == port)) {
             return connected_clients.find(client.first);
         }
     }
     return connected_clients.end();
+}
+
+void Server::set_max_clients(int n) {
+    if (n < connected_clients.size()) {
+        throw std::runtime_error("Set invalid number of max connected clients!");
+    }
+    max_clients = n;
 }
 
 void Server::send(const std::string& receiver, sf::Packet& p) {
@@ -182,7 +188,7 @@ void Server::update(const sf::Time& dt) {
     }
     std::unique_lock<std::mutex> l(clients_mutex);
     for (auto&& client : to_be_erased) {
-        std::cout << "removing " << client.first << std::endl;
+        std::cout << "SERVER : removing " << client.first << std::endl;
         connected_clients.erase(client.first);
     }
 }
@@ -203,7 +209,7 @@ void Server::terminate() {
         add_type_to_packet(p, PacketType::Disconnect);
         broadcast(p);
         outcoming_socket.send(p, sf::IpAddress::getLocalAddress(), incoming_socket.getLocalPort());
-        std::cout << "Server sent terminate socket" << std::endl;
+        std::cout << "SERVER : sent terminate socket" << std::endl;
         incoming_socket.unbind();
         if (listener.joinable()) {
             listener.join();
@@ -215,14 +221,14 @@ Server::~Server() {
     terminate();
     if (updater.joinable()) {
         updater.join();
-        std::cout << "Joined server updater!" << std::endl;
+        std::cout << "SERVER : joined updater!" << std::endl;
     } else {
-        std::cout << "Server updater already joined!" << std::endl;
+        std::cout << "SERVER : updater already joined!" << std::endl;
     }
     if (listener.joinable()) {
         listener.join();
-        std::cout << "Joined server listener!" << std::endl;
+        std::cout << "SERVER : joined listener!" << std::endl;
     } else {
-        std::cout << "Server listener already joined!" << std::endl;
+        std::cout << "SERVER : listener already joined!" << std::endl;
     }
 }

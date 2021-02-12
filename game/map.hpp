@@ -11,10 +11,12 @@ public:
                                 const std::string& type, int row, int column) = 0;
     virtual void initialize() = 0;
     std::pair<int, int> transform_to_coords(int);
+    const std::string& get_name() const { return name; }
 
     static void generate_config(const std::string&, int, int);
 protected:
     int rows, columns;
+    std::string name;
 };
 
 #endif

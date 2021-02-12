@@ -11,12 +11,14 @@ public:
     void update(float dt) override;
     void handle_input() override;
     
-    MenuState(WindowManager&);
-    MenuState(WindowManager&, const sf::View&);
+    MenuState(WindowManager&, const std::string&);
+    MenuState(WindowManager&, const sf::View&, const std::string&);
+    virtual ~MenuState() = default;
 protected:
-    virtual void handle_resize_menu(unsigned int, unsigned int, float factor = 0.38f);
+    void handle_resize_menu(unsigned int, unsigned int);
     virtual void handle_btn_pressed() = 0;
     sf::View view;
     ControlGrid menu;
+    float factor;
 };
 #endif

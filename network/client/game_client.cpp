@@ -27,7 +27,7 @@ void GameClient::get_ready(sf::Packet& packet) {
 }
 
 void GameClient::update_player(sf::Packet& packet) {
-    ClientPlayerEntity cpe(tm, font);
+    ClientPlayerEntity cpe(tm);
     packet >> cpe;
     auto it = players.find(cpe.name);
     if (it == players.end()) {
@@ -37,6 +37,9 @@ void GameClient::update_player(sf::Packet& packet) {
         // about the game, thus they aren't scaled afterwards
         map.transform(cpe.anim_object, cpe.actual_pos, false);
         cpe.update_hearts(cpe.lives);
+        cpe.player_name_renderable.setFont(font);
+        cpe.player_name_renderable.setFillColor(sf::Color::White);
+        cpe.player_name_renderable.setCharacterSize(20);
         cpe.player_name_renderable.setString(cpe.name);
         cpe.update_position();
         players.emplace(cpe.name, cpe);

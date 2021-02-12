@@ -45,6 +45,7 @@ public:
     void process_loaded(const std::string& token, const std::string& animation,
                         const std::string& type, int row, int column) override;
     void initialize() override;
+    int get_max_players() { return spawn_positions.size(); }
     std::tuple<int, int, int> get_spawn_pos();
     const SoftBlockMap& get_soft_blocks() { return soft_blocks; }
     void erase_soft_block(int);

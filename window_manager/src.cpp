@@ -77,6 +77,9 @@ WindowManager::WindowManager(): null_placeholder() {
     StyleLoader sl("media/button_style.cfg", texture_manager);
     sl.load(styles_holder);
 
+    CGStyleLoader cgsl("media/menu_configs.cfg", styles_holder);
+    cgsl.load(cgstyles_holder);
+
     window.create(sf::VideoMode(800,600), "Bomberman");
     window.setFramerateLimit(60);
     background.setTexture(texture_manager.get_ref("background"));

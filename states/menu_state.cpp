@@ -9,7 +9,7 @@ void MenuState::draw(float dt) {
     menu.render(&window_manager.window);
 }
 
-void MenuState::handle_resize_menu(unsigned int width, unsigned int height, float factor /*=0.38*/) {
+void MenuState::handle_resize_menu(unsigned int width, unsigned int height) {
     float before = (float(view.getSize().x) + float(view.getSize().y)) / 2.f;
     float after = (float(width) + float(height)) / 2.f;
     sf::Vector2f pos = sf::Vector2f(static_cast<float>(width), static_cast<float>(height));
@@ -43,14 +43,21 @@ void MenuState::handle_input() {
     }
 }
 
-MenuState::MenuState(WindowManager& mngr): State(mngr) {
+MenuState::MenuState(WindowManager& mngr, const std::string& style_name)
+                    : State(mngr)
+                    , factor(mngr.get_cgsh().get_style(style_name).factor) {
     sf::Vector2f pos(mngr.window.getSize());
     view.setSize(pos);
     pos *= 0.5f;
     view.setCenter(pos);
 }
 
-MenuState::MenuState(WindowManager& mngr, const sf::View& view): State(mngr), view(view) {
+MenuState::MenuState(WindowManager& mngr
+                    , const sf::View& view
+                    , const std::string& style_name)
+                    : State(mngr)
+                    , view(view)
+                    , factor(mngr.get_cgsh().get_style(style_name).factor) {
     sf::Vector2f fr(view.getSize());
     window_manager.resize_window(fr.x, fr.y);
 }
