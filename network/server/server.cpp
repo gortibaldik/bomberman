@@ -13,8 +13,9 @@ bool Server::start(PortNumber port) {
     std::cout << "Local IP address: " << sf::IpAddress::getLocalAddress() << std::endl;
     std::cout << "Incoming port: " << incoming_socket.getLocalPort() << std::endl;
     std::cout << "Outcoming port: " << outcoming_socket.getLocalPort() << std::endl;
-    listener = std::thread(&Server::listen, this);
     running = true;
+    updater = std::thread(&Server::update_loop, this);
+    listener = std::thread(&Server::listen, this);
     return true;
 }
 
@@ -54,7 +55,6 @@ void Server::listen() {
             handle_others(client_name, packet, static_cast<PacketType>(id));
         }
     }
-    std::cout << "Listener terminated!" << std::endl;
 }
 
 void Server::handle_disconnect(const sf::IpAddress& ip, PortNumber port) {
@@ -137,21 +137,6 @@ void Server::broadcast(sf::Packet& p) {
     }
 }
 
-void Server::terminate() {
-    if(is_running()) {
-        running = false;
-        sf::Packet p;
-        add_type_to_packet(p, PacketType::Disconnect);
-        broadcast(p);
-        outcoming_socket.send(p, sf::IpAddress::getLocalAddress(), incoming_socket.getLocalPort());
-        std::cout << "sent terminate socket" << std::endl;
-        incoming_socket.unbind();
-        if (listener.joinable()) {
-            listener.join();
-        }
-    }
-}
-
 std::vector<std::string> Server::get_connected_clients() {
     std::unique_lock<std::mutex> l(clients_mutex);
     std::vector<std::string> result;
@@ -159,6 +144,16 @@ std::vector<std::string> Server::get_connected_clients() {
         result.push_back(client.first);
     }
     return result;
+}
+
+void Server::update_loop() {
+    sf::Clock c;
+    using namespace std::chrono_literals;
+    while(is_running()) {
+        update(c.restart());
+        std::this_thread::sleep_for(100ms);
+    }
+    terminate();
 }
 
 /* Server::update handles heartbeating, sends ack packets
@@ -201,8 +196,33 @@ void Server::update_time_overflow() {
     }
 }
 
+void Server::terminate() {
+    if(is_running()) {
+        running = false;
+        sf::Packet p;
+        add_type_to_packet(p, PacketType::Disconnect);
+        broadcast(p);
+        outcoming_socket.send(p, sf::IpAddress::getLocalAddress(), incoming_socket.getLocalPort());
+        std::cout << "Server sent terminate socket" << std::endl;
+        incoming_socket.unbind();
+        if (listener.joinable()) {
+            listener.join();
+        }
+    }
+}
+
 Server::~Server() {
+    terminate();
+    if (updater.joinable()) {
+        updater.join();
+        std::cout << "Joined server updater!" << std::endl;
+    } else {
+        std::cout << "Server updater already joined!" << std::endl;
+    }
     if (listener.joinable()) {
         listener.join();
+        std::cout << "Joined server listener!" << std::endl;
+    } else {
+        std::cout << "Server listener already joined!" << std::endl;
     }
 }

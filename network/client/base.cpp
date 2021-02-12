@@ -90,20 +90,47 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
             return false;
         }
         if ((result == CONTINUE) || (ptype != PacketType::Connect)) { continue; }
-        if (!handle_first_server_answer(CA::packet, CA::ptype)) { break; };
         this->server_ip = CA::receiver_ip;
         this->server_port_out = CA::receiver_port;
         this->server_port_in = server_port;
 
         status = ClientStatus::Connected;
         socket.setBlocking(true);
-        worker = std::thread(&Client::listen, this);
+        updater = std::thread(&Client::update_loop, this);
+        listener = std::thread(&Client::listen, this);
         std::cout << "SUCCESS" << std::endl;
         return true;
     }
     status = ClientStatus::Failed;
     std::cout << "FAILURE" << std::endl;
     return false;
+}
+
+/* Keep the actual connection with the server until the server
+ * responds to the heartbeats
+ *  - doesn't interfere with any other interface of the client 
+ *    (except answering heartbeat messages to server)
+ */
+void Client::update_loop() {
+    using namespace std::chrono_literals;
+    sf::Clock c;
+    c.restart();
+    while(is_connected()) {
+        server_time += c.restart();
+        // overflow may happen after really long time
+        // but just for the sake of completeness...
+        if (server_time.asMilliseconds() < 0) {
+            update_time_overflow();
+        }
+        // if the client hadn't received the heartbeat response
+        // from the server for long enough, it terminates the connection
+        if (server_time.asMilliseconds() - last_heart_beat.asMilliseconds() >= Network::ClientTimeOut) {
+            std::cout << "Timed out!" << std::endl;
+            terminate();
+        }
+        std::this_thread::sleep_for(100ms);
+    }
+    terminate();
 }
 
 void Client::handle_heartbeat(sf::Packet& p) {
@@ -145,24 +172,11 @@ void Client::listen() {
         }
     }
     status = ClientStatus::Terminated;
-    std::cout << "Listener terminated!" << std::endl;
 }
 
 void Client::update_time_overflow() {
     server_time -= sf::milliseconds(Network::HighestTimeStamp);
     last_heart_beat = server_time;
-}
-
-void Client::update(const sf::Time& dt) {
-    if (!is_connected()) { return; }
-    server_time += dt;
-    if (server_time.asMilliseconds() < 0) {
-        update_time_overflow();
-    }
-    if (server_time.asMilliseconds() - last_heart_beat.asMilliseconds() >= Network::ClientTimeOut) {
-        std::cout << "Timed out!" << std::endl;
-        terminate();
-    }
 }
 
 void Client::terminate() {
@@ -172,23 +186,32 @@ void Client::terminate() {
         add_type_to_packet(p, PacketType::Disconnect);
         socket.send(p, server_ip, server_port_in);
         socket.send(p, sf::IpAddress::getLocalAddress(), socket.getLocalPort());
-        std::cout << "sent terminate socket" << std::endl;
+        std::cout << "Client sent terminate socket!" << std::endl;
         socket.unbind();
-        if (worker.joinable()) {
-            worker.join();
+        if (listener.joinable()) {
+            std::cout << "Joining client listener!" << std::endl;
+            listener.join();
+        } else {
+            std::cout << "Client listener already joined!" << std::endl;
         }
     }
 }
 
-bool Client::handle_first_server_answer(sf::Packet& p, sf::Int8 ptype) {
-    return true;
-}
-
 Client::~Client() {
-    if (worker.joinable()) {
-        std::cout << "Listener thread still joinable, going to join it!" << std::endl;
-        worker.join();
+    // end both updater and listener threads
+    terminate();
+    if (listener.joinable()) {
+        listener.join();
+        std::cout << "Joined client listener!" << std::endl;
     } else {
-        std::cout << "Listener thread already joined!" << std::endl;
+        std::cout << "Client listener already joined!" << std::endl;
+    }
+
+    if (updater.joinable()) {
+        updater.join();
+        std::cout << "Joined client updater!" << std::endl;
+    }
+    else {
+        std::cout << "Client updater already joined!" << std::endl;
     }
 }

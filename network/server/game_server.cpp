@@ -194,7 +194,6 @@ void GameServer::game_notify_loop() {
             broadcast(packet);
         }
     }
-    std::cout << "Notifier terminated!" << std::endl;
 }
 
 void GameServer::start_game() {
@@ -252,5 +251,8 @@ GameServer::~GameServer() {
     if (notifier.joinable()) {
         end_notifier = true;
         notifier.join();
+        std::cout << "Joined server notifier!" << std::endl;
+    } else {
+        std::cout << "Server notifier already joined!" << std::endl;
     }
 }

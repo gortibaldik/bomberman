@@ -24,7 +24,6 @@ public:
     void send(const std::string&, sf::Packet&);
     void broadcast(sf::Packet&);
 
-    void update(const sf::Time& dt);
 
     void disable_adding_new_clients() { can_add = false; }
     void enable_adding_new_clients() { can_add = true; }
@@ -34,6 +33,8 @@ public:
     bool is_running() { return running; }
     std::vector<std::string> get_connected_clients();
 protected:
+    void update(const sf::Time& dt);
+    void update_loop();
     void handle_heartbeat(const sf::IpAddress&, PortNumber);
     void handle_connection_attempt(const sf::IpAddress&, PortNumber, sf::Packet&);
     void handle_disconnect(const sf::IpAddress&, PortNumber);
@@ -49,6 +50,7 @@ protected:
     sf::UdpSocket incoming_socket, outcoming_socket;
 
     std::thread listener;
+    std::thread updater;
     std::mutex clients_mutex;
     std::atomic<bool> running;
     std::atomic<bool> can_add;

@@ -40,7 +40,7 @@ void ServerCreateWaitingState::update(float) {
             }
         }
         if (client.is_game_started()) {
-            window_manager.push_state(std::make_unique<GameState>(window_manager, view, &client, &server));
+            window_manager.push_state(std::make_unique<GameState>(window_manager, view, &client));
             return;
         }
     }
@@ -72,8 +72,7 @@ void ServerCreateWaitingState::handle_btn_pressed() {
             break;
         case MM_RETURN:
             window_manager.pop_states(1);
-            run_client = false;
-            run_server = false;
+            server.terminate();
             break;
         case QUIT:
             window_manager.window.close();
@@ -82,46 +81,23 @@ void ServerCreateWaitingState::handle_btn_pressed() {
     }
 }
 
-ServerCreateWaitingState::ServerCreateWaitingState(WindowManager& mngr, const sf::View& view, sf::IpAddress ip, PortNumber port, const std::string& name):
-        MenuState(mngr, view),
-        menu_btn_style(mngr.get_sh().get_style("button")),
-        menu_txt_style(mngr.get_sh().get_style("txt")),
-        client(name, mngr.get_tm(), mngr.get_tm().get_font("game_font")),
-        server(max_players),
-        run_server(true),
-        run_client(true),
-        map_name("media/map_basic.cfg") {
+ServerCreateWaitingState::ServerCreateWaitingState( WindowManager& mngr
+                                                  , const sf::View& view
+                                                  , sf::IpAddress ip
+                                                  , PortNumber port
+                                                  , const std::string& name)
+                                                  : MenuState(mngr, view)
+                                                  , menu_btn_style(mngr.get_sh().get_style("button"))
+                                                  , menu_txt_style(mngr.get_sh().get_style("txt"))
+                                                  , client(name, mngr.get_tm()
+                                                  , mngr.get_tm().get_font("game_font"))
+                                                  , server(max_players)
+                                                  , map_name("media/map_basic.cfg") {
     sf::Vector2f pos(view.getSize());
     pos *= resizing_factor;
     menu.initialize(pos.x, pos.y, txt_size, mb_default_width_txt, &menu_btn_style, &menu_txt_style);
-    using namespace std::chrono_literals;
-    server_runner = std::thread([this, port]() {
-                                    server.start(port);
-                                    sf::Clock c;
-                                    c.restart();
-                                    // server update handles only heartbeating
-                                    // we can keep the service running in this
-                                    // manner even after the game was started
-                                    // since listener loop as well as sending one
-                                    // are completely independent of this thread
-                                    while(run_server && server.is_running()) {
-                                        server.update(c.restart());
-                                        std::this_thread::sleep_for(100ms);
-                                    }
-                                    std::cout << "Server terminating" << std::endl;
-                                    server.terminate();});
-    client_runner = std::thread([this, ip, port](){
-                                    client.connect(ip, port);
-                                    sf::Clock c;
-                                    c.restart();
-                                    // the same as above, we can keep the thread running
-                                    // for whole duration of the game
-                                    while(run_client && client.is_connected()) {
-                                        std::this_thread::sleep_for(100ms);
-                                        client.update(c.restart());
-                                    }
-                                    std::cout << "Client terminating" << std::endl;
-                                    client.terminate(); });
+    server.start(port);
+    client.connect(ip, port);
     menu.add_non_clickable("IP of the server: "+ip.toString()+":"+std::to_string(port)); 
     menu.add_non_clickable("Connected players:");
     for (int i = 0; i < max_players; i++) {
@@ -134,13 +110,4 @@ ServerCreateWaitingState::ServerCreateWaitingState(WindowManager& mngr, const sf
     menu.add_button("Quit");
 }
 
-ServerCreateWaitingState::~ServerCreateWaitingState() {
-    client.terminate();
-    server.terminate();
-    if (client_runner.joinable()) {
-        client_runner.join();
-    }
-    if (server_runner.joinable()) {
-        server_runner.join();
-    }
-}
+ServerCreateWaitingState::~ServerCreateWaitingState() {}

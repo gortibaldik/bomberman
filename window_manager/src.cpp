@@ -38,15 +38,16 @@ void WindowManager::loop() {
         sf::Time elapsed = clock.restart();
         float dt = elapsed.asSeconds();
 
-        auto&& state_ptr = peek_state();
-        if (!state_ptr) {
+        actual_state = peek_state();
+        if (!actual_state) {
+            throw std::runtime_error("WINDOW MANAGER: NOTHING TO SHOW!");
             continue;
         }
         
-        state_ptr->handle_input();
-        state_ptr->update(dt);
+        actual_state->handle_input();
+        actual_state->update(dt);
         window.clear(sf::Color::Black);
-        state_ptr->draw(dt);
+        actual_state->draw(dt);
         window.display();
     }
 }

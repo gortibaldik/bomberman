@@ -26,13 +26,10 @@ void GameState::handle_input() {
 
 GameState::GameState(WindowManager& mngr
                     , const sf::View& view
-                    , GameClient* client
-                    , GameServer* server)
-
+                    , GameClient* client)
                     : State(mngr)
                     , view(view)
-                    , client(client)
-                    , server(server) {
+                    , client(client){
     sf::Vector2f fr(view.getSize());
     window_manager.resize_window(fr.x, fr.y);
     client->get_game_map().fit_to_window(fr.x, fr.y);
@@ -101,6 +98,5 @@ void GameState::update(float dt) {
         if (send) {
             client->send(packet);
         }
-        
     }
 }

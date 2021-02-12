@@ -26,18 +26,17 @@ public:
     bool connect(const sf::IpAddress&, PortNumber);
     void listen();
     void send(sf::Packet&);
-    void update(const sf::Time& dt);
     ClientStatus get_status() { return status; }
     bool is_connected() { return status == ClientStatus::Connected; }
     void terminate();
 
     ReceiverQueue& get_received_messages() { return received_messages; }
 protected:
-    bool handle_first_server_answer(sf::Packet&, sf::Int8);
     void handle_heartbeat(sf::Packet&);
     virtual void handle_others(sf::Packet&, PacketType) = 0;
     virtual void notify_disconnect() = 0;
     void update_time_overflow();
+    void update_loop();
     friend class CA; /* Client Accessor */
     std::string player_name;
 
@@ -49,7 +48,8 @@ protected:
 
     sf::UdpSocket socket;
     std::mutex socket_mutex;
-    std::thread worker;
+    std::thread listener;
+    std::thread updater;
 
     ReceiverQueue received_messages;
 };

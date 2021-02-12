@@ -29,6 +29,7 @@ public:
 private:
 
     GSPtr null_placeholder;
+    GSPtr actual_state;
     bool remove_top = false;
     std::deque<GSPtr> states;
     TextureManager texture_manager;

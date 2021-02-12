@@ -20,6 +20,5 @@ protected:
 private:
     const GStyle& menu_btn_style, menu_txt_style;
     GameClient client;
-    std::thread client_runner;  
 };
 #endif

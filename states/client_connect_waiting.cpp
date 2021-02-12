@@ -27,7 +27,7 @@ void ClientConnectWaitingState::handle_resize_menu(unsigned int width, unsigned 
 void ClientConnectWaitingState::update(float) {
     std::string new_value;
     if (client.is_game_started()) {
-        window_manager.push_state(std::make_unique<GameState>(window_manager, view, &client, nullptr));
+        window_manager.push_state(std::make_unique<GameState>(window_manager, view, &client));
         return;
     }
 
@@ -66,11 +66,6 @@ void ClientConnectWaitingState::handle_btn_pressed() {
         switch (it->second) {
         case MM_RETURN:
             window_manager.pop_states(1);
-            client.terminate();
-            if (client_runner.joinable()) {
-                client_runner.join();
-            }
-            std::cout << "All the threads joined!" << std::endl;
             break;
         case QUIT:
             window_manager.window.close();
@@ -86,25 +81,12 @@ ClientConnectWaitingState::ClientConnectWaitingState(WindowManager& mngr, const 
         client(name, mngr.get_tm(), mngr.get_tm().get_font("game_font")) {
     sf::Vector2f pos(100, 100);
     menu.initialize(pos.x, pos.y, txt_size, mb_default_width_txt, &menu_btn_style, &menu_txt_style);
-    using namespace std::chrono_literals;
-    client_runner = std::thread([this, ip, port](){
-                                    client.connect(ip, port);
-                                    sf::Clock c;
-                                    c.restart();
-                                    while(client.is_connected()) {
-                                        std::this_thread::sleep_for(100ms);
-                                        client.update(c.restart());
-                                    }
-                                    client.terminate(); });
+    client.connect(ip, port);
+    
     menu.add_non_clickable("CONNECTION_STATUS", "Not started yet");
     menu.add_non_clickable("");
     menu.add_button("Return to main menu");
     menu.add_button("Quit");
 }
 
-ClientConnectWaitingState::~ClientConnectWaitingState() {
-    client.terminate();
-    if (client_runner.joinable()) {
-        client_runner.join();
-    }
-}
+ClientConnectWaitingState::~ClientConnectWaitingState() {}

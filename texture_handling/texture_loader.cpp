@@ -1,6 +1,7 @@
 #include "texture_loader.hpp"
 #include <sstream>
 #include <iostream>
+#include <unordered_map>
 
 enum CONFIG_TYPES {
     TEXTURE,

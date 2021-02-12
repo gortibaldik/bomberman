@@ -17,14 +17,12 @@ public:
     
     GameState( WindowManager&
              , const sf::View&
-             , GameClient*
-             , GameServer*);
+             , GameClient*);
 protected:
     bool check_move(sf::Packet&);
     bool check_deploy(sf::Packet&);
     bool can_deploy = true;
     GameClient* client;
-    GameServer* server;
     sf::View view;
     sf::Time last_update_time, c_time;
 };

@@ -24,11 +24,7 @@ private:
 
     GameClient client;
     GameServer server;
-    std::atomic<bool> run_server;
-    std::atomic<bool> run_client;
     bool is_game_started = false;
-    std::thread client_runner;  
-    std::thread server_runner;
 
     std::string map_name;
 };
