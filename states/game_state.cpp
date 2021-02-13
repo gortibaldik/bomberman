@@ -94,7 +94,7 @@ void GameState::update(float dt) {
         add_type_to_packet(packet, PacketType::Update);
         bool send = false;
         send = send || check_move(packet);
-        send = send || check_deploy(packet);
+        send = check_deploy(packet) || send;
         if (send) {
             client->send(packet);
         }
