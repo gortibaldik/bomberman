@@ -95,7 +95,6 @@ ServerCreateWaitingState::ServerCreateWaitingState( WindowManager& mngr
                                                   : MenuState(mngr, view, "server_wait")
                                                   , client(name, mngr.get_tm(), mngr.get_tm().get_font("game_font"))
                                                   , server("media/map_basic.cfg") {
-    menu.initialize(mngr.get_cgsh().get_style("server_wait"), sf::Vector2f(view.getSize()));
     auto in_port = server.start(port);
     if (in_port == -1) {
         throw std::runtime_error("SERVER_CREATE_WAITING -- Couldn't start the server!");

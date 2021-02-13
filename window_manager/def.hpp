@@ -20,6 +20,7 @@ public:
 
     void close_window();
     void resize_window(unsigned int width, unsigned int height);
+    sf::Vector2f get_window_size() { return sf::Vector2f(window.getSize()); }
 
     GSPtr peek_state();
     const TextureManager& get_tm() { return texture_manager; }

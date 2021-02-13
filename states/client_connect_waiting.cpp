@@ -76,7 +76,6 @@ ClientConnectWaitingState::ClientConnectWaitingState(WindowManager& mngr
                                                     , client( name
                                                             , mngr.get_tm()
                                                             , mngr.get_tm().get_font("game_font")) {
-    menu.initialize(mngr.get_cgsh().get_style("client_wait"), sf::Vector2f());
     client.connect(ip, port);
     
     menu.add_non_clickable("CONNECTION_STATUS", "Not started yet");

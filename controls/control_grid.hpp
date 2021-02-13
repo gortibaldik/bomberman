@@ -33,13 +33,7 @@ struct CGStyle {
 
 class ControlGrid {
 public:
-    ControlGrid(): button_style(nullptr)
-                 , text_field_style(nullptr)
-                 , which_pressed(nullptr)
-                 , default_width(0.f)
-                 , last_x(0.f)
-                 , last_y(0.f)
-                 , letter_size(0) {}
+    ControlGrid(const CGStyle&, const sf::Vector2f&);
     void initialize(const CGStyle& cgstyle, const sf::Vector2f&);
     void add_button(const std::string& button_title);
     void add_text_field(const std::string& name_of_field,

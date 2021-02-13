@@ -55,7 +55,6 @@ void ServerCreateState::handle_btn_pressed() {
 ServerCreateState::ServerCreateState(WindowManager& mngr, const sf::View& view):
         MenuState(mngr, view, "server_create"),
         local_address(sf::IpAddress::getLocalAddress()) {
-    menu.initialize(mngr.get_cgsh().get_style("server_create"), sf::Vector2f(mngr.window.getSize()));
     menu.add_non_clickable("Your local address is " + local_address.toString());
     menu.add_non_clickable("Enter your username: ");
     menu.add_text_field("NAME", [](char a){ return std::isalnum(a) || std::ispunct(a); },

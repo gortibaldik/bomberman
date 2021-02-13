@@ -38,9 +38,8 @@ void StartState::handle_btn_pressed() {
     }
 }
 
-StartState::StartState(WindowManager& mngr):
-        MenuState(mngr, "start_menu"){
-    menu.initialize(mngr.get_cgsh().get_style("start_menu"), sf::Vector2f(mngr.window.getSize()));
+StartState::StartState( WindowManager& mngr)
+                      : MenuState(mngr, "start_menu") {
     for (auto&& it : mb_entries) {
         menu.add_button(it);
     }

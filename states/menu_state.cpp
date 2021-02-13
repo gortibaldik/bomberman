@@ -45,7 +45,9 @@ void MenuState::handle_input() {
 
 MenuState::MenuState(WindowManager& mngr, const std::string& style_name)
                     : State(mngr)
-                    , factor(mngr.get_cgsh().get_style(style_name).factor) {
+                    , factor(mngr.get_cgsh().get_style(style_name).factor)
+                    , menu( mngr.get_cgsh().get_style(style_name)
+                          , mngr.get_window_size()) {
     sf::Vector2f pos(mngr.window.getSize());
     view.setSize(pos);
     pos *= 0.5f;
@@ -57,7 +59,9 @@ MenuState::MenuState(WindowManager& mngr
                     , const std::string& style_name)
                     : State(mngr)
                     , view(view)
-                    , factor(mngr.get_cgsh().get_style(style_name).factor) {
+                    , factor(mngr.get_cgsh().get_style(style_name).factor)
+                    , menu( mngr.get_cgsh().get_style(style_name)
+                          , mngr.get_window_size()){
     sf::Vector2f fr(view.getSize());
     window_manager.resize_window(fr.x, fr.y);
 }

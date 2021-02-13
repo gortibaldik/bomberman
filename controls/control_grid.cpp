@@ -6,18 +6,18 @@
 
 #define SPACING_FACTOR 1.3f
 
-void ControlGrid::initialize(const CGStyle& cgstyle, const sf::Vector2f& pos) {
-    buttons.clear();
+ControlGrid::ControlGrid(const CGStyle& cgstyle
+                        , const sf::Vector2f& pos)
+                        : letter_size(cgstyle.letter_size)
+                        , button_style(cgstyle.button_style)
+                        , text_field_style(cgstyle.txt_style)
+                        , default_width(cgstyle.default_width) {
     last_x = cgstyle.left_top_x;
     last_y = cgstyle.left_top_y;
     if (cgstyle.factor != 0.f) {
         last_x = cgstyle.factor * pos.x;
         last_y = cgstyle.factor * pos.y;
     }
-    letter_size = cgstyle.letter_size;
-    button_style = cgstyle.button_style;
-    text_field_style = cgstyle.txt_style;
-    default_width = cgstyle.default_width;
 }
 
 void ControlGrid::add_entry(CFPtr&& entry_ptr) {

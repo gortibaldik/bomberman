@@ -60,7 +60,6 @@ void ClientConnectState::handle_btn_pressed() {
 ClientConnectState::ClientConnectState(WindowManager& mngr
                                       , const sf::View& view)
                                       : MenuState(mngr, view, "client_connect") {
-    menu.initialize(mngr.get_cgsh().get_style("client_connect"), sf::Vector2f(mngr.window.getSize()));
     menu.add_non_clickable("Enter your new username:");
     menu.add_text_field("NAME", [](char a){ return std::isalnum(a) || std::ispunct(a); },
                                 [](const std::string& s){ return s.size() > 0; }, name_length);
