@@ -40,24 +40,6 @@ public:
                  , last_x(0.f)
                  , last_y(0.f)
                  , letter_size(0) {}
-
-    void initialize(float x,
-                    float y,
-                    unsigned int letter_size,
-                    const GStyle* button_style);
-
-    void initialize(float x,
-                    float y,
-                    unsigned int letter_size,
-                    float default_width,
-                    const GStyle* text_field_style);
-
-    void initialize(float x,
-                    float y,
-                    unsigned int letter_size,
-                    float default_width,
-                    const GStyle* button_style,
-                    const GStyle* text_field_style);
     void initialize(const CGStyle& cgstyle, const sf::Vector2f&);
     void add_button(const std::string& button_title);
     void add_text_field(const std::string& name_of_field,

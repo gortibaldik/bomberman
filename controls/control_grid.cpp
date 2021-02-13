@@ -6,48 +6,18 @@
 
 #define SPACING_FACTOR 1.3f
 
-void ControlGrid::initialize(float x,
-                    float y,
-                    unsigned int letter_size,
-                    float default_width,
-                    const GStyle* button_style,
-                    const GStyle* text_field_style) {
-    buttons.clear();
-    last_x = x;
-    last_y = y;
-    this->letter_size = letter_size;
-    this->button_style = button_style;
-    this->text_field_style = text_field_style;
-    this->default_width = default_width;
-}
-
 void ControlGrid::initialize(const CGStyle& cgstyle, const sf::Vector2f& pos) {
-    float x = cgstyle.left_top_x, y = cgstyle.left_top_y;
+    buttons.clear();
+    last_x = cgstyle.left_top_x;
+    last_y = cgstyle.left_top_y;
     if (cgstyle.factor != 0.f) {
-        x = cgstyle.factor * pos.x;
-        y = cgstyle.factor * pos.y;
+        last_x = cgstyle.factor * pos.x;
+        last_y = cgstyle.factor * pos.y;
     }
-    initialize( x
-              , y
-              , cgstyle.letter_size
-              , cgstyle.default_width
-              , cgstyle.button_style
-              , cgstyle.txt_style);
-}
-
-void ControlGrid::initialize(float x,
-                    float y,
-                    unsigned int letter_size,
-                    float default_width,
-                    const GStyle* text_field_style) {
-    initialize(x, y, letter_size, default_width, nullptr, text_field_style);
-}
-
-void ControlGrid::initialize(float x,
-                float y,
-                unsigned int letter_size,
-                const GStyle* button_style) {
-    initialize(x, y, letter_size, 0.f, button_style, nullptr);
+    letter_size = cgstyle.letter_size;
+    button_style = cgstyle.button_style;
+    text_field_style = cgstyle.txt_style;
+    default_width = cgstyle.default_width;
 }
 
 void ControlGrid::add_entry(CFPtr&& entry_ptr) {
