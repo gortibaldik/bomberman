@@ -8,7 +8,7 @@
                 "/home/gortibaldik/Documents/Skola/cpp/moje_zdrojaky/bomberman/controls/",
                 "/home/gortibaldik/Documents/Skola/cpp/moje_zdrojaky/bomberman/states/",
                 "/home/gortibaldik/Documents/Skola/cpp/moje_zdrojaky/bomberman/window_manager/",
-                "/home/gortibaldik/Documents/Skola/cpp/moje_zdrojaky/bomberman/texture_manager/"
+                "/home/gortibaldik/Documents/Skola/cpp/moje_zdrojaky/bomberman/texture_handling/"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
