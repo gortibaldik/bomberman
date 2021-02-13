@@ -21,15 +21,23 @@ bool is_valid_ip(const std::string& str) {
     return false;
 }
 
-bool is_valid_port(const std::string& str) {
-    if (str.size() == 0) { return false; }
+static int is_valid_port_static(const std::string& str) {
+    if (str.size() == 0) { return -1; }
     for (auto&& c : str) {
         if (!std::isdigit(c)) {
-            return false;
+            return -1;
         }
     }
-    auto i = std::stoi(str);
-    return (i == 0) || (i > 1024);
+    return std::stoi(str);
+}
+
+bool is_valid_port_nz(const std::string& str) {
+    return is_valid_port_static(str) > 1024;
+}
+
+bool is_valid_port(const std::string& str) {
+    auto i = is_valid_port_static(str);
+    return (i > 1024) || (i == 0);
 }
 
 void ReceiverQueue::enqueue(sf::Packet&& packet, PacketType ptype) {

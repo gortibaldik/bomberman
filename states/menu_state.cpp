@@ -28,7 +28,7 @@ void MenuState::handle_input() {
         case sf::Event::Resized:
             handle_resize_menu(event.size.width, event.size.height);
             view.setSize(static_cast<float>(event.size.width), static_cast<float>(event.size.height));
-            view.setCenter(event.size.width / 2, event.size.height / 2);
+            view.setCenter(event.size.width / 2.f, event.size.height / 2.f);
             window_manager.resize_window(event.size.width, event.size.height);
             break;
         case sf::Event::MouseMoved: case sf::Event::MouseButtonPressed:
@@ -62,7 +62,7 @@ MenuState::MenuState(WindowManager& mngr
                     , factor(mngr.get_cgsh().get_style(style_name).factor)
                     , menu( mngr.get_cgsh().get_style(style_name)
                           , mngr.get_window_size()){
-    sf::Vector2f fr(view.getSize());
+    sf::Vector2u fr(view.getSize());
     window_manager.resize_window(fr.x, fr.y);
 }
 

@@ -8,14 +8,19 @@ static const int port_n_length = 4;
 static const int ip_length = 15;
 static const int name_length = 20;
 enum BTN {
-    SUBMIT,
-    MM_RETURN,
-    QUIT
+    SUBMIT, MM_RETURN, CONNECTION_STATUS, BLANK, QUIT
 };
 
-static const std::unordered_map<std::string, BTN> mb_actions = { 
-    {"Submit", SUBMIT}, {"Return to main menu", MM_RETURN}, {"Quit", QUIT}
+static const std::unordered_map<std::string, BTN> str_to_btn = { 
+    {"Submit", SUBMIT}, {"Return to main menu", MM_RETURN}, {"Quit", QUIT},
+    {"Connection status:", CONNECTION_STATUS}, {"", BLANK}
 };
+static std::unordered_map<BTN, std::string> btn_to_str;
+static void initialize_maps() {
+    for (auto&& p : str_to_btn) {
+        btn_to_str.emplace(p.second, p.first);
+    }
+}
 
 void ClientConnectWaitingState::update(float) {
     std::string new_value;
@@ -41,22 +46,18 @@ void ClientConnectWaitingState::update(float) {
             new_value = "Server already contains player with the selected name!";
             break;
         default:
-            new_value = "";
+            new_value = btn_to_str[BLANK];
             break;
         }
     }
-    menu.get_named_field("CONNECTION_STATUS")->set_content(new_value);
+    menu.get_named_field(btn_to_str[CONNECTION_STATUS])->set_content(new_value);
     menu.update();
 }
 
 void ClientConnectWaitingState::handle_btn_pressed() {
     auto&& btn = menu.get_pressed_btn();
-    if (btn) {
-        auto it = mb_actions.find(btn->get_content());
-        if (it == mb_actions.end()) {
-            return;
-        }
-        switch (it->second) {
+    if (btn && (str_to_btn.find(btn->get_content()) != str_to_btn.end())) {
+        switch (str_to_btn.at(btn->get_content())) {
         case MM_RETURN:
             window_manager.pop_states(1);
             break;
@@ -76,12 +77,12 @@ ClientConnectWaitingState::ClientConnectWaitingState(WindowManager& mngr
                                                     , client( name
                                                             , mngr.get_tm()
                                                             , mngr.get_tm().get_font("game_font")) {
+    initialize_maps();
     client.connect(ip, port);
-    
-    menu.add_non_clickable("CONNECTION_STATUS", "Not started yet");
-    menu.add_non_clickable("");
-    menu.add_button("Return to main menu");
-    menu.add_button("Quit");
+    menu.add_non_clickable(btn_to_str[CONNECTION_STATUS], "Not started yet");
+    menu.add_non_clickable(btn_to_str[BLANK]);
+    menu.add_button(btn_to_str[MM_RETURN]);
+    menu.add_button(btn_to_str[QUIT]);
 }
 
 ClientConnectWaitingState::~ClientConnectWaitingState() {}

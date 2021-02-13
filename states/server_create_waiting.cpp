@@ -10,14 +10,9 @@ static const int ip_length = 15;
 static const int name_length = 20;
 
 enum BTN {
-    START_GAME,
-    MM_RETURN,
-    QUIT,
-    BLANK,
-    START_TIME,
-    CONNECTED_PLAYERS,
-    IP
+    START_GAME, MM_RETURN, QUIT, BLANK, START_TIME, CONNECTED_PLAYERS, IP
 };
+
 static const std::unordered_map<std::string, BTN> str_to_btn = { 
     {"Start game", START_GAME}, {"Return to main menu", MM_RETURN}, {"Quit", QUIT},
     {"IP of the server: ", IP}, {"Connected players:", CONNECTED_PLAYERS},
@@ -65,12 +60,8 @@ void ServerCreateWaitingState::handle_btn_pressed() {
         return; // after starting the server don't accept any other input 
     }
     auto&& btn = menu.get_pressed_btn();
-    if (btn) {
-        auto it = str_to_btn.find(btn->get_content());
-        if (it == str_to_btn.end()) {
-            return;
-        }
-        switch (it->second) {
+    if (btn && (str_to_btn.find(btn->get_content()) != str_to_btn.end())) {
+        switch (str_to_btn.at(btn->get_content())) {
         case START_GAME:
             server.set_ready_game();
             connection_timer.restart();

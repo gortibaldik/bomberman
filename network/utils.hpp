@@ -25,6 +25,7 @@ private:
 };
 
 bool is_valid_ip(const std::string& str);
+bool is_valid_port_nz(const std::string& str);
 bool is_valid_port(const std::string& str);
 
 #endif

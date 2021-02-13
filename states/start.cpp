@@ -6,10 +6,7 @@
 #include <unordered_map>
 
 enum BTN {
-    NEW_GAME,
-    CONNECT,
-    CREATE,
-    QUIT
+    NEW_GAME, CONNECT, CREATE, QUIT
 };
 
 static const std::vector<std::string> mb_entries = { "Create a server", "Connect to a server", "Quit" };

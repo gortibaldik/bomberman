@@ -40,7 +40,7 @@ public:
 
 class PlayerEntity: public Entity {
 public:
-    PlayerEntity() = default;
+    PlayerEntity() : direction(EntityDirection::UP) {}
     PlayerEntity(const std::string& name
                 , EntityCoords actual_pos
                 , EntityDirection::EntityDirection direction)
