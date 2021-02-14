@@ -69,9 +69,13 @@ bool GameState::check_move(sf::Packet& packet) {
     return false;
 }
 
-bool GameState::check_deploy(sf::Packet& packet) {
-    if (!can_deploy) { return false; }
+#define WAIT_PERIOD 0.5f
+
+bool GameState::check_deploy(sf::Packet& packet, sf::Time& c_time) {
+    static sf::Time last_time = sf::seconds(0.f);
+    if (!can_deploy || ((c_time - last_time).asSeconds() <= WAIT_PERIOD)) { return false; }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+        last_time = c_time;
         packet << sf::Int8(Network::Delimiter);
         add_type_to_packet(packet, PacketType::ClientDeployBomb);
         can_deploy = false;
@@ -86,6 +90,7 @@ void GameState::update(float dt) {
         client = nullptr;
         return;
     }
+    client->update(dt);
     c_time += sf::seconds(dt);
     float delta = (c_time - last_update_time).asSeconds();
     if (delta >= client_update_constant) {
@@ -94,7 +99,7 @@ void GameState::update(float dt) {
         add_type_to_packet(packet, PacketType::Update);
         bool send = false;
         send = send || check_move(packet);
-        send = check_deploy(packet) || send;
+        send = check_deploy(packet, c_time) || send;
         if (send) {
             client->send(packet);
         }

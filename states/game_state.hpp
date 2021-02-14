@@ -20,7 +20,7 @@ public:
              , GameClient*);
 protected:
     bool check_move(sf::Packet&);
-    bool check_deploy(sf::Packet&);
+    bool check_deploy(sf::Packet&, sf::Time&);
     bool can_deploy = true;
     GameClient* client;
     sf::View view;

@@ -23,6 +23,7 @@ public:
               , font(font) {}
     bool is_game_started() { return game_started; }
     bool is_approved() { return approved; }
+    void update(float dt);
     GameMapRenderable& get_game_map() { return map; }
     void fit_entities_to_window();
     void render_entities(sf::RenderTarget* target);
@@ -32,7 +33,7 @@ private:
     void get_ready(sf::Packet&);
     void notify_disconnect() override;
     void server_state_update(sf::Packet&);
-    void update_player(sf::Packet& packet);
+    void update_player(sf::Packet& packet, bool spawn);
     void create_bomb(sf::Packet& packet);
     void erase_bomb(sf::Packet& packet);
     void create_explosion(sf::Packet& packet);

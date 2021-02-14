@@ -51,12 +51,4 @@ public:
     EntityDirection::EntityDirection direction;
 };
 
-class BombEntity {
-
-};
-
-class BlockEntity {
-
-};
-
 #endif

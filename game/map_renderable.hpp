@@ -12,7 +12,7 @@ public:
     void process_loaded(const std::string& token, const std::string& animation,
                         const std::string& type, int row, int column) override;
     void initialize() override;
-    void transform(AnimObject&, EntityCoords, bool scale = true);
+    void transform(AnimObject&, EntityCoords, bool scale = true) const;
     AnimObject& get(int row, int column);
     void render(sf::RenderTarget* rt);
     void fit_to_window(float, float);

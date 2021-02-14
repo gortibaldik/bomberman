@@ -65,9 +65,9 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
                     std::cout << "Invalid packet!" << std::endl;
                     return;
                 }
-                EntityCoords c(row*move_factor+p.actual_pos.first, col*move_factor+p.actual_pos.second);
+                EntityCoords c(row*p.move_factor+p.actual_pos.first, col*p.move_factor+p.actual_pos.second);
                 auto d = (EntityDirection::EntityDirection)dir;
-                map.collision_checking(move_factor, c, d);
+                map.collision_checking(p.move_factor, c, d);
                 p.update_pos_dir(std::move(c), d);
                 p.updated = true;
             }
@@ -107,7 +107,9 @@ bool GameServer::check_explosions(sf::Packet& packet) {
                 } else {
                     p.second.lives--;
                     p.second.respawn();
-                    p.second.updated = true;
+                    packet << sf::Int8(Network::Delimiter);
+                    add_type_to_packet(packet, PacketType::SpawnPosition);
+                    packet << p.second;
                 }
                 break;
             }
@@ -139,7 +141,7 @@ void GameServer::game_notify_loop() {
         sf::Packet packet;
         add_type_to_packet(packet, PacketType::Update);
         sf::Time time = clock.restart();
-        at_least_one = at_least_one || check_explosions(packet);
+        at_least_one = check_explosions(packet) || at_least_one;
         for(auto&& p : players) {
             p.second.update(time.asSeconds());
             if (p.second.updated) {
@@ -210,10 +212,10 @@ void GameServer::start_game() {
     state = ServerState::RUNNING;
     sf::Packet p;
     // create the packet with all the player positions
-    add_type_to_packet(p, PacketType::SpawnPosition);
+    add_type_to_packet(p, PacketType::StartGame);
     for (auto&& player : players) {
         p << sf::Int8(Network::Delimiter);
-        add_type_to_packet(p, PacketType::ServerPlayerUpdate);
+        add_type_to_packet(p, PacketType::SpawnPosition);
         p << player.second;
     }
     // and all the positions of the soft blocks
@@ -236,7 +238,7 @@ void GameServer::handle_starting_state(const std::string& client_name, sf::Packe
         if (iter != players.end()) { return; }
         auto [row, column, type] = map.get_spawn_pos();
         std::pair<int, int> coords(row, column);
-        players.emplace(client_name, ServerPlayerEntity(client_name, coords, coords, EntityDirection::UP, type, player_lives));
+        players.emplace(client_name, ServerPlayerEntity(client_name, coords, coords, EntityDirection::UP, type, player_lives, move_factor));
         std::cout << "player " << client_name << " approved starting the game!" << std::endl;
     }
 }

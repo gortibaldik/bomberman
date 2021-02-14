@@ -2,6 +2,7 @@
 #define GAME_CLIENT_ENTITY_HPP
 
 #include "game/entity.hpp"
+#include "game/map_renderable.hpp"
 #include "texture_handling/texture_manager.hpp"
 #include "texture_handling/anim_object.hpp"
 #include <SFML/Network.hpp>
@@ -14,24 +15,18 @@ public:
     ClientPlayerEntity( const TextureManager& tm)
                       : tm(tm)
                       , anim_object(tm.get_anim_object("p1"))
-                      , player_name_renderable() {}    
-    ClientPlayerEntity( const std::string& name
-                      , EntityCoords spawn_pos
-                      , EntityCoords actual_pos
-                      , EntityDirection::EntityDirection direction
-                      , AnimObject anim_object
-                      , const TextureManager& tm
-                      , const sf::Font& font)
-                      : PlayerEntity(name, actual_pos, direction)
-                      , anim_object(anim_object)
-                      , tm(tm)
-                      , player_name_renderable(name, font) {}
-    void update_position();
+                      , player_name_renderable() {}
+    void move_to_actual_position(const GameMapRenderable&);
+    bool update(float);
     void update_hearts(int lives);
     void render(sf::RenderTarget*);
+    void spawn() { is_spawned = true; }
+    bool is_spawned = true;
     HeartSprites hearts;
     sf::Int8 lives;
     AnimObject anim_object;
+    EntityCoords new_pos;
+    sf::Time till_next_update;
     sf::Text player_name_renderable;
     
     const TextureManager& tm;

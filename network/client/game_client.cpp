@@ -26,7 +26,7 @@ void GameClient::get_ready(sf::Packet& packet) {
     send(answer);
 }
 
-void GameClient::update_player(sf::Packet& packet) {
+void GameClient::update_player(sf::Packet& packet, bool spawn) {
     ClientPlayerEntity cpe(tm);
     packet >> cpe;
     auto it = players.find(cpe.name);
@@ -41,21 +41,22 @@ void GameClient::update_player(sf::Packet& packet) {
         cpe.player_name_renderable.setFillColor(sf::Color::White);
         cpe.player_name_renderable.setCharacterSize(20);
         cpe.player_name_renderable.setString(cpe.name);
-        cpe.update_position();
+        cpe.new_pos = cpe.actual_pos;
         players.emplace(cpe.name, cpe);
         if (cpe.name == player_name) {
             me = &players.at(cpe.name);
         }
         std::cout << cpe.name << " registered! <- client side" << std::endl;
     } else {
-        it->second.actual_pos = cpe.actual_pos;
+        it->second.new_pos = cpe.actual_pos;
         it->second.direction = cpe.direction;
         if (it->second.lives != cpe.lives) {
             it->second.update_hearts(cpe.lives);
         }
-        map.transform(it->second.anim_object, it->second.actual_pos, false);
-        it->second.update_position();
-        it->second.anim_object.set_direction(cpe.direction);
+        if (spawn) {
+            it->second.actual_pos = cpe.actual_pos;
+            it->second.spawn();
+        }
     }
 }
 
@@ -130,8 +131,11 @@ void GameClient::server_state_update(sf::Packet& packet) {
         sf::Int8 ptype = 0;
         packet >> ptype;
         switch(static_cast<PacketType>(ptype)) {
+        case PacketType::SpawnPosition:
+            update_player(packet, true);
+            break;
         case PacketType::ServerPlayerUpdate:
-            update_player(packet);
+            update_player(packet, false);
             break;
         case PacketType::ServerNewBomb:
             create_bomb(packet);
@@ -177,7 +181,7 @@ void GameClient::handle_others(sf::Packet& packet, PacketType ptype) {
         if (approved) { return; }
         get_ready(packet);
         break;
-    case PacketType::SpawnPosition:
+    case PacketType::StartGame:
         if (!approved) { return; }
         game_started = true;
         server_state_update(packet);
@@ -214,5 +218,16 @@ void GameClient::render_entities(sf::RenderTarget* target) {
     }
     for (auto&& p : players) {
         p.second.render(target);
+    }
+}
+
+void GameClient::update(float dt) {
+    for (auto&& bomb : bombs) {
+        bomb.second.anim_object.update(dt);
+    }
+    for (auto&& player : players) {
+        if (player.second.update(dt)) {
+            player.second.move_to_actual_position(map);
+        }
     }
 }

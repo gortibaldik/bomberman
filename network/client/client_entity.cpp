@@ -22,7 +22,44 @@ sf::Packet& operator >>(sf::Packet& packet, ClientPlayerEntity& cpe) {
 
 #define SPACING_FACTOR 1.5f
 
-void ClientPlayerEntity::update_position() {
+static double add_const_speed(float dt, float new_x, float actual_x) {
+    if (new_x > actual_x) {
+        float diff = new_x - actual_x;
+        if (dt > diff) {
+            return new_x;
+        } else {
+            return actual_x + dt;
+        }
+    } else {
+        float diff = actual_x - new_x;
+        if (dt > diff) {
+            return new_x;
+        } else {
+            return actual_x - dt;
+        }
+    }
+}
+
+bool ClientPlayerEntity::update(float dt) {
+    if (is_spawned) {
+        actual_pos = new_pos;
+        is_spawned = false;
+        return true;
+    }
+    if (actual_pos == new_pos) { return false; }
+    float speed = 5.5f * dt;
+    anim_object.update(dt);
+    actual_pos.first = add_const_speed(speed, new_pos.first, actual_pos.first);
+    actual_pos.second = add_const_speed(speed, new_pos.second, actual_pos.second);
+    return true;
+}
+
+/* Updates the position of all the entities attached to
+ * the current player entity to the actual position
+ */
+void ClientPlayerEntity::move_to_actual_position(const GameMapRenderable& map) {
+    map.transform(anim_object, actual_pos, false);
+    anim_object.set_direction(direction);
     auto&& rectangle = anim_object.get_global_bounds();
     auto width = rectangle.width;
     auto&& text_rectangle = player_name_renderable.getGlobalBounds();

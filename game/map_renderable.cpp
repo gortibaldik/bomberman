@@ -27,7 +27,7 @@ void GameMapRenderable::render(sf::RenderTarget* rt) {
     }
 }
 
-void GameMapRenderable::transform(AnimObject& anim_object, EntityCoords pos, bool scale /*=true*/) {
+void GameMapRenderable::transform(AnimObject& anim_object, EntityCoords pos, bool scale /*=true*/) const {
     float tsx = scale ? tile_scale_x : 1.f;
     float tsy = scale ? tile_scale_y : 1.f;
     anim_object.set_position(pos.second*tile_width*tile_scale_x, pos.first*tile_height*tile_scale_y);

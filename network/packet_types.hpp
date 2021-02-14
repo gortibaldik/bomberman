@@ -8,16 +8,17 @@ enum class PacketType {
     Connect,
     Duplicate,
     SpawnPosition,
-    HeartBeat,
-    GetReady, /* 4 */
+    StartGame,
+    HeartBeat, /* 4 */
+    GetReady,
     ClientReady,
     ClientMove,
-    ClientDeployBomb,
-    ServerNewBomb, /* 8 */
+    ClientDeployBomb, /* 8 */
+    ServerNewBomb,
     ServerEraseBomb,
     ServerPlayerUpdate,
-    ServerCreateExplosion,
-    ServerEraseExplosion, /* 12 */
+    ServerCreateExplosion, /* 12 */
+    ServerEraseExplosion,
     ServerNotifyPlayerDisconnect,
     ServerNotifyPlayerDied,
     ServerNotifySoftBlockDestroyed,
