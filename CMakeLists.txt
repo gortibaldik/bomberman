@@ -8,6 +8,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
+
+# Find SFML shared libraries
+if (WIN32)
+  message(WARNING "Detected that you're on windows! ")
+  set(SFML_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/SFML-2.5.1")
+  set(SFML_INCLUDES "${SFML_PREFIX}/include")
+endif()
+
 # Enable debug symbols by default
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug 
@@ -15,27 +23,28 @@ if(NOT CMAKE_BUILD_TYPE)
       "Choose the type of build (Debug or Release)" 
       FORCE
     )
+  set(SFML_DIR "${SFML_PREFIX}/out/install/x64-Debug (default)/lib/cmake/SFML/")
+  set(SFML_LINK_DIRS "${SFML_PREFIX}/out/install/x64-Debug (default)/bin")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(SFML_DIR "${SFML_PREFIX}/out/install/x64-Debug (default)/lib/cmake/SFML/")
+  set(SFML_LINK_DIRS "${SFML_PREFIX}/out/install/x64-Debug (default)/bin")  
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+  set(SFML_DIR "${SFML_PREFIX}/out/build/x64-Release (default)")
+  set(SFML_LINK_DIRS "${SFML_PREFIX}/out/build/x64-Release (default)/lib")
 endif()
 
-# Find SFML shared libraries
-set(CMD_OPTION "x64-Debug")
-set(SFML_V "${CMAKE_CURRENT_SOURCE_DIR}/SFML-2.5.1")
-set(SFML_PREFIX "${SFML_V}/out/install/${CMD_OPTION} (default)")
-set(SFML_INCLUDES "${SFML_V}/include")
-set(SFML_DIR "${SFML_PREFIX}/lib/cmake/SFML/")
 find_package(SFML 2.5.1
     COMPONENTS 
         system window graphics network audio REQUIRED
   )
 
 # set cmake multithreaded flags
-string(COMPARE EQUAL "${build_system}" windows _cmp)
-if (NOT _cmp)
+if (NOT _on_windows)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-endif(NOT _cmp)
+endif()
 
 # Compile executable
-link_directories("${SFML_PREFIX}/bin")
+link_directories("${SFML_LINK_DIRS}")
 add_executable(Bomberman main.cpp)
 
 # tell CMake to look to subdirs for CMakeLists containing more

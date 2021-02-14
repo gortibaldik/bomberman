@@ -1,7 +1,5 @@
 #include "window_manager/def.hpp"
-#include "network/server/server.hpp"
 #include "states/start.hpp"
-#include "game/map.hpp"
 
 int main(int argc, char** argv) {
     WindowManager wm;

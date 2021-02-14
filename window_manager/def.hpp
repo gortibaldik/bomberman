@@ -34,6 +34,7 @@ private:
     GSPtr actual_state;
     bool remove_top = false;
     std::deque<GSPtr> states;
+    std::string window_name;
     TextureManager texture_manager;
     StylesHolder<GStyle> styles_holder;
     StylesHolder<CGStyle> cgstyles_holder;

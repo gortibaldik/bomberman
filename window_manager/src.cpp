@@ -20,7 +20,9 @@ void WindowManager::pop_states(int n) {
 }
 
 void WindowManager::change_state(GSPtr&& state) {
-    pop_states(1);
+    if (!states.empty()) {
+        pop_states(1);
+    }
     push_state(std::move(state));
 }
 
@@ -69,7 +71,8 @@ void WindowManager::close_window() {
     window.close();
 }
 
-WindowManager::WindowManager(): null_placeholder() {
+WindowManager::WindowManager(): null_placeholder()
+                              , window_name("Bomberman") {
     // load all the textures
     TextureLoader tl("media/config.cfg");
     tl.load(texture_manager);
@@ -80,7 +83,7 @@ WindowManager::WindowManager(): null_placeholder() {
     CGStyleLoader cgsl("media/menu_configs.cfg", styles_holder);
     cgsl.load(cgstyles_holder);
 
-    window.create(sf::VideoMode(800,600), "Bomberman");
+    window.create(sf::VideoMode(800,600), window_name);
     window.setFramerateLimit(60);
     background.setTexture(texture_manager.get_ref("background"));
 }

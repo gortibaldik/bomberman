@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iostream>
 #include <unordered_map>
+#include <stdexcept>
 
 enum class CONFIG_TYPES {
     TEXTURE,
