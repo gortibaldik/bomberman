@@ -42,6 +42,7 @@ void GameClient::update_player(sf::Packet& packet, bool spawn) {
         cpe.player_name_renderable.setCharacterSize(20);
         cpe.player_name_renderable.setString(cpe.name);
         cpe.new_pos = cpe.actual_pos;
+        //cpe.move_to_actual_position(map);
         players.emplace(cpe.name, cpe);
         if (cpe.name == player_name) {
             me = &players.at(cpe.name);

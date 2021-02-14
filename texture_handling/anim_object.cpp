@@ -8,11 +8,9 @@ AnimObject::AnimObject(const sf::Sprite& sprite
                       , milliseconds_frame_change(milliseconds_frame_change)
                       , animation(animation)
                       , anim_direction(default_direction)
+                      , actual_direction(EntityDirection::STATIC)
                       , c_time(0.f) {
     switch(default_direction) {
-    case Direction::STATIC:
-        this->actual_direction = EntityDirection::STATIC;
-        break;
     case Direction::DOWN:
         this->actual_direction = EntityDirection::DOWN;
         break;
@@ -33,7 +31,7 @@ void AnimObject::set_position(float x, float y) {
     sprite.setPosition(x, y);
 }
 
-void AnimObject::set_direction(EntityDirection::EntityDirection dir) {
+void AnimObject::set_direction(EntityDirection dir) {
     if (actual_direction == dir) { return; }
     bool flip = (dir == EntityDirection::LEFT);
     bool reverse_flip = (actual_direction == EntityDirection::LEFT);

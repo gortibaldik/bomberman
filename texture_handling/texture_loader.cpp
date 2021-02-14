@@ -3,13 +3,13 @@
 #include <iostream>
 #include <unordered_map>
 
-enum CONFIG_TYPES {
+enum class CONFIG_TYPES {
     TEXTURE,
     FONT,
     ANIMATION
 };
 
-enum ANIMATION_TYPES {
+enum class ANIMATION_TYPES {
     STATIC,
     DIRECTIONAL
 };
@@ -54,7 +54,10 @@ static void load_anim_states( TextureManager& tm
     }
 }
 
-static void load_static_animation(TextureManager& tm, std::istream& is, const std::string& animation_name, int& line_n) {
+static void load_static_animation(TextureManager& tm
+                                 , std::istream& is
+                                 , const std::string& animation_name
+                                 , int& line_n) {
     int duration, milliseconds_frame_change;
     std::string line;
     line_n++;
@@ -69,7 +72,10 @@ static void load_static_animation(TextureManager& tm, std::istream& is, const st
     load_anim_states(tm, is, animation_name, duration, Direction::STATIC, line_n);
 }
 
-static void load_directional_animation(TextureManager& tm, std::istream& is, const std::string& animation_name, int& line_n) {
+static void load_directional_animation(TextureManager& tm
+                                      , std::istream& is
+                                      , const std::string& animation_name
+                                      , int& line_n) {
     std::map<std::string, Direction> all_dirs = { {"UP", Direction::UP },
                                                   {"DOWN", Direction::DOWN},
                                                   {"SIDE", Direction::SIDE} };
@@ -116,17 +122,17 @@ static void load_animation(TextureManager& tm, std::istream& is, int& line_n) {
     if (!(ss >> texture_name >> animation_type)) {
         throw std::runtime_error(append_line_n("Invalid tokens!", line_n));
     }
-    const std::unordered_map<std::string, ANIMATION_TYPES> animation_types = { { "STATIC", STATIC },
-                                                                              { "DIRECTIONAL", DIRECTIONAL } };
+    const std::unordered_map<std::string, ANIMATION_TYPES> animation_types = { { "STATIC", ANIMATION_TYPES::STATIC },
+                                                                              { "DIRECTIONAL", ANIMATION_TYPES::DIRECTIONAL } };
     if (animation_types.find(animation_type) == animation_types.end()) {
         throw std::runtime_error(append_line_n("Invalid animation type: " + animation_type, line_n));
     }
     switch(animation_types.at(animation_type)) {
-    case STATIC:
+    case ANIMATION_TYPES::STATIC:
         tm.create_animation(animation_name, texture_name, Direction::STATIC);
         load_static_animation(tm, is, animation_name, line_n);
         break;
-    case DIRECTIONAL:
+    case ANIMATION_TYPES::DIRECTIONAL:
         tm.create_animation(animation_name, texture_name, Direction::UP);
         load_directional_animation(tm, is, animation_name, line_n);
         break;
@@ -157,9 +163,9 @@ TextureLoader::TextureLoader(const std::string& name_of_config_file)
 void TextureLoader::load(TextureManager& texture_manager) {
     int line_n = 0;
     std::string line;
-    const std::unordered_map<std::string, CONFIG_TYPES> cfg_type = { {"TEXTURE", TEXTURE},
-                                                                     {"FONT", FONT},
-                                                                     {"ANIMATION", ANIMATION}};
+    const std::unordered_map<std::string, CONFIG_TYPES> cfg_type = { {"TEXTURE", CONFIG_TYPES::TEXTURE},
+                                                                     {"FONT", CONFIG_TYPES::FONT},
+                                                                     {"ANIMATION", CONFIG_TYPES::ANIMATION}};
     while (std::getline(ifs, line)) {
         std::stringstream ss(line);
         line_n++;
@@ -171,13 +177,13 @@ void TextureLoader::load(TextureManager& texture_manager) {
             throw std::runtime_error("Invalid token type: " + token);
         }
         switch(cfg_type.at(token)) {
-            case TEXTURE:
+            case CONFIG_TYPES::TEXTURE:
                 load_texture(texture_manager, ss);
                 break;
-            case FONT:
+            case CONFIG_TYPES::FONT:
                 load_font(texture_manager, ss);
                 break;
-            case ANIMATION:
+            case CONFIG_TYPES::ANIMATION:
                 load_animation(texture_manager, ifs, line_n);
                 break;
             default:

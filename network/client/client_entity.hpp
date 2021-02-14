@@ -23,7 +23,7 @@ public:
     void spawn() { is_spawned = true; }
     bool is_spawned = true;
     HeartSprites hearts;
-    sf::Int8 lives;
+    sf::Int8 lives = 0;
     AnimObject anim_object;
     EntityCoords new_pos;
     sf::Time till_next_update;

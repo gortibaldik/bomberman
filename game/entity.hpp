@@ -4,28 +4,24 @@
 #include <utility>
 #include <string>
 
-namespace EntityDirection {
-    enum EntityDirection {
-        UP = 0,
-        DOWN = 1,
-        RIGHT = 2,
-        LEFT = 3,
-        STATIC
-    };
+enum class EntityDirection : int {
+    UP = 0,
+    DOWN = 1,
+    RIGHT = 2,
+    LEFT = 3,
+    STATIC
 };
 
-namespace ExplosionType {
-    enum ExplosionType {
-        CENTER,
-        HORIZONTAL_RIGHT,
-        HORIZONTAL_LEFT,
-        VERTICAL_UP,
-        VERTICAL_DOWN,
-        UP_END,
-        DOWN_END,
-        RIGHT_END,
-        LEFT_END
-    };
+enum class ExplosionType : int {
+    CENTER,
+    HORIZONTAL_RIGHT,
+    HORIZONTAL_LEFT,
+    VERTICAL_UP,
+    VERTICAL_DOWN,
+    UP_END,
+    DOWN_END,
+    RIGHT_END,
+    LEFT_END
 };
 
 using EntityCoords = std::pair<float, float>;
@@ -43,12 +39,12 @@ public:
     PlayerEntity() : direction(EntityDirection::UP) {}
     PlayerEntity(const std::string& name
                 , EntityCoords actual_pos
-                , EntityDirection::EntityDirection direction)
+                , EntityDirection direction)
                 : Entity(actual_pos)
                 , name(name)
                 , direction(direction) {}
     std::string name;
-    EntityDirection::EntityDirection direction;
+    EntityDirection direction;
 };
 
 #endif

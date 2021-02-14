@@ -31,7 +31,7 @@ GameState::GameState(WindowManager& mngr
                     , view(view)
                     , client(client){
     sf::Vector2f fr(view.getSize());
-    window_manager.resize_window(fr.x, fr.y);
+    window_manager.resize_window(static_cast<unsigned int>(fr.x), static_cast<unsigned int>(fr.y));
     client->get_game_map().fit_to_window(fr.x, fr.y);
     client->fit_entities_to_window();
 }
@@ -41,7 +41,7 @@ static float client_update_constant = 0.05f;
 using Coords = std::pair<int, int>;
 
 bool GameState::check_move(sf::Packet& packet) {
-    using coords_dir = std::pair<Coords, EntityDirection::EntityDirection>;
+    using coords_dir = std::pair<Coords, EntityDirection>;
     static const std::unordered_map<sf::Keyboard::Key, coords_dir> key_to_dir =
         { {sf::Keyboard::Left, {Coords(0,-1), EntityDirection::LEFT}},
           {sf::Keyboard::Right, {Coords(0,1), EntityDirection::RIGHT}},

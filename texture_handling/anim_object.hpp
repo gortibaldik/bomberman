@@ -9,7 +9,7 @@ public:
     AnimObject(const sf::Sprite&, float milliseconds_frame_change, const Animation* animation, Direction default_direction);
     void set_position(const sf::Vector2f& pos);
     void set_position(float, float);
-    void set_direction(EntityDirection::EntityDirection);
+    void set_direction(EntityDirection);
 
     sf::FloatRect get_global_bounds() { return sprite.getGlobalBounds(); }
     void scale(float, float);
@@ -21,7 +21,7 @@ private:
     float milliseconds_frame_change;
     float c_time;
     int c_anim_index = 0;
-    EntityDirection::EntityDirection actual_direction;
+    EntityDirection actual_direction;
     Direction anim_direction;
 };
 

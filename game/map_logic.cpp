@@ -13,7 +13,7 @@ std::tuple<int, int, int> GameMapLogic::get_spawn_pos() {
 
 void GameMapLogic::process_loaded(const std::string& token, const std::string& animation,
                                        const std::string& type, int row, int column) {
-    TilesTypes::TilesTypes t;
+    TilesTypes t;
     bool is_soft_block = false;
     if (type.compare("NON_WALKABLE") == 0) {
         t = TilesTypes::NON_WALKABLE;
@@ -35,7 +35,7 @@ void GameMapLogic::process_loaded(const std::string& token, const std::string& a
     soft_blocks.push_back(is_soft_block);
 }
 
-static void go_back(float move_factor, EntityCoords& coords, EntityDirection::EntityDirection dir) {
+static void go_back(float move_factor, EntityCoords& coords, EntityDirection dir) {
     switch(dir) {
     case EntityDirection::UP:
         coords.first += move_factor;
@@ -60,7 +60,7 @@ static bool try_correct(int free, float& me) {
         val = me - free;
     }
     if (val <= TOLERANCE) {
-        me = free;
+        me = static_cast<float>(free);
         return true;
     }
     return false;
@@ -75,7 +75,7 @@ static bool try_correct(int free, float& me) {
  * @return true if collision can be avoided
  */
 template <typename T>
-static bool col_checking(const GameMapLogic& map, std::vector<T> to_check, T value, float move_factor, EntityCoords& coords, EntityDirection::EntityDirection dir) {
+static bool col_checking(const GameMapLogic& map, std::vector<T> to_check, T value, float move_factor, EntityCoords& coords, EntityDirection dir) {
     int ceil_row = static_cast<int>(ceilf(coords.first));
     int ceil_col = static_cast<int>(ceilf(coords.second));
     int flr_row = static_cast<int>(floorf(coords.first));
@@ -128,9 +128,9 @@ static bool col_checking(const GameMapLogic& map, std::vector<T> to_check, T val
     return true;
 }
 
-Collision::Collision GameMapLogic::collision_checking(float move_factor, EntityCoords& coords, EntityDirection::EntityDirection dir) {
+Collision GameMapLogic::collision_checking(float move_factor, EntityCoords& coords, EntityDirection dir) {
     EntityCoords hard_check(coords), soft_check(coords);
-    bool hard = !col_checking<TilesTypes::TilesTypes>(*this, tiles, TilesTypes::NON_WALKABLE, move_factor, hard_check, dir);
+    bool hard = !col_checking<TilesTypes>(*this, tiles, TilesTypes::NON_WALKABLE, move_factor, hard_check, dir);
     bool soft = !col_checking<bool>(*this, soft_blocks, true, move_factor, soft_check, dir);
     coords = hard_check;
     if (hard) {

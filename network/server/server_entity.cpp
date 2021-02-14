@@ -10,7 +10,7 @@ sf::Packet& operator <<(sf::Packet& packet, const ServerPlayerEntity& spe) {
     return packet << spe.actual_pos.second;
 }
 
-void ServerPlayerEntity::update_pos_dir(EntityCoords&& coords, EntityDirection::EntityDirection dir) {
+void ServerPlayerEntity::update_pos_dir(EntityCoords&& coords, EntityDirection dir) {
     actual_pos = std::move(coords);
     direction = dir;
 }
@@ -48,7 +48,7 @@ bool ServerBombEntity::is_new() {
 std::vector<ServerExplosionEntity> ServerBombEntity::explode(GameMapLogic& map, float till_erasement) {
     std::vector<ServerExplosionEntity> result;
     result.emplace_back(actual_pos, till_erasement, 0, ExplosionType::CENTER);
-    using type_coords = std::pair<std::pair<ExplosionType::ExplosionType, EntityDirection::EntityDirection>, EntityCoords>;
+    using type_coords = std::pair<std::pair<ExplosionType, EntityDirection>, EntityCoords>;
     const std::vector<type_coords> to_right = {{{ExplosionType::HORIZONTAL_RIGHT,   EntityDirection::RIGHT},    EntityCoords(0,  1)},
                                                {{ExplosionType::RIGHT_END,          EntityDirection::RIGHT},    EntityCoords(0,  1)}};
     const std::vector<type_coords> to_left  = {{{ExplosionType::HORIZONTAL_LEFT,    EntityDirection::LEFT},     EntityCoords(0, -1)},

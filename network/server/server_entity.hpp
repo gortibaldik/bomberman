@@ -18,7 +18,7 @@ public:
     ServerPlayerEntity(const std::string& name
                        , EntityCoords spawn_pos
                        , EntityCoords actual_pos
-                       , EntityDirection::EntityDirection direction
+                       , EntityDirection direction
                        , sf::Int8 type
                        , int lives
                        , float move_factor)
@@ -27,11 +27,12 @@ public:
                        , spawn_pos(spawn_pos)
                        , c_deployed(0)
                        , lives(lives)
-                       , move_factor(move_factor) {}
+                       , move_factor(move_factor)
+                       , updated(false) {}
     void update(float dt);
     bool is_attackable() { return spawn_protection == 0.f; }
     void respawn() { spawn_protection = 1.f; }
-    void update_pos_dir(EntityCoords&&, EntityDirection::EntityDirection);
+    void update_pos_dir(EntityCoords&&, EntityDirection);
     bool can_deploy() { return c_deployed < 3; }
     void deploy() { c_deployed++; }
     void remove_deployed() { c_deployed = (c_deployed > 0) ? c_deployed - 1 : c_deployed; }
@@ -41,11 +42,11 @@ class ServerExplosionEntity: public Entity {
 public:
     int ID;
     float till_erasement;
-    ExplosionType::ExplosionType type;
+    ExplosionType type;
     ServerExplosionEntity( EntityCoords pos
                          , float till_erasement
                          , int ID
-                         , ExplosionType::ExplosionType type)
+                         , ExplosionType type)
                          : Entity(pos)
                          , ID(ID)
                          , till_erasement(till_erasement)

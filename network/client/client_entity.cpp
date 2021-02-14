@@ -6,7 +6,7 @@ sf::Packet& operator >>(sf::Packet& packet, ClientPlayerEntity& cpe) {
     packet >> cpe.name;
     sf::Int8 direction = 0;
     packet >> direction;
-    cpe.direction = static_cast<EntityDirection::EntityDirection>(direction);
+    cpe.direction = static_cast<EntityDirection>(direction);
     sf::Int8 lives = 0;
     packet >> lives;
     cpe.lives = lives;
@@ -22,7 +22,7 @@ sf::Packet& operator >>(sf::Packet& packet, ClientPlayerEntity& cpe) {
 
 #define SPACING_FACTOR 1.5f
 
-static double add_const_speed(float dt, float new_x, float actual_x) {
+static float add_const_speed(float dt, float new_x, float actual_x) {
     if (new_x > actual_x) {
         float diff = new_x - actual_x;
         if (dt > diff) {
@@ -99,7 +99,7 @@ sf::Packet& operator >>(sf::Packet& packet, ClientBombEntity& cbe) {
 }
 
 ClientExplosionEntity ClientExplosionEntity::extract_from_packet(const TextureManager& tm, sf::Packet& packet) {
-    const std::unordered_map<ExplosionType::ExplosionType, std::string> exp_to_str = {
+    const std::unordered_map<ExplosionType, std::string> exp_to_str = {
         {ExplosionType::CENTER,             "exp_center"},
         {ExplosionType::HORIZONTAL_LEFT,    "exp_horizontal"},
         {ExplosionType::HORIZONTAL_RIGHT,   "exp_horizontal"},
@@ -114,7 +114,7 @@ ClientExplosionEntity ClientExplosionEntity::extract_from_packet(const TextureMa
     sf::Int8 type = 0;
     float f = 0.f, s = 0.f;
     packet >> id >> type >> f >> s;
-    auto cee = ClientExplosionEntity(tm, exp_to_str.at(static_cast<ExplosionType::ExplosionType>(type)), id);
+    auto cee = ClientExplosionEntity(tm, exp_to_str.at(static_cast<ExplosionType>(type)), id);
     cee.actual_pos = EntityCoords(f, s);
     return cee;
 }

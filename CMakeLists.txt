@@ -29,7 +29,10 @@ find_package(SFML 2.5.1
   )
 
 # set cmake multithreaded flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+string(COMPARE EQUAL "${build_system}" windows _cmp)
+if (NOT _cmp)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+endif(NOT _cmp)
 
 # Compile executable
 link_directories("${SFML_PREFIX}/bin")

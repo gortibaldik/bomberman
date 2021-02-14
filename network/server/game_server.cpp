@@ -8,7 +8,7 @@ GameServer::GameServer(const std::string& name_of_map)
                       : state(ServerState::WAITING_ROOM) {
     try {
         map.load_from_config(name_of_map);
-        max_clients = map.get_max_players();
+        max_clients = static_cast<int>(map.get_max_players());
     } catch (std::runtime_error& e) {
         std::stringstream ss;
         ss << "--- ERROR ---" << std::endl;
@@ -66,7 +66,7 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
                     return;
                 }
                 EntityCoords c(row*p.move_factor+p.actual_pos.first, col*p.move_factor+p.actual_pos.second);
-                auto d = (EntityDirection::EntityDirection)dir;
+                auto d = (EntityDirection)dir;
                 map.collision_checking(p.move_factor, c, d);
                 p.update_pos_dir(std::move(c), d);
                 p.updated = true;
@@ -114,7 +114,7 @@ bool GameServer::check_explosions(sf::Packet& packet) {
                 break;
             }
         }
-        size_t i = -1;
+        int i = -1;
         for (auto&& exists : map.get_soft_blocks()) {
             i++;
             if (!exists) { continue; }

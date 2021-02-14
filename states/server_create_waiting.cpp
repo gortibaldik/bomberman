@@ -9,14 +9,14 @@ static const int port_n_length = 4;
 static const int ip_length = 15;
 static const int name_length = 20;
 
-enum BTN {
+enum class BTN: int {
     START_GAME, MM_RETURN, QUIT, BLANK, START_TIME, CONNECTED_PLAYERS, IP
 };
 
 static const std::unordered_map<std::string, BTN> str_to_btn = { 
-    {"Start game", START_GAME}, {"Return to main menu", MM_RETURN}, {"Quit", QUIT},
-    {"IP of the server: ", IP}, {"Connected players:", CONNECTED_PLAYERS},
-    {"START_TIME", START_TIME}, {"", BLANK}
+    {"Start game", BTN::START_GAME}, {"Return to main menu", BTN::MM_RETURN}, {"Quit", BTN::QUIT},
+    {"IP of the server: ", BTN::IP}, {"Connected players:", BTN::CONNECTED_PLAYERS},
+    {"START_TIME", BTN::START_TIME}, {"", BTN::BLANK}
 };
 static std::unordered_map<BTN, std::string> btn_to_str;
 static void initialize_maps() {
@@ -33,7 +33,8 @@ void ServerCreateWaitingState::update(float) {
             server.start_game();
         } else {
             int dt = Network::ConnectionInterval - connection_timer.getElapsedTime().asMilliseconds();
-            menu.get_named_field(btn_to_str[START_TIME])->set_content("Starting in " + std::to_string(dt / 1000) + " seconds.");
+            menu.get_named_field(btn_to_str[BTN::START_TIME])
+                                    ->set_content("Starting in " + std::to_string(dt / 1000) + " seconds.");
             if (last_dt - dt > 200) {
                 server.set_ready_game();
                 last_dt = dt;
@@ -62,15 +63,15 @@ void ServerCreateWaitingState::handle_btn_pressed() {
     auto&& btn = menu.get_pressed_btn();
     if (btn && (str_to_btn.find(btn->get_content()) != str_to_btn.end())) {
         switch (str_to_btn.at(btn->get_content())) {
-        case START_GAME:
+        case BTN::START_GAME:
             server.set_ready_game();
             connection_timer.restart();
             break;
-        case MM_RETURN:
+        case BTN::MM_RETURN:
             window_manager.pop_states(1);
             server.terminate();
             break;
-        case QUIT:
+        case BTN::QUIT:
             window_manager.window.close();
             break;
         }
@@ -95,14 +96,14 @@ ServerCreateWaitingState::ServerCreateWaitingState( WindowManager& mngr
     }
 
     initialize_maps();
-    menu.add_non_clickable(btn_to_str[IP]+ip.toString()+":"+std::to_string(in_port)); 
-    menu.add_non_clickable(btn_to_str[CONNECTED_PLAYERS]);
+    menu.add_non_clickable(btn_to_str[BTN::IP]+ip.toString()+":"+std::to_string(in_port));
+    menu.add_non_clickable(btn_to_str[BTN::CONNECTED_PLAYERS]);
     for (int i = 0; i < server.get_max_players(); i++) {
-        menu.add_non_clickable(std::to_string(i), btn_to_str[BLANK]);
+        menu.add_non_clickable(std::to_string(i), btn_to_str[BTN::BLANK]);
     }
-    menu.add_non_clickable(btn_to_str[START_TIME], btn_to_str[BLANK]);
-    menu.add_non_clickable(btn_to_str[BLANK]);
-    menu.add_button(btn_to_str[START_GAME]);
-    menu.add_button(btn_to_str[MM_RETURN]);
-    menu.add_button(btn_to_str[QUIT]);
+    menu.add_non_clickable(btn_to_str[BTN::START_TIME], btn_to_str[BTN::BLANK]);
+    menu.add_non_clickable(btn_to_str[BTN::BLANK]);
+    menu.add_button(btn_to_str[BTN::START_GAME]);
+    menu.add_button(btn_to_str[BTN::MM_RETURN]);
+    menu.add_button(btn_to_str[BTN::QUIT]);
 }

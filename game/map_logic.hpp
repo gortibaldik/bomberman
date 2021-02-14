@@ -7,22 +7,18 @@
 #include <tuple>
 #include <random>
 
-namespace TilesTypes {
-    enum TilesTypes {
-        WALKABLE,
-        NON_WALKABLE
-    };
+enum class TilesTypes {
+    WALKABLE,
+    NON_WALKABLE
 };
 
-namespace Collision {
-    enum Collision {
-        SOFT_BLOCK,
-        HARD_BLOCK,
-        NONE
-    };
+enum class Collision {
+    SOFT_BLOCK,
+    HARD_BLOCK,
+    NONE
 };
 
-using LogicMap = std::vector<TilesTypes::TilesTypes>;
+using LogicMap = std::vector<TilesTypes>;
 using SoftBlockMap = std::vector<bool>;
 
 // code from https://www.fluentcpp.com/2019/05/24/how-to-fill-a-cpp-collection-with-random-values/
@@ -49,10 +45,10 @@ public:
     std::tuple<int, int, int> get_spawn_pos();
     const SoftBlockMap& get_soft_blocks() { return soft_blocks; }
     void erase_soft_block(int);
-    Collision::Collision collision_checking(float move_factor, EntityCoords&, EntityDirection::EntityDirection);
+    Collision collision_checking(float move_factor, EntityCoords&, EntityDirection);
     template<typename T>
     T unsafe_get(std::vector<T>& map, int row, int column) const {
-        return map.at(row*columns + column);
+        return map.at(static_cast<long>(row)*columns + column);
     }
 private:
     std::vector<std::tuple<int, int, int>> spawn_positions;

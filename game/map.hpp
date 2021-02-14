@@ -15,7 +15,7 @@ public:
 
     static void generate_config(const std::string&, int, int);
 protected:
-    int rows, columns;
+    int rows = 0, columns = 0;
     std::string name;
 };
 
