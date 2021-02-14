@@ -21,6 +21,7 @@ public:
               , tm(tm)
               , me(nullptr)
               , font(font) {}
+    ~GameClient();
     bool is_game_started() { return game_started; }
     bool is_approved() { return approved; }
     void update(float dt);

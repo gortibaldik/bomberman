@@ -2,7 +2,7 @@
 #include "network/packet_types.hpp"
 #include <iostream>
 
-enum WAIT_RESULT {
+enum class WAIT_RESULT {
     CONTINUE,
     SUCCESS,
     FAILURE
@@ -28,12 +28,12 @@ static WAIT_RESULT wait_for_server(  sf::UdpSocket& socket
                                    , PacketType& ptype) {
     auto status = socket.receive(packet, receiver_ip, receiver_port);
     if (status != sf::Socket::Done || receiver_ip != server_ip) {
-        return CONTINUE;
+        return WAIT_RESULT::CONTINUE;
     }
     sf::Int8 raw_ptype = 0;
-    if (!(packet >> raw_ptype)) { return FAILURE; }
+    if (!(packet >> raw_ptype)) { return WAIT_RESULT::FAILURE; }
     ptype = static_cast<PacketType>(raw_ptype);
-    return SUCCESS;
+    return WAIT_RESULT::SUCCESS;
 }
 
 static WAIT_RESULT listen_to_server( sf::UdpSocket& socket
@@ -44,15 +44,15 @@ static WAIT_RESULT listen_to_server( sf::UdpSocket& socket
                                    , PacketType& ptype) {
     auto status = socket.receive(packet, receiver_ip, receiver_port);
     if (status != sf::Socket::Done) {
-        return FAILURE; 
+        return WAIT_RESULT::FAILURE; 
     }
     // unknown sender, or undecodable packet
     sf::Int8 raw_ptype = 0;
-    if ((receiver_ip != server_ip) || !(packet >> raw_ptype)) { return CONTINUE; }
+    if ((receiver_ip != server_ip) || !(packet >> raw_ptype)) { return WAIT_RESULT::CONTINUE; }
     ptype = static_cast<PacketType>(raw_ptype);
     // invalid type of packet
-    if ((ptype < PacketType::Disconnect) || (ptype >= PacketType::Invalid)) { return CONTINUE; }
-    return SUCCESS;
+    if ((ptype < PacketType::Disconnect) || (ptype >= PacketType::Invalid)) { return WAIT_RESULT::CONTINUE; }
+    return WAIT_RESULT::SUCCESS;
 }
 
 bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
@@ -79,13 +79,13 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
         PortNumber receiver_port;
         PacketType ptype = PacketType::Invalid;
         auto result = wait_for_server(socket, server_ip, packet, receiver_ip, receiver_port, ptype);
-        if (result == FAILURE) { break; }
+        if (result == WAIT_RESULT::FAILURE) { break; }
         if (ptype == PacketType::Duplicate) {
             std::cout << "CLIENT : got response from server : DUPLICATE NAME !" << std::endl;
             status = ClientStatus::Duplicate;
             return false;
         }
-        if ((result == CONTINUE) || (ptype != PacketType::Connect)) { continue; }
+        if ((result == WAIT_RESULT::CONTINUE) || (ptype != PacketType::Connect)) { continue; }
         this->server_ip = receiver_ip;
         this->server_port_out = receiver_port;
         this->server_port_in = server_port;
@@ -154,8 +154,8 @@ void Client::listen() {
         PortNumber receiver_port;
         PacketType ptype = PacketType::Invalid;
         auto result = listen_to_server(socket, server_ip, packet, receiver_ip, receiver_port, ptype);
-        if ((result == FAILURE) && !is_connected()) { break; }
-        if ((result == CONTINUE) || (result == FAILURE)) { continue; }
+        if ((result == WAIT_RESULT::FAILURE) && !is_connected()) { break; }
+        if ((result == WAIT_RESULT::CONTINUE) || (result == WAIT_RESULT::FAILURE)) { continue; }
         switch(ptype) {
         case PacketType::HeartBeat:
             handle_heartbeat(packet);
@@ -184,11 +184,11 @@ void Client::terminate() {
         add_type_to_packet(p, PacketType::Disconnect);
         socket.send(p, server_ip, server_port_in);
         socket.send(p, sf::IpAddress::getLocalAddress(), socket.getLocalPort());
-        std::cout << "CLIENT : sent terminate socket!" << std::endl;
+        std::cout << "CLIENT : sent disconnect socket!" << std::endl;
         socket.unbind();
         if (listener.joinable()) {
-            std::cout << "CLIENT : joining listener!" << std::endl;
             listener.join();
+            std::cout << "CLIENT : joined listener!" << std::endl;
         } else {
             std::cout << "CLIENT : listener already joined!" << std::endl;
         }
@@ -197,7 +197,6 @@ void Client::terminate() {
 
 Client::~Client() {
     // end both updater and listener threads
-    terminate();
     if (listener.joinable()) {
         listener.join();
         std::cout << "CLIENT : joined listener!" << std::endl;

@@ -250,8 +250,10 @@ void GameServer::notify_disconnect(const std::string& client_name) {
         if (iter == players.end()) { return; }
         players.erase(client_name);
     }
+    std::cout << "SERVER : Erased player " << client_name << std::endl;
     sf::Packet packet;
     add_type_to_packet(packet, PacketType::ServerNotifyPlayerDisconnect);
+    packet << client_name;
     broadcast(packet);
 }
 

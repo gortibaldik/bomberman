@@ -65,6 +65,7 @@ void Server::handle_disconnect(const sf::IpAddress& ip, PortNumber port) {
         if (ptr == connected_clients.end()) {
             return; // ignore non existent client error
         }
+        std::cout << "SERVER : " << ptr->first << " wants to  disconnect!" << std::endl;
         name = ptr->first;
         connected_clients.erase(name);
     }

@@ -193,6 +193,7 @@ void GameClient::handle_others(sf::Packet& packet, PacketType ptype) {
         break;
     case PacketType::ServerNotifyPlayerDisconnect:
         packet >> token;
+        std::cout << "CLIENT : got ServerNotifyPlayerDisconnect from " << token << std::endl;
         {
             std::unique_lock<std::mutex> l(resources_mutex);
             players.erase(token);
@@ -231,4 +232,8 @@ void GameClient::update(float dt) {
             player.second.move_to_actual_position(map);
         }
     }
+}
+
+GameClient::~GameClient() {
+    terminate();
 }

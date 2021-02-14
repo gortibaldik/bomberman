@@ -5,7 +5,6 @@
 
 void GameState::draw(float dt) {
     window_manager.window.setView(view);
-    window_manager.window.draw(window_manager.background);
     if (client == nullptr) {
         return;
     }
@@ -18,9 +17,6 @@ void GameState::handle_input() {
     while(window_manager.window.pollEvent(event)) {
         switch(event.type) {
         case sf::Event::Closed:
-            sf::Packet packet;
-            add_type_to_packet(packet, PacketType::Disconnect);
-            client->send(packet);
             window_manager.close_window();
             break;
         }

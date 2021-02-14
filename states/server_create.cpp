@@ -39,9 +39,10 @@ void ServerCreateState::handle_btn_pressed() {
     if (btn && (str_to_btn.find(btn->get_content()) != str_to_btn.end())) {
         switch (str_to_btn[btn->get_content()]) {
         case BTN::CREATE:
-            if (menu.get_named_field(btn_to_str.at(BTN::PORT))->is_valid() &&
+            if (!transition_happened && 
+                menu.get_named_field(btn_to_str.at(BTN::PORT))->is_valid() &&
                 menu.get_named_field(btn_to_str.at(BTN::NAME))->is_valid()) {
-                    std::cout << "Creating server waiting state!" << std::endl;
+                    transition_happened = true;
                     window_manager.change_state(std::make_unique<ServerCreateWaitingState>(window_manager,
                         view,
                         local_address,
@@ -59,9 +60,11 @@ void ServerCreateState::handle_btn_pressed() {
     }
 }
 
-ServerCreateState::ServerCreateState(WindowManager& mngr, const sf::View& view):
-        MenuState(mngr, view, "server_create"),
-        local_address(sf::IpAddress::getLocalAddress()) {
+ServerCreateState::ServerCreateState(WindowManager& mngr
+                                    , const sf::View& view)
+                                    : MenuState(mngr, view, "server_create")
+                                    , local_address(sf::IpAddress::getLocalAddress())
+                                    , transition_happened(false) {
     initialize_maps();
     menu.add_non_clickable("Your local address is " + local_address.toString());
     menu.add_non_clickable(btn_to_str.at(BTN::ENTER_USER));

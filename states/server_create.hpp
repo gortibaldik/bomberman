@@ -2,8 +2,6 @@
 #define STATES_SERVER_CREATE_HPP
 
 #include "menu_state.hpp"
-#include "controls/control_grid.hpp"
-#include <vector>
 #include <SFML/Graphics.hpp>
 #include <SFML/Network.hpp>
 class ServerCreateState: public MenuState {
@@ -14,5 +12,6 @@ protected:
     void handle_btn_pressed() override;
 private:
     sf::IpAddress local_address;
+    bool transition_happened;
 };
 #endif
