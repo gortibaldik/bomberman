@@ -223,6 +223,8 @@ void GameClient::render_entities(sf::RenderTarget* target) {
     }
 }
 
+#define STALL_TIME 0.1f
+
 void GameClient::update(float dt) {
     for (auto&& bomb : bombs) {
         bomb.second.anim_object.update(dt);
@@ -230,6 +232,13 @@ void GameClient::update(float dt) {
     for (auto&& player : players) {
         if (player.second.update(dt)) {
             player.second.move_to_actual_position(map);
+        } else {
+            player.second.stall_time += sf::seconds(dt);
+        }
+        // if player isn't walking for long enough, set its animation
+        // to idle default animation
+        if (player.second.stall_time.asSeconds() >= STALL_TIME) {
+            player.second.anim_object.set_default();
         }
     }
 }

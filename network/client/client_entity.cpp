@@ -47,6 +47,7 @@ bool ClientPlayerEntity::update(float dt) {
         return true;
     }
     if (actual_pos == new_pos) { return false; }
+    stall_time = sf::seconds(0.f);
     float speed = 5.5f * dt;
     anim_object.update(dt);
     actual_pos.first = add_const_speed(speed, new_pos.first, actual_pos.first);

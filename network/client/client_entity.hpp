@@ -26,6 +26,7 @@ public:
     sf::Int8 lives = 0;
     AnimObject anim_object;
     EntityCoords new_pos;
+    sf::Time stall_time;
     sf::Time till_next_update;
     sf::Text player_name_renderable;
     

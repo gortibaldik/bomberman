@@ -60,6 +60,13 @@ void AnimObject::set_direction(EntityDirection dir) {
     }
 }
 
+void AnimObject::set_default() {
+    if (c_anim_index == 0) { return; }
+    c_anim_index = 0;
+    auto& [size_x, size_y, x, y] = animation->get_idx(anim_direction, c_anim_index);
+    sprite.setTextureRect(sf::IntRect(x, y, size_x, size_y));
+}
+
 void AnimObject::scale(float x, float y) {
     sprite.scale(x, y);
 }

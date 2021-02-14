@@ -31,7 +31,7 @@ GameState::GameState(WindowManager& mngr
                     , client(client){
     sf::Vector2f fr(view.getSize());
     window_manager.resize_window(static_cast<unsigned int>(fr.x), static_cast<unsigned int>(fr.y));
-    client->get_game_map().fit_to_window(fr.x, fr.y);
+    client->get_game_map().fit_to_window(fr.x, fr.y * 0.9f);
     client->fit_entities_to_window();
 }
 

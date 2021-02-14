@@ -15,6 +15,7 @@ public:
     void scale(float, float);
     void update(float);
     const sf::Sprite& get_sprite() const { return sprite; }
+    void set_default();
 private:
     sf::Sprite sprite;
     const Animation* animation;
