@@ -11,7 +11,8 @@ ControlGrid::ControlGrid(const CGStyle& cgstyle
                         : letter_size(cgstyle.letter_size)
                         , button_style(cgstyle.button_style)
                         , text_field_style(cgstyle.txt_style)
-                        , default_width(cgstyle.default_width) {
+                        , default_width(cgstyle.default_width)
+                        , which_pressed(nullptr) {
     last_x = cgstyle.left_top_x;
     last_y = cgstyle.left_top_y;
     if (cgstyle.factor != 0.f) {

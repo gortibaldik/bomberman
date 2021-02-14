@@ -192,5 +192,4 @@ void TextureLoader::load(TextureManager& texture_manager) {
                 break;
         }
     }
-    std::cout << "Loaded config file" << std::endl;
 }

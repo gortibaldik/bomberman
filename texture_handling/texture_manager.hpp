@@ -18,7 +18,7 @@ public:
     AnimObject get_anim_object(const std::string& name) const;
 
     bool load_texture(const std::string& name, const std::string& filename);
-    sf::Texture& get_ref(const std::string& texture);
+    sf::Texture& get_texture(const std::string& texture);
 
     bool load_font(const std::string& name, const std::string& filename);
     const sf::Font& get_font(const std::string& font_name) const;

@@ -41,7 +41,7 @@ void WindowManager::loop() {
         float dt = elapsed.asSeconds();
 
         actual_state = peek_state();
-        if (!actual_state) {
+        if (actual_state == nullptr) {
             throw std::runtime_error("WINDOW MANAGER: NOTHING TO SHOW!");
             continue;
         }
@@ -72,7 +72,8 @@ void WindowManager::close_window() {
 }
 
 WindowManager::WindowManager(): null_placeholder()
-                              , window_name("Bomberman") {
+                              , window_name("Bomberman")
+                              , actual_state(nullptr) {
     // load all the textures
     TextureLoader tl("media/config.cfg");
     tl.load(texture_manager);
@@ -85,5 +86,6 @@ WindowManager::WindowManager(): null_placeholder()
 
     window.create(sf::VideoMode(800,600), window_name);
     window.setFramerateLimit(60);
-    background.setTexture(texture_manager.get_ref("background"));
+    background.setTexture(texture_manager.get_texture("background"));
+    std::cout << "The configs were successfully processed!" << std::endl;
 }
