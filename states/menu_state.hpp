@@ -15,7 +15,6 @@ public:
     MenuState(WindowManager&, const sf::View&, const std::string&);
     virtual ~MenuState() = default;
 protected:
-    void handle_resize_menu(unsigned int, unsigned int);
     virtual void handle_btn_pressed() = 0;
     sf::View view;
     ControlGrid menu;

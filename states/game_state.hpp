@@ -1,24 +1,20 @@
 #ifndef GAME_STATE_HPP
 #define GAME_STATE_HPP
 
-#include "abstract.hpp"
+#include "menu_state.hpp"
 #include "controls/control_grid.hpp"
-#include "texture_handling/texture_manager.hpp"
-#include "game/map.hpp"
 #include "network/client/game_client.hpp"
 #include "network/server/game_server.hpp"
-#include <vector>
-#include <SFML/Graphics.hpp>
-class GameState: public State {
+class GameState: public MenuState {
 public:
     void draw(float dt) override;
     void update(float dt) override;
-    void handle_input() override;
     
     GameState( WindowManager&
              , const sf::View&
              , GameClient*);
 protected:
+    void handle_btn_pressed() override;
     bool check_move(sf::Packet&);
     bool check_deploy(sf::Packet&, sf::Time&);
     bool can_deploy = true;

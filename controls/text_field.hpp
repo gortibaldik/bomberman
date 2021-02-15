@@ -12,12 +12,10 @@ public:
                 float y,
                 float letter_width,
                 unsigned int max_length,
-                float default_width,
                 const GStyle* gstyle,
                 ControlGrid* grid,
                 std::function<bool(char)>&&,
                 std::function<bool(const std::string&)>&&);
-    void move_pos(float, unsigned int, unsigned int) override;
     void handle_input(const sf::Vector2f& mouse_position, const sf::Event& e) override;
     void render(sf::RenderTarget* target) override;
     void update() override;
@@ -28,7 +26,6 @@ private:
     void set_cursor(unsigned int);
     std::function<bool(char)> input_condition;
     std::function<bool(const std::string)> validator;
-    float default_width, default_height;
     sf::RectangleShape cursor;
     unsigned int max_length, cursor_pos = 0;
 };

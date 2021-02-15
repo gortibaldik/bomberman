@@ -3,6 +3,21 @@
 #include <iostream>
 #include <unordered_map>
 
+enum class BTN : int {
+    QUIT, INFO, DISCONNECT, BLANK
+};
+
+static const std::unordered_map<BTN, std::string> btn_to_str = { 
+    {BTN::QUIT, "QUIT"}, {BTN::INFO, "INFO"}, {BTN::DISCONNECT, "Disconnect"},
+    {BTN::BLANK, ""}
+};
+static std::unordered_map<std::string, BTN> str_to_btn;
+static void initialize_maps() {
+    for (auto&& p : btn_to_str) {
+        str_to_btn.emplace(p.second, p.first);
+    }
+}
+
 void GameState::draw(float dt) {
     window_manager.window.setView(view);
     if (client == nullptr) {
@@ -10,29 +25,12 @@ void GameState::draw(float dt) {
     }
     client->get_game_map().render(&window_manager.window);
     client->render_entities(&window_manager.window);
+    menu.render(&window_manager.window);
 }
 
-void GameState::handle_input() {
-    sf::Event event;
-    while(window_manager.window.pollEvent(event)) {
-        switch(event.type) {
-        case sf::Event::Closed:
-            window_manager.close_window();
-            break;
-        }
-    }
-}
-
-GameState::GameState(WindowManager& mngr
-                    , const sf::View& view
-                    , GameClient* client)
-                    : State(mngr)
-                    , view(view)
-                    , client(client){
-    sf::Vector2f fr(view.getSize());
-    window_manager.resize_window(static_cast<unsigned int>(fr.x), static_cast<unsigned int>(fr.y));
-    client->get_game_map().fit_to_window(fr.x, fr.y * 0.9f);
-    client->fit_entities_to_window();
+void GameState::handle_btn_pressed() {
+    auto&& btn = menu.get_pressed_btn();
+    
 }
 
 static float client_update_constant = 0.05f; 
@@ -84,6 +82,7 @@ bool GameState::check_deploy(sf::Packet& packet, sf::Time& c_time) {
 }
 
 void GameState::update(float dt) {
+    menu.update();
     if ((client == nullptr) || !client->is_game_started()) {
         window_manager.pop_states(1);
         client = nullptr;
@@ -103,4 +102,24 @@ void GameState::update(float dt) {
             client->send(packet);
         }
     }
+}
+
+GameState::GameState(WindowManager& mngr
+                    , const sf::View& view
+                    , GameClient* client)
+                    : MenuState(mngr, "game_menu")
+                    , view(view)
+                    , client(client) {
+    menu.add_button(btn_to_str.at(BTN::QUIT));
+    menu.add_button(btn_to_str.at(BTN::DISCONNECT));
+    menu.add_non_clickable(btn_to_str.at(BTN::INFO), btn_to_str.at(BTN::BLANK));
+
+
+    window_manager.window.setSize(sf::Vector2u(mngr.get_window_size().x, menu.get_top() + menu.get_height()));
+    auto size = mngr.get_window_size();
+    this->view.setSize(size.x, size.y);
+    this->view.setCenter(size.x / 2.f, size.y / 2.f);
+
+    client->get_game_map().fit_to_window(size.x, menu.get_top());
+    client->fit_entities_to_window();
 }

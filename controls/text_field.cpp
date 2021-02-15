@@ -1,50 +1,25 @@
 #include "text_field.hpp"
 #include "control_grid.hpp"
-#include <iostream>
 
-#define DUMMY "G"
-#define BB_FACTOR 1.10f
-
-void TextField::move_pos(float factor, unsigned int new_x, unsigned int new_y) {
-    bool cnd = text.getGlobalBounds().width < default_width;
-    default_width *= factor;
-    default_height *= factor;
-    sf::FloatRect fr;
-    if (cnd) {
-        fr = move_position(factor, new_x, new_y, default_width, default_height);
-    } else {
-        fr = move_position(factor, new_x, new_y);
-    }
-    cursor.setSize(sf::Vector2f(1.f, default_height));
-    cursor.setPosition(text.findCharacterPos(cursor_pos).x, fr.top);
-}
-
-TextField::TextField(   float x,
-                        float y,
-                        float letter_width,
-                        unsigned int max_length,
-                        float default_width,
-                        const GStyle* gstyle,
-                        ControlGrid* grid,
-                        std::function<bool(char)>&& in_f,
-                        std::function<bool(const std::string&)>&& val_f):
-                            ControlField(x, y, letter_width, gstyle, grid),
-                            default_width(default_width),
-                            max_length(max_length),
-                            input_condition(std::move(in_f)),
-                            validator(std::move(val_f)) {
+TextField::TextField( float x
+                    , float y
+                    , float letter_width
+                    , unsigned int max_length
+                    , const GStyle* gstyle
+                    , ControlGrid* grid
+                    , std::function<bool(char)>&& in_f
+                    , std::function<bool(const std::string&)>&& val_f)
+                    : ControlField(x, y, letter_width, gstyle, grid)
+                    , max_length(max_length)
+                    , input_condition(std::move(in_f))
+                    , validator(std::move(val_f)) {
     
-    text.setString(DUMMY);
-    auto&& bb = this->text.getGlobalBounds();
-    shape.setPosition(bb.left, bb.top);
-    default_height = bb.height * BB_FACTOR;
-    shape.setSize(sf::Vector2f(default_width, default_height));
-    bounding_box = shape.getGlobalBounds();
-    text.setString("");
-
-    cursor.setPosition(bb.left, bb.top);
+    cursor.setPosition(x + gstyle->spacing_x, y + gstyle->spacing_y);
     cursor.setFillColor(style->ctext);
-    cursor.setSize(sf::Vector2f(1.f, bb.height));
+    cursor.setSize(sf::Vector2f(1.f, bounding_box.height - 2 * gstyle->spacing_y));
+
+    shape.setPosition(bounding_box.left, bounding_box.top);
+    shape.setSize(sf::Vector2f(bounding_box.width, bounding_box.height));
 }
 
 bool TextField::is_valid() {
@@ -60,12 +35,13 @@ void TextField::set_cursor(unsigned int index) {
     auto x = text.findCharacterPos(cursor_pos).x;
     cursor.setPosition(x, cursor.getGlobalBounds().top);
     auto&& bb = text.getGlobalBounds();
-    if (bb.width > default_width) {
-        shape.setSize(sf::Vector2f(bb.width, default_height));
+    bounding_box.width = 2.f * style->spacing_x;
+    if (bb.width > style->default_width) {
+        bounding_box.width += bb.width;
     } else {
-        shape.setSize(sf::Vector2f(default_width, default_height));
+        bounding_box.width += style->default_width;
     }
-    bounding_box = shape.getGlobalBounds();
+    shape.setSize(sf::Vector2f(bounding_box.width, bounding_box.height));
 }
 
 void TextField::handle_text_entered(sf::Uint32 c) {

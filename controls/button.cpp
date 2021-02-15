@@ -1,7 +1,6 @@
 #include "button.hpp"
 #include "control_grid.hpp"
-
-#define DUMMY "G"
+#include <iostream>
 
 Button::Button( float x,
                 float y,
@@ -11,7 +10,8 @@ Button::Button( float x,
                 ControlGrid* grid):  ControlField(x, y, letter_width, gstyle, grid) {
     
     this->text.setString(text);
-    bounding_box = this->text.getGlobalBounds();
+    bounding_box.width = gstyle->spacing_x * 2 + this->text.getGlobalBounds().width;
+    
     shape.setPosition(bounding_box.left, bounding_box.top);
     shape.setSize(sf::Vector2f(bounding_box.width, bounding_box.height));
 }
@@ -22,14 +22,8 @@ NonClickableButton::NonClickableButton( float x,
                                         const std::string& text,
                                         const GStyle* gstyle,
                                         ControlGrid* grid): ControlField(x, y, letter_width, gstyle, grid) {
-    if (text.size() == 0) {
-        this->text.setString(DUMMY);
-        bounding_box = this->text.getGlobalBounds();
-        this->text.setString("");
-    } else {
-        this->text.setString(text);
-        bounding_box = this->text.getGlobalBounds();
-    }
+    this->text.setString(text);
+    bounding_box.width = gstyle->spacing_x * 2 + this->text.getGlobalBounds().width;
     shape.setPosition(bounding_box.left, bounding_box.top);
     shape.setSize(sf::Vector2f(bounding_box.width, bounding_box.height));
 }

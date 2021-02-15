@@ -36,7 +36,8 @@ static void must_get_tokens( const std::string& line
 static std::unordered_map<std::string, sf::Color> colors = {
     { "TRANSPARENT", sf::Color::Transparent },
     { "BLACK", sf::Color::Black },
-    { "BLUE", sf::Color::Blue }
+    { "BLUE", sf::Color::Blue },
+    { "WHITE", sf::Color::White }
 };
 
 static const sf::Color& must_get_color( const std::string& color) {
@@ -89,7 +90,20 @@ static GStyle load_style(std::istream& is, const TextureManager& tm) {
     must_get_tokens(line, "BORDER_SIZE", result);
     float size = std::stof(result);
 
-    return GStyle(bck, bck_h, brdr, brdr_h, txt, txt_h, font, size);
+    must_getline(is, line);
+    must_get_tokens(line, "DEFAULT_WIDTH", result);
+    float default_width = std::stof(result);
+
+    must_getline(is, line);
+    must_get_tokens(line, "SPACING_X", result);
+    float spacing_x = std::stof(result);
+
+    must_getline(is, line);
+    must_get_tokens(line, "SPACING_Y", result);
+    float spacing_y = std::stof(result);
+
+    return GStyle(bck, bck_h, brdr, brdr_h, txt, txt_h,
+                 font, size, default_width, spacing_x, spacing_y);
 }
 
 StyleLoader::StyleLoader(const std::string& file_name
@@ -116,6 +130,16 @@ void StyleLoader::load(StylesHolder<GStyle>& sh) {
         } else {
             throw std::runtime_error("INVALID LINE: "+line);
         }
+    }
+}
+
+static CGType must_get_type(const std::string& type_str) {
+    if (type_str.compare("HORIZONTAL") == 0) {
+        return CGType::HORIZONTAL;
+    } else if (type_str.compare("VERTICAL") == 0) {
+        return CGType::VERTICAL;
+    } else {
+        throw std::runtime_error("Invalid type! (" + type_str + ")");
     }
 }
 
@@ -155,7 +179,11 @@ static CGStyle load_cgstyle(std::istream& is, const StylesHolder<GStyle>& sh) {
     must_get_tokens(line, "FACTOR", result);
     auto factor = std::stof(result);
 
-    return CGStyle(btn_style, txt_style, def_width, x, y, letter_size, factor);
+    must_getline(is, line);
+    must_get_tokens(line, "TYPE", result);
+    auto type = must_get_type(result);
+
+    return CGStyle(btn_style, txt_style, def_width, x, y, letter_size, factor, type);
 }
 
 CGStyleLoader::CGStyleLoader(const std::string& file_name

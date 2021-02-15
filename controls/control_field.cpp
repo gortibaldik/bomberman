@@ -2,41 +2,30 @@
 #include "control_grid.hpp"
 #include <iostream>
 
-sf::FloatRect ControlField::move_position(  float factor,
-                                            unsigned int new_x,
-                                            unsigned int new_y,
-                                            float default_width /*= 0.f*/,
-                                            float default_height /*=0 .f*/) {
-    letter_width *= factor;
+#define ALL_ALPHABET "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-    text.setCharacterSize(static_cast<int>(letter_width));
-    text.setPosition(static_cast<float>(new_x), static_cast<float>(new_y));
-
-    auto&& fr = text.getGlobalBounds();
-    shape.setSize(sf::Vector2f( default_width == 0.f ? fr.width : default_width,
-                                default_height == 0.f ? fr.height : default_height));
-    shape.setPosition(fr.left, fr.top);
-    bounding_box = shape.getGlobalBounds();
-    return fr;
-}
-
-void ControlField::move_pos(float factor, unsigned int new_x, unsigned int new_y) {
-    move_position(factor, new_x, new_y);
-}
-
-ControlField::ControlField( float x,
-                float y,
-                float letter_width,
-                const GStyle* gstyle,
-                ControlGrid* grid):  style(gstyle),
-                                text("", style->font),
-                                state(CONTROL_STATE::IDLE),
-                                letter_width(letter_width),
-                                grid(grid) {
+ControlField::ControlField( float x
+                          , float y
+                          , float letter_size
+                          , const GStyle* gstyle
+                          , ControlGrid* grid)
+                          : style(gstyle)
+                          , text("", style->font)
+                          , state(CONTROL_STATE::IDLE)
+                          , letter_size(letter_size)
+                          , grid(grid) {
     
     text.setFillColor(style->ctext);
-    text.setPosition(x, y);
-    text.setCharacterSize(static_cast<unsigned int>(this->letter_width));
+    text.setPosition(x + gstyle->spacing_x, y + gstyle->spacing_y);
+    text.setString(ALL_ALPHABET);
+    text.setCharacterSize(static_cast<unsigned int>(this->letter_size));
+
+    bounding_box = this->text.getGlobalBounds();
+    bounding_box.width = gstyle->default_width + 2 * gstyle->spacing_x;
+    bounding_box.height += 2 * gstyle->spacing_y;
+    bounding_box.left = x;
+    bounding_box.top = y;
+    text.setString("");
 
     shape.setFillColor(style->cbackground);
     shape.setOutlineThickness(style->border_size);
@@ -51,12 +40,22 @@ float ControlField::get_width() const {
     return bounding_box.width;
 }
 
+float ControlField::get_top() const {
+    return bounding_box.top;
+}
+
+float ControlField::get_left() const {
+    return bounding_box.left;
+}
+
 std::string ControlField::get_content() const {
     return text.getString().toAnsiString();
 }
 
 void ControlField::set_content(const std::string& new_content) {
     text.setString(new_content);
+    bounding_box.width = 2 * style->spacing_x + text.getGlobalBounds().width;
+    shape.setSize(sf::Vector2f(bounding_box.width, bounding_box.height));
 }
 
 void ControlField::render(sf::RenderTarget* target) {
