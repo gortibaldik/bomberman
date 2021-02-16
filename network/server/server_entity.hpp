@@ -1,4 +1,4 @@
-#ifndef GAME_SERVER_ENTITY_HPP
+    #ifndef GAME_SERVER_ENTITY_HPP
 #define GAME_SERVER_ENTITY_HPP
 
 #include "game/entity.hpp"

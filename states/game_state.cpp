@@ -29,8 +29,20 @@ void GameState::draw(float dt) {
 }
 
 void GameState::handle_btn_pressed() {
-    auto&& btn = menu.get_pressed_btn();
-    
+    if (pressed == nullptr) { return; }
+    auto&& content = pressed->get_content();
+    if (str_to_btn.find(content) == str_to_btn.end()) { return; }
+    switch(str_to_btn.at(content)) {
+    case BTN::QUIT:
+        window_manager.window.close();
+        break;
+    case BTN::DISCONNECT:
+        client = nullptr;
+        break;
+    default:
+        std::cout << "unknown option" << std::endl;
+        break;
+    }
 }
 
 static float client_update_constant = 0.05f; 
@@ -95,13 +107,13 @@ void GameState::check_messages(float dt) {
 }
 
 void GameState::update(float dt) {
-    check_messages(dt);
-    menu.update();
     if ((client == nullptr) || !client->is_game_started()) {
-        window_manager.pop_states(1);
+        window_manager.pop_states(2);
         client = nullptr;
         return;
     }
+    check_messages(dt);
+    menu.update();
     client->update(dt);
     c_time += sf::seconds(dt);
     float delta = (c_time - last_update_time).asSeconds();
@@ -124,6 +136,10 @@ GameState::GameState(WindowManager& mngr
                     : MenuState(mngr, "game_menu")
                     , view(view)
                     , client(client) {
+    if (client == nullptr) {
+        throw std::runtime_error("GAMESTATE CTR: Invalid argument, client cannot be null!");
+    }
+    initialize_maps();
     menu.add_button(btn_to_str.at(BTN::QUIT));
     menu.add_button(btn_to_str.at(BTN::DISCONNECT));
     menu.add_non_clickable(btn_to_str.at(BTN::INFO), btn_to_str.at(BTN::BLANK));

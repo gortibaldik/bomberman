@@ -12,6 +12,8 @@ public:
     virtual void draw(float dt) = 0;
     virtual void update(float dt) = 0;
     virtual void handle_input() = 0;
+    void disable() { disabled = true; }
+    void enable() { disabled = false; }
     virtual ~State() = default;
 protected:
     State(WindowManager& window_manager):
@@ -20,6 +22,7 @@ protected:
 
     sf::Vector2f mouse_pos;
     WindowManager& window_manager;
+    bool disabled = false;
 };
 using GSPtr = std::shared_ptr<State>;
 

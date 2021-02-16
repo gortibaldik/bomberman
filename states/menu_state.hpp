@@ -17,6 +17,7 @@ public:
 protected:
     virtual void handle_btn_pressed() = 0;
     sf::View view;
+    const ControlField* pressed = nullptr;
     ControlGrid menu;
     float factor;
 };

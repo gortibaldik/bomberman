@@ -11,15 +11,24 @@ void MenuState::draw(float dt) {
 
 void MenuState::handle_input() {
     sf::Event event;
+    if (disabled) { return; }
     while(window_manager.window.pollEvent(event)) {
         switch(event.type) {
         case sf::Event::Closed:
             window_manager.close_window();
             break;
-        case sf::Event::MouseMoved: case sf::Event::MouseButtonPressed:
+        case sf::Event::MouseButtonPressed:
+            pressed = nullptr;
+            menu.handle_input(mouse_pos, event);
+            pressed = menu.get_pressed_btn();
+            break;
+        case sf::Event::MouseMoved: 
             update_mouse_pos();
             menu.handle_input(mouse_pos, event);
+            break;
+        case sf::Event::MouseButtonReleased:
             handle_btn_pressed();
+            pressed = nullptr;
             break;
         default:
             menu.handle_input(mouse_pos, event);

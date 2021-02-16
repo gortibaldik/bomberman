@@ -55,9 +55,8 @@ void ClientConnectWaitingState::update(float) {
 }
 
 void ClientConnectWaitingState::handle_btn_pressed() {
-    auto&& btn = menu.get_pressed_btn();
-    if (btn && (str_to_btn.find(btn->get_content()) != str_to_btn.end())) {
-        switch (str_to_btn.at(btn->get_content())) {
+    if (pressed && (str_to_btn.find(pressed->get_content()) != str_to_btn.end())) {
+        switch (str_to_btn.at(pressed->get_content())) {
         case BTN::MM_RETURN:
             window_manager.pop_states(1);
             break;
@@ -84,5 +83,3 @@ ClientConnectWaitingState::ClientConnectWaitingState(WindowManager& mngr
     menu.add_button(btn_to_str[BTN::MM_RETURN]);
     menu.add_button(btn_to_str[BTN::QUIT]);
 }
-
-ClientConnectWaitingState::~ClientConnectWaitingState() {}

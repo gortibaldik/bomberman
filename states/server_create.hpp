@@ -12,6 +12,5 @@ protected:
     void handle_btn_pressed() override;
 private:
     sf::IpAddress local_address;
-    bool transition_happened;
 };
 #endif

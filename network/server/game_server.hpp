@@ -1,20 +1,15 @@
 #ifndef SERVER_COMMUNICATION_MANAGER_HPP
 #define SERVER_COMMUNICATION_MANAGER_HPP
 #include "server.hpp"
+#include "bomb_manager.hpp"
 #include "server_entity.hpp"
 #include "game/map_logic.hpp"
 
-namespace ServerState {
-    enum ServerState {
+enum class ServerState {
         WAITING_ROOM,
         STARTING,
         RUNNING
-    };
 };
-
-using Players = std::unordered_map<std::string, ServerPlayerEntity>;
-using Bombs = std::unordered_map<int, ServerBombEntity>;
-using Explosions = std::unordered_map<int, ServerExplosionEntity>;
 
 class GameServer: public Server {
 public:
@@ -30,12 +25,10 @@ protected:
     void handle_starting_state(const std::string& client_name, sf::Packet&, PacketType);
     void handle_running_state(const std::string& client_name, sf::Packet&, PacketType);
     void game_notify_loop();
-    bool check_explosions(sf::Packet& packet);
-    ServerState::ServerState state;
+    ServerState state;
     
+    BombManager bomb_manager;
     Players players;
-    Bombs bombs;
-    Explosions explosions;
     GameMapLogic map;
 
     std::thread notifier;

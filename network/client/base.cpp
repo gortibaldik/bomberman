@@ -184,7 +184,7 @@ void Client::terminate() {
         add_type_to_packet(p, PacketType::Disconnect);
         socket.send(p, server_ip, server_port_in);
         socket.send(p, sf::IpAddress::getLocalAddress(), socket.getLocalPort());
-        std::cout << "CLIENT : sent disconnect socket!" << std::endl;
+        std::cout << "CLIENT : sent disconnect packet!" << std::endl;
         socket.unbind();
         if (listener.joinable()) {
             listener.join();

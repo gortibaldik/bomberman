@@ -10,11 +10,10 @@ sf::Packet& operator >>(sf::Packet& packet, ClientPlayerEntity& cpe) {
     sf::Int8 lives = 0;
     packet >> lives;
     cpe.lives = lives;
-    sf::Int8 player_token_type = 0;
     // token is a type of player object
     // now it's just a mockup the functionality
     // will be implemented later
-    packet >> player_token_type;
+    packet >> cpe.type;
     packet >> cpe.actual_pos.first;
     packet >> cpe.actual_pos.second;
     return packet;

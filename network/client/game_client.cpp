@@ -31,7 +31,7 @@ void GameClient::update_player(sf::Packet& packet, bool spawn) {
     packet >> cpe;
     auto it = players.find(cpe.name);
     if (it == players.end()) {
-        cpe.anim_object = tm.get_anim_object("p1");
+        cpe.anim_object = tm.get_anim_object("p" + std::to_string(cpe.type));
         // players shall be scaled during fitting of the window
         // at the receiving the initial socket with all the info
         // about the game, thus they aren't scaled afterwards

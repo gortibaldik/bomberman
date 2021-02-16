@@ -19,7 +19,7 @@ void TextureManager::add_animation_frame_rate(const std::string& name, int mft, 
 
 AnimObject TextureManager::get_anim_object(const std::string& name) const {
     if (animations.find(name) == animations.end()) {
-        throw std::runtime_error("accessing non_existent animation!");
+        throw std::runtime_error("animation " + name + " doesn't exist!");
     }
     return animations.at(name).get_anim_object();
 }

@@ -5,6 +5,9 @@
 #include <iostream>
 
 void WindowManager::push_state(GSPtr&& state) {
+    if (actual_state != nullptr) {
+        actual_state->disable();
+    }
     states.push_back(std::move(state));
 }
 
@@ -16,6 +19,9 @@ void WindowManager::pop_states(int n) {
             states.pop_back();
             n--;
         }
+    }
+    if (!states.empty()) {
+        states[states.size() - 1]->enable();
     }
 }
 

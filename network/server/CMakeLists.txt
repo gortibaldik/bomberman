@@ -9,4 +9,6 @@ target_sources(Bomberman
     client_info.cpp
     game_server.hpp
     game_server.cpp
+    bomb_manager.cpp
+    bomb_manager.hpp
   )

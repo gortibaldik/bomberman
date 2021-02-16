@@ -12,6 +12,5 @@ public:
     void update(float) override;
 protected:
     void handle_btn_pressed() override;
-    bool transition_happened;
 };
 #endif

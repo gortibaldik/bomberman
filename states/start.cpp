@@ -20,9 +20,8 @@ static void initialize_maps() {
 }
 
 void StartState::handle_btn_pressed() {
-    auto&& btn = menu.get_pressed_btn();
-    if (btn != nullptr) {
-        auto it = str_to_btn.find(btn->get_content());
+    if (pressed != nullptr) {
+        auto it = str_to_btn.find(pressed->get_content());
         if (it == str_to_btn.end()) { return; }
         switch (it->second) {
         case BTN::CREATE:

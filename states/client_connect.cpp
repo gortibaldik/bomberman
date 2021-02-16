@@ -41,16 +41,13 @@ void ClientConnectState::update(float) {
 }
 
 void ClientConnectState::handle_btn_pressed() {
-    auto&& btn = menu.get_pressed_btn();
     std::string ip_address, port, name;
-    if (btn && (str_to_btn.find(btn->get_content()) != str_to_btn.end())) {
-        switch (str_to_btn[btn->get_content()]) {
+    if (pressed && (str_to_btn.find(pressed->get_content()) != str_to_btn.end())) {
+        switch (str_to_btn[pressed->get_content()]) {
         case BTN::ENTER_SERVER:
-            if (!transition_happened &&
-                menu.get_named_field(btn_to_str.at(BTN::IP))->is_valid() &&
+            if (menu.get_named_field(btn_to_str.at(BTN::IP))->is_valid() &&
                 menu.get_named_field(btn_to_str.at(BTN::PORT))->is_valid() &&
                 menu.get_named_field(btn_to_str.at(BTN::NAME))->is_valid()) {
-                    transition_happened = true;
                     window_manager.change_state(std::make_unique<ClientConnectWaitingState>(window_manager,
                         view,
                         menu.get_named_field(btn_to_str.at(BTN::IP))->get_content(),
@@ -70,8 +67,7 @@ void ClientConnectState::handle_btn_pressed() {
 
 ClientConnectState::ClientConnectState(WindowManager& mngr
                                       , const sf::View& view)
-                                      : MenuState(mngr, view, "client_connect")
-                                      , transition_happened(false) {
+                                      : MenuState(mngr, view, "client_connect") {
     initialize_maps();
     menu.add_non_clickable(btn_to_str.at(BTN::ENTER_USER));
     menu.add_text_field(btn_to_str.at(BTN::NAME), [](char a){ return std::isalnum(a) || std::ispunct(a); },

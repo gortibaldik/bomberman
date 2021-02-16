@@ -60,9 +60,8 @@ void ServerCreateWaitingState::handle_btn_pressed() {
     if (!server.is_in_waiting_room()) {
         return; // after starting the server don't accept any other input 
     }
-    auto&& btn = menu.get_pressed_btn();
-    if (btn && (str_to_btn.find(btn->get_content()) != str_to_btn.end())) {
-        switch (str_to_btn.at(btn->get_content())) {
+    if (pressed && (str_to_btn.find(pressed->get_content()) != str_to_btn.end())) {
+        switch (str_to_btn.at(pressed->get_content())) {
         case BTN::START_GAME:
             server.set_ready_game();
             connection_timer.restart();
