@@ -81,7 +81,21 @@ bool GameState::check_deploy(sf::Packet& packet, sf::Time& c_time) {
     return false;
 }
 
+void GameState::check_messages(float dt) {
+    auto&& received = client->get_received_messages();
+    message_time -= sf::seconds(dt);
+    if (message_time.asSeconds() >= 0) { return; }
+    auto&& btn = menu.get_named_field(btn_to_str.at(BTN::INFO));
+    if (received.is_empty()) {
+        btn->set_content(btn_to_str.at(BTN::BLANK));
+    } else {
+        message_time = sf::seconds(3.f);
+        btn->set_content(received.dequeue());
+    }
+}
+
 void GameState::update(float dt) {
+    check_messages(dt);
     menu.update();
     if ((client == nullptr) || !client->is_game_started()) {
         window_manager.pop_states(1);

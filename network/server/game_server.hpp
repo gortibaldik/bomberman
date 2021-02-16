@@ -32,6 +32,7 @@ protected:
     void game_notify_loop();
     bool check_explosions(sf::Packet& packet);
     ServerState::ServerState state;
+    
     Players players;
     Bombs bombs;
     Explosions explosions;

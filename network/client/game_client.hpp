@@ -26,6 +26,7 @@ public:
     bool is_approved() { return approved; }
     void update(float dt);
     GameMapRenderable& get_game_map() { return map; }
+    ReceiverQueue& get_received_messages() { return received_messages; }
     void fit_entities_to_window();
     void render_entities(sf::RenderTarget* target);
     const ClientPlayerEntity* me;
@@ -49,10 +50,13 @@ private:
     GameMapRenderable map;
     const TextureManager& tm;
     const sf::Font& font;
+
     PlayerEntities players;
     BombEntities bombs;
     ExplosionEntities explosions;
     SoftBlocks soft_blocks;
+    ReceiverQueue received_messages;
+
     std::mutex resources_mutex;
 };
 #endif

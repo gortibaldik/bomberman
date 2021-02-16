@@ -17,9 +17,10 @@ protected:
     void handle_btn_pressed() override;
     bool check_move(sf::Packet&);
     bool check_deploy(sf::Packet&, sf::Time&);
+    void check_messages(float dt);
     bool can_deploy = true;
     GameClient* client;
     sf::View view;
-    sf::Time last_update_time, c_time;
+    sf::Time last_update_time, c_time, message_time;
 };
 #endif

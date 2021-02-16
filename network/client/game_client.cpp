@@ -19,7 +19,7 @@ void GameClient::get_ready(sf::Packet& packet) {
         ss << "--- GameClient::get_ready" << std::endl;
         throw std::runtime_error(ss.str());
     }
-    std::cout << "Game ready socket loaded!" << std::endl;
+    std::cout << "CLIENT : game ready socket loaded!" << std::endl;
     approved = true;
     sf::Packet answer;
     add_type_to_packet(answer, PacketType::ClientReady);
@@ -57,6 +57,7 @@ void GameClient::update_player(sf::Packet& packet, bool spawn) {
         if (spawn) {
             it->second.actual_pos = cpe.actual_pos;
             it->second.spawn();
+            received_messages.enqueue("player " + it->first + " was hit!");
         }
     }
 }
@@ -104,6 +105,7 @@ void GameClient::erase_player(sf::Packet& packet) {
         only_viewer = true;
     }
     players.erase(name);
+    received_messages.enqueue("player " + name + " died!");
 }
 
 void GameClient::create_soft_block(sf::Packet& packet) {
@@ -198,6 +200,7 @@ void GameClient::handle_others(sf::Packet& packet, PacketType ptype) {
             std::unique_lock<std::mutex> l(resources_mutex);
             players.erase(token);
         }
+        received_messages.enqueue("client " + token + " disconnected");
         break;
     }
 }

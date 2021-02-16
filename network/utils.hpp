@@ -8,19 +8,16 @@
 #include <SFML/Network.hpp>
 #include "packet_types.hpp"
 
-/* packet and type pair*/
-using PTpair = std::pair<sf::Packet, PacketType>;
-
 /* thread safe queue */
 class ReceiverQueue {
 public:
     ReceiverQueue(): queue_size(0) {}
-    void enqueue(sf::Packet&& packet, PacketType ptype);
-    PTpair dequeue();
+    void enqueue(const std::string&);
+    std::string dequeue();
     bool is_empty();
 private:
     std::mutex queue_mutex;
-    std::queue<PTpair> queue;
+    std::queue<std::string> queue;
     std::atomic<int> queue_size;
 };
 

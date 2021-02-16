@@ -143,7 +143,6 @@ float ControlGrid::get_height() const {
     case CGType::HORIZONTAL:
     {
         if (buttons.size() == 0) { return 0.f; }
-        std::cout << "Height of the control grid is: " << buttons.at(0).get()->get_height() << std::endl;
         return buttons.at(0).get()->get_height();
     }
     case CGType::VERTICAL:
@@ -160,5 +159,21 @@ float ControlGrid::get_height() const {
 }
 
 float ControlGrid::get_width() const {
-    return 0.f;
+    switch(type) {
+    case CGType::VERTICAL:
+    {
+        if (buttons.size() == 0) { return 0.f; }
+        return buttons.at(0).get()->get_width();
+    }
+    case CGType::HORIZONTAL:
+    {
+        float width = 0.f;
+        for (auto&& button : buttons) {
+            width += button.get()->get_width();
+        }
+        return width;
+    }
+    default:
+        throw std::runtime_error("Unknown control grid type -- in ControlGrid::get_width()");
+    }
 }

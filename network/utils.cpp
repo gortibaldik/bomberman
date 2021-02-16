@@ -40,13 +40,13 @@ bool is_valid_port(const std::string& str) {
     return (i > 1024) || (i == 0);
 }
 
-void ReceiverQueue::enqueue(sf::Packet&& packet, PacketType ptype) {
+void ReceiverQueue::enqueue(const std::string& message) {
     std::unique_lock<std::mutex> l(queue_mutex);
     queue_size++;
-    queue.emplace(std::move(packet), ptype);
+    queue.emplace(message);
 }
 
-PTpair ReceiverQueue::dequeue() {
+std::string ReceiverQueue::dequeue() {
     std::unique_lock<std::mutex> l(queue_mutex);
     if (queue_size == 0) {
         throw std::runtime_error("Invalid op on queue -> not enough elements to dequeue");
