@@ -98,8 +98,8 @@ bool GameServer::check_explosions(sf::Packet& packet) {
             if (naive_bbox_intersect(p.second.actual_pos, exp.second.actual_pos)) {
                 std::cout << p.first << " is hit!" << std::endl;
                 p.second.actual_pos = p.second.spawn_pos;
+                result = true;
                 if (p.second.lives == 1) {
-                    result = true;
                     packet << sf::Int8(Network::Delimiter);
                     add_type_to_packet(packet, PacketType::ServerNotifyPlayerDied);
                     packet << p.first;
