@@ -2,9 +2,12 @@
 #define GAME_MAP_RENDERABLE
 
 #include "texture_handling/texture_manager.hpp"
+#include "texture_handling/anim_object.hpp"
 #include "map.hpp"
+#include <unordered_map>
 
-using TilesMap = std::vector<AnimObject>;
+using GrassMap = std::unordered_map<int, AnimObject>;
+using TilesMap = std::unordered_map<int, AnimObject>;
 
 class GameMapRenderable: public GameMap {
 public:
@@ -13,8 +16,8 @@ public:
                         const std::string& type, int row, int column) override;
     void initialize() override;
     void transform(AnimObject&, EntityCoords, bool scale = true) const;
-    AnimObject& get(int row, int column);
-    void render(sf::RenderTarget* rt);
+    void render_grass(sf::RenderTarget* rt);
+    void render_tiles(sf::RenderTarget* rt);
     void fit_to_window(float, float);
 private:
     const TextureManager& tm;
@@ -22,6 +25,7 @@ private:
     float tile_width, tile_height;
     float tile_scale_x, tile_scale_y;
     TilesMap tiles;
+    GrassMap grass;
 };
 
 #endif

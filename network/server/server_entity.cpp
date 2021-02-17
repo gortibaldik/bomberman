@@ -71,12 +71,8 @@ std::vector<ServerExplosionEntity> ServerBombEntity::explode(GameMapLogic& map, 
                 c.second += tc.second.second;
             }
             auto collision = map.collision_checking(0.f, c, tc.first.second);
-            if (collision == Collision::NONE) {
-                result.emplace_back(ServerExplosionEntity(c, till_erasement, 0, tc.first.first));
-            } else if (collision == Collision::SOFT_BLOCK) {
-                result.emplace_back(ServerExplosionEntity(c, till_erasement, 0, tc.first.first));
-                break;
-            } else {
+            result.emplace_back(ServerExplosionEntity(c, till_erasement, 0, tc.first.first));
+            if (collision != Collision::NONE) {
                 break;
             }
         }

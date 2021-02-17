@@ -23,8 +23,10 @@ void GameState::draw(float dt) {
     if (client == nullptr) {
         return;
     }
-    client->get_game_map().render(&window_manager.window);
+    client->get_game_map().render_grass(&window_manager.window);
     client->render_entities(&window_manager.window);
+    client->get_game_map().render_tiles(&window_manager.window);
+    client->render_players(&window_manager.window);
     menu.render(&window_manager.window);
 }
 

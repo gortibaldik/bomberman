@@ -221,6 +221,10 @@ void GameClient::render_entities(sf::RenderTarget* target) {
     for (auto&& exp : explosions) {
         target->draw(exp.second.anim_object.get_sprite());
     }
+}
+
+void GameClient::render_players(sf::RenderTarget* target) {
+    std::unique_lock<std::mutex> l(resources_mutex);
     for (auto&& p : players) {
         p.second.render(target);
     }

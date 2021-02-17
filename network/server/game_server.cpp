@@ -114,7 +114,7 @@ void GameServer::start_game() {
         add_type_to_packet(p, PacketType::SpawnPosition);
         p << *player.second;
     }
-    if (players.size() == 1) {
+    if (players.size() < 4) {
         auto [row, column, type] = map.get_spawn_pos();
         std::pair<int, int> coords(row, column);
         auto player = 

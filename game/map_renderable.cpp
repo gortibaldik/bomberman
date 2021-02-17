@@ -7,23 +7,34 @@ GameMapRenderable::GameMapRenderable(const TextureManager& tm)
 
 void GameMapRenderable::process_loaded(const std::string& token, const std::string& animation,
                                        const std::string& type, int row, int column) {
-    tiles.push_back(tm.get_anim_object(animation));
+    auto square = tm.get_anim_object(animation);
     int i = row*columns + column;
     if (i == 0) {
-        auto&& fr = tiles[i].get_global_bounds();
+        auto&& fr = square.get_global_bounds();
         tile_width = fr.width;
         tile_height = fr.height;
     }
-    tiles[i].set_position(column*tile_width, row*tile_height);
+    square.set_position(column*tile_width, row*tile_height);
+    if (type.compare("NON_WALKABLE") == 0) {
+        tiles.emplace(i, std::move(square));
+    } else {
+        grass.emplace(i, std::move(square));
+    }
 }
 
 void GameMapRenderable::initialize() {
     tiles.clear();
 }
 
-void GameMapRenderable::render(sf::RenderTarget* rt) {
+void GameMapRenderable::render_tiles(sf::RenderTarget* rt) {
     for (auto&& tile : tiles) {
-        rt->draw(tile.get_sprite());
+        rt->draw(tile.second.get_sprite());
+    }
+}
+
+void GameMapRenderable::render_grass(sf::RenderTarget* rt) {
+    for (auto&& g : grass) {
+        rt->draw(g.second.get_sprite());
     }
 }
 
@@ -41,19 +52,18 @@ void GameMapRenderable::fit_to_window(float x, float y) {
     tile_scale_y = y / height;
     for (int r = 0; r < rows; r++) {
         for (int c = 0; c < columns; c++) {
-            get(r, c).set_position(c*tile_width*tile_scale_x, r*tile_height*tile_scale_y);
-            get(r, c).scale(tile_scale_x, tile_scale_y);
+            unsafe_get(r, c).set_position(c*tile_width*tile_scale_x, r*tile_height*tile_scale_y);
+            unsafe_get(r, c).scale(tile_scale_x, tile_scale_y);
         }
     }
 }
 
-AnimObject& GameMapRenderable::get(int row, int column) {
-    if ((row >= rows) || (column >= columns)) {
-        throw std::runtime_error("Invalid map coordintates!");
-    }
-    return unsafe_get(row, column);
-}
-
 AnimObject& GameMapRenderable::unsafe_get(int row, int column) {
-    return tiles[row*columns + column];
+    auto n = row*columns + column;
+    auto it = grass.find(n);
+    if (it == grass.end()) {
+        return tiles.at(n);
+    } else {
+        return grass.at(n);
+    }
 }

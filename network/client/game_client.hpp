@@ -29,6 +29,7 @@ public:
     ReceiverQueue& get_received_messages() { return received_messages; }
     void fit_entities_to_window();
     void render_entities(sf::RenderTarget* target);
+    void render_players(sf::RenderTarget* target);
     const ClientPlayerEntity* me;
 private:
     void handle_others(sf::Packet&, PacketType) override;
