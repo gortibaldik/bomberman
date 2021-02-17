@@ -40,7 +40,7 @@ void GameServer::handle_starting_state(const std::string& client_name, sf::Packe
         if (iter != players.end()) { return; }
         auto [row, column, type] = map.get_spawn_pos();
         std::pair<int, int> coords(row, column);
-        players.emplace(client_name, ServerPlayerEntity(client_name, coords, coords, EntityDirection::UP, type, player_lives, move_factor));
+        players.emplace(client_name, std::make_unique<ServerPlayerEntity>(client_name, coords, coords, EntityDirection::UP, type, player_lives, move_factor));
         std::cout << "player " << client_name << " approved starting the game!" << std::endl;
     }
 }
@@ -63,11 +63,11 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
                     std::cout << "Invalid packet!" << std::endl;
                     return;
                 }
-                EntityCoords c(row*p.move_factor+p.actual_pos.first, col*p.move_factor+p.actual_pos.second);
+                EntityCoords c(row*p->move_factor+p->actual_pos.first, col*p->move_factor+p->actual_pos.second);
                 auto d = (EntityDirection)dir;
-                map.collision_checking(p.move_factor, c, d);
-                p.update_pos_dir(std::move(c), d);
-                p.updated = true;
+                map.collision_checking(p->move_factor, c, d);
+                p->update_pos_dir(std::move(c), d);
+                p->updated = true;
             }
             break;
         case PacketType::ClientDeployBomb:
@@ -76,11 +76,11 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
                 auto it = players.find(client_name);
                 if (it == players.end()) { return; }
                 auto&& p = it->second;
-                if (!p.can_deploy()) {
+                if (!p->can_deploy()) {
                     return;
                 }
-                p.deploy();
-                bomb_manager.create_bomb(p.actual_pos, p);
+                p->deploy();
+                bomb_manager.create_bomb(p->actual_pos, *p);
             }
 
         }
@@ -112,7 +112,16 @@ void GameServer::start_game() {
     for (auto&& player : players) {
         p << sf::Int8(Network::Delimiter);
         add_type_to_packet(p, PacketType::SpawnPosition);
-        p << player.second;
+        p << *player.second;
+    }
+    if (players.size() == 1) {
+        auto [row, column, type] = map.get_spawn_pos();
+        std::pair<int, int> coords(row, column);
+        auto player = 
+        players.emplace("ai_escaper", std::make_unique<AIEscaper>("ai_escaper", coords, coords, EntityDirection::UP, type, player_lives, move_factor));
+        p << sf::Int8(Network::Delimiter);
+        add_type_to_packet(p, PacketType::SpawnPosition);
+        p << *(players.at("ai_escaper"));
     }
     // and all the positions of the soft blocks
     int i = -1;
@@ -139,13 +148,13 @@ void GameServer::game_notify_loop() {
         add_type_to_packet(packet, PacketType::Update);
         sf::Time time = clock.restart();
         for(auto&& p : players) {
-            p.second.update(time.asSeconds());
-            if (p.second.updated) {
-                p.second.updated = false;
+            p.second->update(time.asSeconds());
+            if (p.second->updated) {
+                p.second->updated = false;
                 at_least_one = true;
                 packet << sf::Int8(Network::Delimiter);
                 add_type_to_packet(packet, PacketType::ServerPlayerUpdate);
-                packet << p.second;
+                packet << *p.second;
             }
         }
         at_least_one = bomb_manager.update(time, packet) || at_least_one;

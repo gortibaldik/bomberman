@@ -17,7 +17,7 @@
 
 using Bombs = std::unordered_map<int, ServerBombEntity>;
 using Explosions = std::unordered_map<int, ServerExplosionEntity>;
-using Players = std::unordered_map<std::string, ServerPlayerEntity>;
+using Players = std::unordered_map<std::string, PlayerPtr>;
 
 class BombManager {
 public:

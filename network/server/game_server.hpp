@@ -1,8 +1,11 @@
 #ifndef SERVER_COMMUNICATION_MANAGER_HPP
 #define SERVER_COMMUNICATION_MANAGER_HPP
+
+#include <unordered_map>
 #include "server.hpp"
 #include "bomb_manager.hpp"
 #include "server_entity.hpp"
+#include "ai_escaper.hpp"
 #include "game/map_logic.hpp"
 
 enum class ServerState {
@@ -10,6 +13,8 @@ enum class ServerState {
         STARTING,
         RUNNING
 };
+
+using AIPlayers = std::unordered_map<std::string, AIEscaper>;
 
 class GameServer: public Server {
 public:
@@ -29,6 +34,7 @@ protected:
     
     BombManager bomb_manager;
     Players players;
+    AIPlayers ai;
     GameMapLogic map;
 
     std::thread notifier;

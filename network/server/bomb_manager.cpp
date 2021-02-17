@@ -62,22 +62,22 @@ bool BombManager::check_damage(Players& players, sf::Packet& packet) {
     bool result = false;
     for (auto&& exp : explosions) {
         for (auto&& p : players) {
-            if (!p.second.is_attackable()) { continue; }
-            if (naive_bbox_intersect(p.second.actual_pos, exp.second.actual_pos)) {
+            if (!p.second->is_attackable()) { continue; }
+            if (naive_bbox_intersect(p.second->actual_pos, exp.second.actual_pos)) {
                 std::cout << p.first << " is hit!" << std::endl;
-                p.second.actual_pos = p.second.spawn_pos;
+                p.second->actual_pos = p.second->spawn_pos;
                 result = true;
-                if (p.second.lives == 1) {
+                if (p.second->lives == 1) {
                     packet << sf::Int8(Network::Delimiter);
                     add_type_to_packet(packet, PacketType::ServerNotifyPlayerDied);
                     packet << p.first;
                     players.erase(p.first);
                 } else {
-                    p.second.lives--;
-                    p.second.respawn();
+                    p.second->lives--;
+                    p.second->respawn();
                     packet << sf::Int8(Network::Delimiter);
                     add_type_to_packet(packet, PacketType::SpawnPosition);
-                    packet << p.second;
+                    packet << *p.second;
                 }
                 break;
             }

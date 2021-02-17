@@ -1,10 +1,11 @@
-    #ifndef GAME_SERVER_ENTITY_HPP
+#ifndef GAME_SERVER_ENTITY_HPP
 #define GAME_SERVER_ENTITY_HPP
 
 #include "game/entity.hpp"
 #include "game/map_logic.hpp"
 #include <SFML/Network.hpp>
 #include <vector>
+#include <memory>
 
 class ServerPlayerEntity : public PlayerEntity {
 public:
@@ -37,6 +38,8 @@ public:
     void deploy() { c_deployed++; }
     void remove_deployed() { c_deployed = (c_deployed > 0) ? c_deployed - 1 : c_deployed; }
 };
+
+using PlayerPtr = std::unique_ptr<ServerPlayerEntity>;
 
 class ServerExplosionEntity: public Entity {
 public:
