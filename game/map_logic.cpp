@@ -8,8 +8,8 @@ std::tuple<int, int, int> GameMapLogic::get_spawn_pos() {
     return tpl;
 }
 
-// probability of soft box is PROB_SOFT / 10.f
-#define PROB_SOFT 6
+// probability of soft box is PROB_SOFT / 12.f
+#define PROB_SOFT 8
 
 void GameMapLogic::process_loaded(const std::string& token, const std::string& animation,
                                        const std::string& type, int row, int column) {
@@ -21,7 +21,7 @@ void GameMapLogic::process_loaded(const std::string& token, const std::string& a
         t = TilesTypes::WALKABLE;
     } else if (type.compare("POSSIBLY_WALKABLE") == 0) {
         auto x = rnb();
-        if (x <= 5) {
+        if (x <= PROB_SOFT) {
             is_soft_block = true;
         }
         t = TilesTypes::WALKABLE;
@@ -38,16 +38,16 @@ void GameMapLogic::process_loaded(const std::string& token, const std::string& a
 static void go_back(float move_factor, EntityCoords& coords, EntityDirection dir) {
     switch(dir) {
     case EntityDirection::UP:
-        coords.first += move_factor;
+        go(coords, EntityDirection::DOWN, move_factor);
         break;
     case EntityDirection::DOWN:
-        coords.first -= move_factor;
+        go(coords, EntityDirection::UP, move_factor);
         break;
     case EntityDirection::LEFT:
-        coords.second += move_factor;
+        go(coords, EntityDirection::RIGHT, move_factor);
         break;
     case EntityDirection::RIGHT:
-        coords.second -= move_factor;
+        go(coords, EntityDirection::LEFT, move_factor);
         break;
     }
 }
@@ -64,6 +64,24 @@ static bool try_correct(int free, float& me) {
         return true;
     }
     return false;
+}
+
+int GameMapLogic::view(const EntityCoords& coords, EntityDirection direction) const {
+    int result = 0;
+    auto c = coords;
+    for (;;result++) {
+        if (collision_checking(1.f, c, direction) != Collision::NONE) {
+            break;
+        } else {
+            go(c, direction, 1.f);
+        }
+    }
+    return result;
+}
+
+template<typename T>
+static T unsafe_get(std::vector<T>& map, int row, int column, int columns) {
+    return map.at(static_cast<long>(row)*columns + column);
 }
 
 
@@ -83,10 +101,13 @@ static bool col_checking(const GameMapLogic& map, std::vector<T> to_check, T val
     bool check_f = false, check_c = false;
     float mid_row = (ceil_row + flr_row) / 2.f;
     float mid_col = (ceil_col + flr_col) / 2.f;
+    if ( (flr_row < 0) || (flr_col < 0) || (ceil_row >= map.get_rows()) || (ceil_col >= map.get_columns())) {
+        throw std::runtime_error("Invalid index to map: (" + std::to_string(coords.first) + "," + std::to_string(coords.second) + ")");
+    }
     switch(dir) {
     case EntityDirection::UP:
-        check_c = map.unsafe_get<T>(to_check, flr_row, ceil_col) == value;
-        check_f = map.unsafe_get<T>(to_check, flr_row, flr_col) == value;
+        check_c = unsafe_get<T>(to_check, flr_row, ceil_col, map.get_columns()) == value;
+        check_f = unsafe_get<T>(to_check, flr_row, flr_col, map.get_columns()) == value;
         if (!check_c && check_f && try_correct(ceil_col, coords.second)) {
             return true;
         } else if (check_c && !check_f && try_correct(flr_col, coords.second)) {
@@ -94,8 +115,8 @@ static bool col_checking(const GameMapLogic& map, std::vector<T> to_check, T val
         }
         break;
     case EntityDirection::DOWN:
-        check_c = map.unsafe_get<T>(to_check, ceil_row, ceil_col) == value;
-        check_f = map.unsafe_get<T>(to_check, ceil_row, flr_col) == value;
+        check_c = unsafe_get<T>(to_check, ceil_row, ceil_col, map.get_columns()) == value;
+        check_f = unsafe_get<T>(to_check, ceil_row, flr_col, map.get_columns()) == value;
         if (!check_c && check_f && try_correct(ceil_col, coords.second)) {
             return true;
         } else if (check_c && !check_f && try_correct(flr_col, coords.second)) {
@@ -103,8 +124,8 @@ static bool col_checking(const GameMapLogic& map, std::vector<T> to_check, T val
         }
         break;
     case EntityDirection::LEFT:
-        check_c = map.unsafe_get<T>(to_check, ceil_row, flr_col) == value;
-        check_f = map.unsafe_get<T>(to_check, flr_row, flr_col) == value;
+        check_c = unsafe_get<T>(to_check, ceil_row, flr_col, map.get_columns()) == value;
+        check_f = unsafe_get<T>(to_check, flr_row, flr_col, map.get_columns()) == value;
         if (!check_c && check_f && try_correct(ceil_row, coords.first)) {
             return true;
         } else if (check_c && !check_f && try_correct(flr_row, coords.first)) {
@@ -112,8 +133,8 @@ static bool col_checking(const GameMapLogic& map, std::vector<T> to_check, T val
         }
         break;
     case EntityDirection::RIGHT:
-        check_c = map.unsafe_get<T>(to_check, ceil_row, ceil_col) == value;
-        check_f = map.unsafe_get<T>(to_check, flr_row, ceil_col) == value;
+        check_c = unsafe_get<T>(to_check, ceil_row, ceil_col, map.get_columns()) == value;
+        check_f = unsafe_get<T>(to_check, flr_row, ceil_col, map.get_columns()) == value;
         if (!check_c && check_f && try_correct(ceil_row, coords.first)) {
             return true;
         } else if (check_c && !check_f && try_correct(flr_row, coords.first)) {
@@ -128,7 +149,9 @@ static bool col_checking(const GameMapLogic& map, std::vector<T> to_check, T val
     return true;
 }
 
-Collision GameMapLogic::collision_checking(float move_factor, EntityCoords& coords, EntityDirection dir) {
+Collision GameMapLogic::collision_checking( float move_factor
+                                          , EntityCoords& coords
+                                          , EntityDirection dir) const {
     EntityCoords hard_check(coords), soft_check(coords);
     bool hard = !col_checking<TilesTypes>(*this, tiles, TilesTypes::NON_WALKABLE, move_factor, hard_check, dir);
     bool soft = !col_checking<bool>(*this, soft_blocks, true, move_factor, soft_check, dir);
@@ -156,4 +179,4 @@ void GameMapLogic::initialize() {
     spawn_positions.clear();
 }
 
-GameMapLogic::GameMapLogic(): rnb(1, 10) {}
+GameMapLogic::GameMapLogic(): rnb(1, 12) {}

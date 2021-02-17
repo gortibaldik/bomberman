@@ -43,18 +43,18 @@ public:
     void initialize() override;
     size_t get_max_players() { return spawn_positions.size(); }
     std::tuple<int, int, int> get_spawn_pos();
+    RandomNumberBetween& get_rnd() const { return rnb; }
+    
     const SoftBlockMap& get_soft_blocks() { return soft_blocks; }
     void erase_soft_block(int);
-    Collision collision_checking(float move_factor, EntityCoords&, EntityDirection);
-    template<typename T>
-    T unsafe_get(std::vector<T>& map, int row, int column) const {
-        return map.at(static_cast<long>(row)*columns + column);
-    }
+
+    Collision collision_checking(float move_factor, EntityCoords&, EntityDirection) const;
+    int view(const EntityCoords&, EntityDirection) const;
 private:
     std::vector<std::tuple<int, int, int>> spawn_positions;
     LogicMap tiles;
     SoftBlockMap soft_blocks;
-    RandomNumberBetween rnb;
+    mutable RandomNumberBetween rnb;
 };
 
 #endif

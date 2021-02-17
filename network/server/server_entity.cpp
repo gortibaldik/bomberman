@@ -48,30 +48,29 @@ bool ServerBombEntity::is_new() {
 std::vector<ServerExplosionEntity> ServerBombEntity::explode(GameMapLogic& map, float till_erasement) {
     std::vector<ServerExplosionEntity> result;
     result.emplace_back(actual_pos, till_erasement, 0, ExplosionType::CENTER);
-    using type_coords = std::pair<std::pair<ExplosionType, EntityDirection>, EntityCoords>;
-    const std::vector<type_coords> to_right = {{{ExplosionType::HORIZONTAL_RIGHT,   EntityDirection::RIGHT},    EntityCoords(0,  1)},
-                                               {{ExplosionType::RIGHT_END,          EntityDirection::RIGHT},    EntityCoords(0,  1)}};
-    const std::vector<type_coords> to_left  = {{{ExplosionType::HORIZONTAL_LEFT,    EntityDirection::LEFT},     EntityCoords(0, -1)},
-                                               {{ExplosionType::LEFT_END,           EntityDirection::LEFT},     EntityCoords(0, -1)}};
-    const std::vector<type_coords> up       = {{{ExplosionType::VERTICAL_UP,        EntityDirection::UP},       EntityCoords(-1, 0)},
-                                               {{ExplosionType::UP_END,             EntityDirection::UP},       EntityCoords(-1, 0)}};
-    const std::vector<type_coords> down     = {{{ExplosionType::VERTICAL_DOWN,      EntityDirection::DOWN},     EntityCoords(1,  0)},
-                                               {{ExplosionType::DOWN_END,           EntityDirection::DOWN},     EntityCoords(1,  0)}};
+    using type_dir = std::pair<ExplosionType, EntityDirection>;
+    const std::vector<type_dir> to_right = {{ExplosionType::HORIZONTAL_RIGHT,   EntityDirection::RIGHT},
+                                            {ExplosionType::RIGHT_END,          EntityDirection::RIGHT}};
+    const std::vector<type_dir> to_left  = {{ExplosionType::HORIZONTAL_LEFT,    EntityDirection::LEFT},
+                                            {ExplosionType::LEFT_END,           EntityDirection::LEFT}};
+    const std::vector<type_dir> up       = {{ExplosionType::VERTICAL_UP,        EntityDirection::UP},
+                                            {ExplosionType::UP_END,             EntityDirection::UP}};
+    const std::vector<type_dir> down     = {{ExplosionType::VERTICAL_DOWN,      EntityDirection::DOWN},
+                                            {ExplosionType::DOWN_END,           EntityDirection::DOWN}};
     const auto all_dirs = { to_left, to_right, up, down };
     for (auto&& d : all_dirs) {
         EntityCoords c;
         bool fst = true;
         for (auto&& tc : d) {
             if (fst == true) {
-                c.first = tc.second.first + actual_pos.first;
-                c.second = tc.second.second + actual_pos.second;
+                c = EntityCoords(actual_pos);
+                go(c, tc.second, 1.f);
                 fst = false;
             } else {
-                c.first += tc.second.first;
-                c.second += tc.second.second;
+                go(c, tc.second, 1.f);
             }
-            auto collision = map.collision_checking(0.f, c, tc.first.second);
-            result.emplace_back(ServerExplosionEntity(c, till_erasement, 0, tc.first.first));
+            auto collision = map.collision_checking(0.f, c, tc.second);
+            result.emplace_back(ServerExplosionEntity(c, till_erasement, 0, tc.first));
             if (collision != Collision::NONE) {
                 break;
             }

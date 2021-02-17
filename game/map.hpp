@@ -12,6 +12,8 @@ public:
     virtual void initialize() = 0;
     std::pair<int, int> transform_to_coords(int);
     const std::string& get_name() const { return name; }
+    int get_rows() const { return rows; }
+    int get_columns() const { return columns; }
 
     static void generate_config(const std::string&, int, int);
 protected:

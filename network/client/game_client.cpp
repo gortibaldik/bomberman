@@ -31,6 +31,7 @@ void GameClient::update_player(sf::Packet& packet, bool spawn) {
     packet >> cpe;
     auto it = players.find(cpe.name);
     if (it == players.end()) {
+        std::cout << "CLIENT : " << cpe.name << " going to be registered" << std::endl;
         cpe.anim_object = tm.get_anim_object("p" + std::to_string(cpe.type));
         // players shall be scaled during fitting of the window
         // at the receiving the initial socket with all the info
@@ -47,7 +48,6 @@ void GameClient::update_player(sf::Packet& packet, bool spawn) {
         if (cpe.name == player_name) {
             me = &players.at(cpe.name);
         }
-        std::cout << cpe.name << " registered! <- client side" << std::endl;
     } else {
         it->second.new_pos = cpe.actual_pos;
         it->second.direction = cpe.direction;

@@ -30,7 +30,8 @@ public:
                        , lives(lives)
                        , move_factor(move_factor)
                        , updated(false) {}
-    void update(float dt);
+    virtual ~ServerPlayerEntity() = default;
+    virtual void update(float dt);
     bool is_attackable() { return spawn_protection == 0.f; }
     void respawn() { spawn_protection = 1.f; }
     void update_pos_dir(EntityCoords&&, EntityDirection);

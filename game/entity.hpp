@@ -34,6 +34,8 @@ public:
     
 };
 
+void go(EntityCoords&, EntityDirection, float move_factor);
+
 class PlayerEntity: public Entity {
 public:
     PlayerEntity() : direction(EntityDirection::UP) {}

@@ -182,7 +182,7 @@ void Server::update(const sf::Time& dt) {
             send(client.first, hb);
             break;
         case ClientInfo::TimeDifference::TimeOut:
-            std::cout << "Client " << client.first << " timed out!" << std::endl;
+            std::cout << "SERVER : Client " << client.first << " timed out!" << std::endl;
             to_be_erased.insert(client);
             break;
         }

@@ -41,7 +41,7 @@ void GameServer::handle_starting_state(const std::string& client_name, sf::Packe
         auto [row, column, type] = map.get_spawn_pos();
         std::pair<int, int> coords(row, column);
         players.emplace(client_name, std::make_unique<ServerPlayerEntity>(client_name, coords, coords, EntityDirection::UP, type, player_lives, move_factor));
-        std::cout << "player " << client_name << " approved starting the game!" << std::endl;
+        std::cout << "SERVER : player " << client_name << " approved starting the game!" << std::endl;
     }
 }
 
@@ -64,7 +64,7 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
                     return;
                 }
                 EntityCoords c(row*p->move_factor+p->actual_pos.first, col*p->move_factor+p->actual_pos.second);
-                auto d = (EntityDirection)dir;
+                auto d = static_cast<EntityDirection>(dir);
                 map.collision_checking(p->move_factor, c, d);
                 p->update_pos_dir(std::move(c), d);
                 p->updated = true;
@@ -118,7 +118,14 @@ void GameServer::start_game() {
         auto [row, column, type] = map.get_spawn_pos();
         std::pair<int, int> coords(row, column);
         auto player = 
-        players.emplace("ai_escaper", std::make_unique<AIEscaper>("ai_escaper", coords, coords, EntityDirection::UP, type, player_lives, move_factor));
+        players.emplace("ai_escaper", std::make_unique<AIEscaper>( "ai_escaper"
+                                                                 , coords
+                                                                 , coords
+                                                                 , EntityDirection::UP
+                                                                 , type
+                                                                 , player_lives
+                                                                 , move_factor
+                                                                 , map));
         p << sf::Int8(Network::Delimiter);
         add_type_to_packet(p, PacketType::SpawnPosition);
         p << *(players.at("ai_escaper"));
@@ -160,9 +167,16 @@ void GameServer::game_notify_loop() {
         at_least_one = bomb_manager.update(time, packet) || at_least_one;
         at_least_one = bomb_manager.check_damage(players, packet) || at_least_one;
         
-        if (at_least_one) {
+        if (at_least_one && !end_notifier) {
             broadcast(packet);
         }
+    }
+    while (players.size() > 0) {
+        sf::Packet packet;
+        add_type_to_packet(packet, PacketType::ServerNotifyPlayerDisconnect);
+        packet << players.begin()->first;
+        broadcast(packet);
+        players.erase(players.begin());
     }
 }
 void GameServer::notify_disconnect(const std::string& client_name) {
@@ -183,8 +197,8 @@ GameServer::~GameServer() {
     if (notifier.joinable()) {
         end_notifier = true;
         notifier.join();
-        std::cout << "Joined server notifier!" << std::endl;
+        std::cout << "SERVER : joined notifier!" << std::endl;
     } else {
-        std::cout << "Server notifier already joined!" << std::endl;
+        std::cout << "SERVER : notifier already joined!" << std::endl;
     }
 }

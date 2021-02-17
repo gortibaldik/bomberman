@@ -11,4 +11,6 @@ target_sources(Bomberman
     game_server.cpp
     bomb_manager.cpp
     bomb_manager.hpp
+    ai_escaper.hpp
+    ai_escaper.cpp
   )
