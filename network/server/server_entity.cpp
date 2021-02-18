@@ -94,17 +94,15 @@ void ServerExplosionEntity::update(float dt) {
     }
 }
 
-#define INTERSECT_TOLERANCE 0.2f
-
 /* Naive, because of the assumption, that both c1 and c2 are coordinates
  *  of top left corner of a square with a side of length 1
  * 
  * @return true if the squares intersect
  */ 
-bool naive_bbox_intersect(const EntityCoords& c1, const EntityCoords& c2) {
-    bool rows_intersect = ((c1.first >= c2.first) && (c1.first - 1.f + INTERSECT_TOLERANCE <= c2.first)) ||
-                          ((c2.first >= c1.first) && (c2.first - 1.f + INTERSECT_TOLERANCE <= c1.first));
-    bool cols_intersect = ((c1.second >= c2.second) && (c1.second - 1.f + INTERSECT_TOLERANCE <= c2.second)) ||
-                          ((c2.second >= c1.second) && (c2.second - 1.f + INTERSECT_TOLERANCE <= c1.second));
+bool naive_bbox_intersect(const EntityCoords& c1, const EntityCoords& c2, float intersect_tolerance) {
+    bool rows_intersect = ((c1.first >= c2.first) && (c1.first - 1.f + intersect_tolerance <= c2.first)) ||
+                          ((c2.first >= c1.first) && (c2.first - 1.f + intersect_tolerance <= c1.first));
+    bool cols_intersect = ((c1.second >= c2.second) && (c1.second - 1.f + intersect_tolerance <= c2.second)) ||
+                          ((c2.second >= c1.second) && (c2.second - 1.f + intersect_tolerance <= c1.second));
     return rows_intersect && cols_intersect;
 }

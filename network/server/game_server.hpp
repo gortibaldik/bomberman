@@ -34,7 +34,6 @@ protected:
     
     BombManager bomb_manager;
     Players players;
-    AIPlayers ai;
     GameMapLogic map;
 
     std::thread notifier;

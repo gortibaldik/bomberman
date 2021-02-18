@@ -60,10 +60,11 @@ void BombManager::create_bomb(const EntityCoords& pos, ServerPlayerEntity& spe) 
 
 bool BombManager::check_damage(Players& players, sf::Packet& packet) {
     bool result = false;
+    static const float intersection_tolerance = 0.3f;
     for (auto&& exp : explosions) {
         for (auto&& p : players) {
             if (!p.second->is_attackable()) { continue; }
-            if (naive_bbox_intersect(p.second->actual_pos, exp.second.actual_pos)) {
+            if (naive_bbox_intersect(p.second->actual_pos, exp.second.actual_pos, intersection_tolerance)) {
                 std::cout << p.first << " is hit!" << std::endl;
                 p.second->actual_pos = p.second->spawn_pos;
                 result = true;
@@ -87,7 +88,7 @@ bool BombManager::check_damage(Players& players, sf::Packet& packet) {
             i++;
             if (!exists) { continue; }
             auto pair = map.transform_to_coords(i);
-            if (naive_bbox_intersect(pair, exp.second.actual_pos)) {
+            if (naive_bbox_intersect(pair, exp.second.actual_pos, intersection_tolerance)) {
                 map.erase_soft_block(i);
                 result = true;
                 packet << sf::Int8(Network::Delimiter);
@@ -99,18 +100,25 @@ bool BombManager::check_damage(Players& players, sf::Packet& packet) {
     return result;
 }
 
-int BombManager::view(const EntityCoords& coords, EntityDirection direction) const {
+int BombManager::view(const EntityCoords& coords, EntityDirection direction, int view_distance) const {
     int result = 1;
     EntityCoords c = coords;
+    static const float intersection_tolerance = 0.1f;
     for (;;result++) {
         go(c, direction, 1.f);
         for (auto&& bomb : bombs) {
-            if (naive_bbox_intersect(c, bomb.second.actual_pos)) {
+            if (naive_bbox_intersect(c, bomb.second.actual_pos, intersection_tolerance)) {
                 result *= -1;
                 return result;
             }
         }
-        if (result > 5) {
+        for (auto&& exp : explosions) {
+            if (naive_bbox_intersect(c,exp.second.actual_pos, intersection_tolerance)) {
+                result *= -1;
+                return result;
+            }
+        }
+        if (result > view_distance) {
             break;
         }
     }

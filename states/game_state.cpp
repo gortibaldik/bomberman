@@ -83,10 +83,9 @@ bool GameState::check_move(sf::Packet& packet) {
 #define WAIT_PERIOD 0.5f
 
 bool GameState::check_deploy(sf::Packet& packet, sf::Time& c_time) {
-    static sf::Time last_time = sf::seconds(0.f);
-    if (!can_deploy || ((c_time - last_time).asSeconds() <= WAIT_PERIOD)) { return false; }
+    if (!can_deploy || ((c_time - last_deployed).asSeconds() <= WAIT_PERIOD)) { return false; }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-        last_time = c_time;
+        last_deployed = c_time;
         packet << sf::Int8(Network::Delimiter);
         add_type_to_packet(packet, PacketType::ClientDeployBomb);
         can_deploy = false;
