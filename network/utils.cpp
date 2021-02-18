@@ -46,6 +46,14 @@ void ReceiverQueue::enqueue(const std::string& message) {
     queue.emplace(message);
 }
 
+void ReceiverQueue::change_first_remove_rest(const std::string& message) {
+    std::unique_lock<std::mutex> l(queue_mutex);
+    queue_size = 1;
+    std::queue<std::string> q;
+    q.push(message);
+    queue.swap(q);
+}
+
 std::string ReceiverQueue::dequeue() {
     std::unique_lock<std::mutex> l(queue_mutex);
     if (queue_size == 0) {

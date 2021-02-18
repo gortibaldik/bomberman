@@ -13,6 +13,7 @@ class ReceiverQueue {
 public:
     ReceiverQueue(): queue_size(0) {}
     void enqueue(const std::string&);
+    void change_first_remove_rest(const std::string&);
     std::string dequeue();
     bool is_empty();
 private:

@@ -202,6 +202,11 @@ void GameClient::handle_others(sf::Packet& packet, PacketType ptype) {
         }
         received_messages.enqueue("client " + token + " disconnected");
         break;
+    case PacketType::ServerNotifyGameEnd:
+        packet >> token;
+        std::cout << "CLIENT : server says that " << token << " has won!" << std::endl;
+        received_messages.change_first_remove_rest("player " + token + " won!");
+        break;
     }
 }
 

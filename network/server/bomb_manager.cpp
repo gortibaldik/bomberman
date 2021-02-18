@@ -63,6 +63,9 @@ bool BombManager::check_damage(Players& players, sf::Packet& packet) {
     static const float intersection_tolerance = 0.3f;
     for (auto&& exp : explosions) {
         for (auto&& p : players) {
+            if (players.size() == 1) {
+                break;
+            }
             if (!p.second->is_attackable()) { continue; }
             if (naive_bbox_intersect(p.second->actual_pos, exp.second.actual_pos, intersection_tolerance)) {
                 std::cout << p.first << " is hit!" << std::endl;

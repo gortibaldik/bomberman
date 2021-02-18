@@ -23,6 +23,7 @@ enum class PacketType {
     ServerNotifyPlayerDied,
     ServerNotifySoftBlockDestroyed,
     ServerNotifySoftBlockExists,
+    ServerNotifyGameEnd,
     Update,
     Invalid
 };

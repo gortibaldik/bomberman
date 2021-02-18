@@ -170,8 +170,30 @@ void GameServer::game_notify_loop() {
         at_least_one = bomb_manager.update(time, packet) || at_least_one;
         at_least_one = bomb_manager.check_damage(players, packet) || at_least_one;
         
+        
         if (at_least_one && !end_notifier) {
             broadcast(packet);
+        }
+
+        if (players.size() == 1) {
+            std::cout << "SERVER : only one player left!" << std::endl;
+            sf::Packet game_ending_packet;
+            add_type_to_packet(game_ending_packet, PacketType::ServerNotifyGameEnd);
+            game_ending_packet << players.begin()->second->name;
+            broadcast(game_ending_packet);
+            end_notifier = true;
+            sf::Time till_end = time;
+            while ((time - till_end).asSeconds() <= 3.f) {
+                sf::Packet ending_packet;
+                std::this_thread::sleep_for(100ms);
+                time += clock.restart();
+                add_type_to_packet(ending_packet, PacketType::Update);
+                at_least_one = bomb_manager.update(time, ending_packet);
+                if (at_least_one) {
+                    broadcast(ending_packet);
+                }
+            }
+            break;
         }
     }
     while (players.size() > 0) {
@@ -181,6 +203,7 @@ void GameServer::game_notify_loop() {
         broadcast(packet);
         players.erase(players.begin());
     }
+    terminate();
 }
 void GameServer::notify_disconnect(const std::string& client_name) {
     {
