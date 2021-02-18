@@ -28,8 +28,8 @@ public:
              , bomb_manager(bomb_manager)
              , players(players) {}
     void update(float dt) override;
-    std::vector<EntityDirection> find_bomb_free_views();
-    std::vector<EntityDirection> find_player_free_views();
+    std::vector<EntityDirection> find_bomb_free_views(const std::vector<int>&);
+    std::vector<EntityDirection> find_player_free_views(const std::vector<int>&);
     const GameMapLogic& map;
     const BombManager& bomb_manager;
     const Players& players;
