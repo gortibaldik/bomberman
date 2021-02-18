@@ -25,10 +25,10 @@ enum class ExplosionType : int {
 };
 
 enum class PowerUpType : int {
-    FASTER,
-    BIGGER_BOMB,
-    REFLECT,
-    NONE
+    NONE = 0,
+    FASTER = 1,
+    BIGGER_BOMB = 2,
+    REFLECT = 3,
 };
 
 using EntityCoords = std::pair<float, float>;

@@ -63,15 +63,24 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
                     std::cout << "Invalid packet!" << std::endl;
                     return;
                 }
-                if (p->reflect) {
-                    auto tmp = row;
-                    row = col;
-                    col = tmp;
-                }
-                EntityCoords c(row*p->move_factor+p->actual_pos.first, col*p->move_factor+p->actual_pos.second);
                 auto d = static_cast<EntityDirection>(dir);
-                map.collision_checking(p->move_factor, c, d);
-                p->update_pos_dir(std::move(c), d);
+                if (p->reflect) {
+                    row *= -1;
+                    col *= -1;
+                    switch (d) {
+                    case EntityDirection::UP:
+                        d = EntityDirection::DOWN; break;
+                    case EntityDirection::DOWN:
+                        d = EntityDirection::UP; break;
+                    case EntityDirection::RIGHT:
+                        d = EntityDirection::LEFT; break;
+                    case EntityDirection::LEFT:
+                        d = EntityDirection::RIGHT; break;
+                    }
+                }
+                EntityCoords coords(row*p->move_factor+p->actual_pos.first, col*p->move_factor+p->actual_pos.second);
+                map.collision_checking(p->move_factor, coords, d);
+                p->update_pos_dir(std::move(coords), d);
                 p->updated = true;
             }
             break;

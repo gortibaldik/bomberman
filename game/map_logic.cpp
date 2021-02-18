@@ -197,8 +197,9 @@ int GameMapLogic::erase_soft_block(int i) {
     }
     soft_blocks[i] = false;
     if (power_ups.find(i) != power_ups.end()) {
-        std::cout << "SERVER : power up found!" << std::endl;
-        return 1;
+        auto pu = static_cast<int>(power_ups.at(i));
+        std::cout << "SERVER : power up " << pu << " found!" << std::endl;
+        return pu;
     }
     return 0;
 }
