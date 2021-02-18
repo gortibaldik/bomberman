@@ -125,7 +125,9 @@ void GameServer::start_game() {
                                                                  , type
                                                                  , player_lives
                                                                  , move_factor
-                                                                 , map));
+                                                                 , map
+                                                                 , bomb_manager
+                                                                 , players));
         p << sf::Int8(Network::Delimiter);
         add_type_to_packet(p, PacketType::SpawnPosition);
         p << *(players.at("ai_escaper"));

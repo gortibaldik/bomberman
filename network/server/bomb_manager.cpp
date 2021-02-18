@@ -98,3 +98,21 @@ bool BombManager::check_damage(Players& players, sf::Packet& packet) {
     }
     return result;
 }
+
+int BombManager::view(const EntityCoords& coords, EntityDirection direction) const {
+    int result = 1;
+    EntityCoords c = coords;
+    for (;;result++) {
+        go(c, direction, 1.f);
+        for (auto&& bomb : bombs) {
+            if (naive_bbox_intersect(c, bomb.second.actual_pos)) {
+                result *= -1;
+                return result;
+            }
+        }
+        if (result > 5) {
+            break;
+        }
+    }
+    return result;
+}

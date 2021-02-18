@@ -25,6 +25,7 @@ public:
     bool update(const sf::Time&, sf::Packet&);
     bool check_damage(Players&, sf::Packet&);
     void create_bomb(const EntityCoords&, ServerPlayerEntity&);
+    int view(const EntityCoords&, EntityDirection) const;
 private:
     Bombs bombs;
     Explosions explosions;
