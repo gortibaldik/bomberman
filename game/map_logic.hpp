@@ -6,6 +6,7 @@
 #include <vector>
 #include <tuple>
 #include <random>
+#include <unordered_map>
 
 enum class TilesTypes {
     WALKABLE,
@@ -20,6 +21,7 @@ enum class Collision {
 
 using LogicMap = std::vector<TilesTypes>;
 using SoftBlockMap = std::vector<bool>;
+using PowerUpMap = std::unordered_map<int, PowerUpType>;
 
 // code from https://www.fluentcpp.com/2019/05/24/how-to-fill-a-cpp-collection-with-random-values/
 class RandomNumberBetween {
@@ -46,14 +48,16 @@ public:
     RandomNumberBetween& get_rnd() const { return rnb; }
     
     const SoftBlockMap& get_soft_blocks() { return soft_blocks; }
-    void erase_soft_block(int);
+    int erase_soft_block(int);
 
     Collision collision_checking(float move_factor, EntityCoords&, EntityDirection) const;
+    PowerUpType is_on_power_up(const EntityCoords&, int& power_up_id);
     int view(const EntityCoords&, EntityDirection) const;
 private:
     std::vector<std::tuple<int, int, int>> spawn_positions;
     LogicMap tiles;
     SoftBlockMap soft_blocks;
+    PowerUpMap power_ups;
     mutable RandomNumberBetween rnb;
 };
 

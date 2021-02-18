@@ -110,7 +110,8 @@ void GameClient::erase_player(sf::Packet& packet) {
 
 void GameClient::create_soft_block(sf::Packet& packet) {
     sf::Int32 i = 0;
-    packet >> i;
+    sf::Int8 dummy = 0;
+    packet >> i >> dummy;
     auto it = soft_blocks.find(i);
     if (it == soft_blocks.end()) {
         soft_blocks.emplace(i, tm.get_anim_object("soft_block"));
@@ -120,10 +121,40 @@ void GameClient::create_soft_block(sf::Packet& packet) {
 
 void GameClient::destroy_soft_block(sf::Packet& packet) {
     sf::Int32 i = 0;
-    packet >> i;
+    sf::Int8 type = 0;
+    packet >> i >> type;
+    auto it = soft_blocks.find(i);
+    if (it != soft_blocks.end()) {
+        if (type != 0) {
+            soft_blocks.at(i).anim_object = tm.get_anim_object("power_" + std::to_string(type));
+            map.transform(soft_blocks.at(i).anim_object, map.transform_to_coords(i), true);
+        } else {
+            soft_blocks.erase(i);
+        }
+    }
+}
+
+void GameClient::destroy_power_up(sf::Packet& packet) {
+    sf::Int32 i = 0;
+    sf::Int8 type = 0;
+    std::string name;
+    packet >> i >> type >> name;
     auto it = soft_blocks.find(i);
     if (it != soft_blocks.end()) {
         soft_blocks.erase(i);
+        std::string message = name + " gained ";
+        switch (static_cast<PowerUpType>(type)) {
+        case PowerUpType::BIGGER_BOMB:
+            message += "bigger bomb";
+            break;
+        case PowerUpType::FASTER:
+            message += "faster movement";
+            break;
+        case PowerUpType::REFLECT:
+            message += "reflect";
+            break;
+        }
+        received_messages.enqueue(message);
     }
 }
 
@@ -160,6 +191,9 @@ void GameClient::server_state_update(sf::Packet& packet) {
             break;
         case PacketType::ServerNotifySoftBlockDestroyed:
             destroy_soft_block(packet);
+            break;
+        case PacketType::ServerNotifyPowerUpDestroyed:
+            destroy_power_up(packet);
             break;
         }
     }

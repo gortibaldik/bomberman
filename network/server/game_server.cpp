@@ -63,6 +63,11 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
                     std::cout << "Invalid packet!" << std::endl;
                     return;
                 }
+                if (p->reflect) {
+                    auto tmp = row;
+                    row = col;
+                    col = tmp;
+                }
                 EntityCoords c(row*p->move_factor+p->actual_pos.first, col*p->move_factor+p->actual_pos.second);
                 auto d = static_cast<EntityDirection>(dir);
                 map.collision_checking(p->move_factor, c, d);
@@ -125,7 +130,7 @@ void GameServer::start_game() {
                                                                  , EntityDirection::UP
                                                                  , type
                                                                  , player_lives
-                                                                 , move_factor
+                                                                 , move_factor * 1.8f
                                                                  , map
                                                                  , bomb_manager
                                                                  , players));
@@ -140,7 +145,9 @@ void GameServer::start_game() {
         if (b) {
             p << sf::Int8(Network::Delimiter);
             add_type_to_packet(p, PacketType::ServerNotifySoftBlockExists);
-            p << sf::Int32(i);
+            p << sf::Int32(i); /* ID of the soft block */
+            sf::Int8 type(0); /* soft block is of 0 type, power ups are of types 1 to 3*/
+            p << type;
         }
     }
     broadcast(p);
@@ -158,6 +165,24 @@ void GameServer::game_notify_loop() {
         add_type_to_packet(packet, PacketType::Update);
         sf::Time time = clock.restart();
         for(auto&& p : players) {
+            int power_up_id = 0;
+            auto pu = map.is_on_power_up(p.second->actual_pos, power_up_id);
+            if (pu != PowerUpType::NONE) {
+                sf::Time duration = sf::seconds(10.f);
+                packet << sf::Int8(Network::Delimiter);
+                add_type_to_packet(packet, PacketType::ServerNotifyPowerUpDestroyed);
+                packet << sf::Int32(power_up_id);
+                packet << sf::Int8(static_cast<int>(pu));
+                packet << p.second->name;
+                if (pu == PowerUpType::REFLECT) {
+                    for (auto&& victim : players) {
+                        if (victim.first.compare(p.second->name) == 0) { continue; }
+                        victim.second->apply_power_up(pu, duration);
+                    }
+                } else {
+                    p.second->apply_power_up(pu, duration);
+                }
+            }
             p.second->update(time.asSeconds());
             if (p.second->updated) {
                 p.second->updated = false;

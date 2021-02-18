@@ -5,6 +5,7 @@
 #include "game/map_logic.hpp"
 #include <SFML/Network.hpp>
 #include <vector>
+#include <deque>
 #include <memory>
 #include <iostream>
 
@@ -13,10 +14,13 @@ public:
     sf::Int8 type;
     float spawn_protection = 2.f;
     float move_factor;
+    int bomb_range = 2;
     bool updated;
     int c_deployed;
     EntityCoords spawn_pos;
     int lives;
+    bool reflect = false;
+    std::deque<std::pair<sf::Time, PowerUpType>> power_ups;
     ServerPlayerEntity(const std::string& name
                        , EntityCoords spawn_pos
                        , EntityCoords actual_pos
@@ -39,6 +43,7 @@ public:
     bool can_deploy() { return c_deployed < 3; }
     void deploy() { c_deployed++; }
     void remove_deployed() { c_deployed = (c_deployed > 0) ? c_deployed - 1 : c_deployed; }
+    void apply_power_up(PowerUpType, const sf::Time&);
 };
 
 using PlayerPtr = std::unique_ptr<ServerPlayerEntity>;
@@ -81,8 +86,6 @@ public:
     bool is_new();
     std::vector<ServerExplosionEntity> explode(GameMapLogic&, float till_erasement);
 };
-
-bool naive_bbox_intersect(const EntityCoords& c1, const EntityCoords& c2, float intersection_tolerance);
 
 sf::Packet& operator <<(sf::Packet&, const ServerExplosionEntity&);
 sf::Packet& operator <<(sf::Packet&, const ServerBombEntity&);

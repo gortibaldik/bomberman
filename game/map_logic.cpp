@@ -23,6 +23,17 @@ void GameMapLogic::process_loaded(const std::string& token, const std::string& a
         auto x = rnb();
         if (x <= PROB_SOFT) {
             is_soft_block = true;
+            switch (x) {
+            case 1:
+                power_ups.emplace(tiles.size(), PowerUpType::FASTER);
+                break;
+            case 2:
+                power_ups.emplace(tiles.size(), PowerUpType::BIGGER_BOMB);
+                break;
+            case 3:
+                power_ups.emplace(tiles.size(), PowerUpType::REFLECT);
+                break;
+            }
         }
         t = TilesTypes::WALKABLE;
     } else if (type.compare("SPAWN") == 0) {
@@ -153,8 +164,8 @@ Collision GameMapLogic::collision_checking( float move_factor
                                           , EntityCoords& coords
                                           , EntityDirection dir) const {
     EntityCoords hard_check(coords), soft_check(coords);
-    bool hard = !col_checking<TilesTypes>(*this, tiles, TilesTypes::NON_WALKABLE, move_factor, hard_check, dir);
-    bool soft = !col_checking<bool>(*this, soft_blocks, true, move_factor, soft_check, dir);
+    bool hard = !col_checking(*this, tiles, TilesTypes::NON_WALKABLE, move_factor, hard_check, dir);
+    bool soft = !col_checking(*this, soft_blocks, true, move_factor, soft_check, dir);
     coords = hard_check;
     if (hard) {
         return Collision::HARD_BLOCK;
@@ -166,11 +177,30 @@ Collision GameMapLogic::collision_checking( float move_factor
     return Collision::NONE;
 }
 
-void GameMapLogic::erase_soft_block(int i) {
+PowerUpType GameMapLogic::is_on_power_up(const EntityCoords& coords, int& power_up_id) {
+    static const float tolerance = 0.4f;
+    for (auto&& pu : power_ups) {
+        auto pu_coords = transform_to_coords(pu.first);
+        if (naive_bbox_intersect(coords, pu_coords, tolerance)) {
+            auto power_up = pu.second;
+            power_up_id = pu.first;
+            power_ups.erase(pu.first);
+            return power_up;
+        }
+    }
+    return PowerUpType::NONE;
+}
+
+int GameMapLogic::erase_soft_block(int i) {
     if ((i < 0) || (i >= soft_blocks.size())) {
         throw std::runtime_error("invalid index! - soft_blocks");
     }
     soft_blocks[i] = false;
+    if (power_ups.find(i) != power_ups.end()) {
+        std::cout << "SERVER : power up found!" << std::endl;
+        return 1;
+    }
+    return 0;
 }
 
 void GameMapLogic::initialize() {

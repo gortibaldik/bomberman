@@ -22,7 +22,8 @@ enum class PacketType {
     ServerNotifyPlayerDisconnect,
     ServerNotifyPlayerDied,
     ServerNotifySoftBlockDestroyed,
-    ServerNotifySoftBlockExists,
+    ServerNotifySoftBlockExists, /* 16 */
+    ServerNotifyPowerUpDestroyed,
     ServerNotifyGameEnd,
     Update,
     Invalid

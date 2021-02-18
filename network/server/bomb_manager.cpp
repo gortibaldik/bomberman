@@ -92,11 +92,12 @@ bool BombManager::check_damage(Players& players, sf::Packet& packet) {
             if (!exists) { continue; }
             auto pair = map.transform_to_coords(i);
             if (naive_bbox_intersect(pair, exp.second.actual_pos, intersection_tolerance)) {
-                map.erase_soft_block(i);
+                sf::Int8 type = map.erase_soft_block(i);
                 result = true;
                 packet << sf::Int8(Network::Delimiter);
                 add_type_to_packet(packet, PacketType::ServerNotifySoftBlockDestroyed);
-                packet << sf::Int32(i);
+                packet << sf::Int32(i); /* identification of the soft block to erase on the client side */
+                packet << type; /* type of the power up hidden behind the soft block (0 in case of none) */
             }
         }
     }

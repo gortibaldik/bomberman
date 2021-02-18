@@ -44,6 +44,7 @@ private:
     void erase_player(sf::Packet& packet);
     void create_soft_block(sf::Packet& packet);
     void destroy_soft_block(sf::Packet& packet);
+    void destroy_power_up(sf::Packet& packet);
     bool game_started = false;
     bool approved = false;
     bool only_viewer = false;

@@ -24,6 +24,13 @@ enum class ExplosionType : int {
     LEFT_END
 };
 
+enum class PowerUpType : int {
+    FASTER,
+    BIGGER_BOMB,
+    REFLECT,
+    NONE
+};
+
 using EntityCoords = std::pair<float, float>;
 
 class Entity {
@@ -48,5 +55,7 @@ public:
     std::string name;
     EntityDirection direction;
 };
+
+bool naive_bbox_intersect(const EntityCoords& c1, const EntityCoords& c2, float intersection_tolerance);
 
 #endif
