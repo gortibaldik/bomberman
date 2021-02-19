@@ -1,4 +1,5 @@
 #include "entity.hpp"
+#include <cmath>
 
 void go(EntityCoords& coords, EntityDirection direction, float move_factor) {
     switch (direction) {
@@ -28,4 +29,21 @@ bool naive_bbox_intersect(const EntityCoords& c1, const EntityCoords& c2, float 
     bool cols_intersect = ((c1.second >= c2.second) && (c1.second - 1.f + intersect_tolerance <= c2.second)) ||
                           ((c2.second >= c1.second) && (c2.second - 1.f + intersect_tolerance <= c1.second));
     return rows_intersect && cols_intersect;
+}
+
+std::pair<int, int> to_integral(const EntityCoords& coords) {
+    std::pair<int, int> result;
+    float ceil_row = ceilf(coords.first);
+    float ceil_col = ceilf(coords.second);
+    if (ceil_row - coords.first <= 0.5f) {
+        result.first = ceil_row;
+    } else {
+        result.first = ceil_row - 1;
+    }
+    if (ceil_col - coords.second <= 0.5f) {
+        result.second = ceil_col;
+    } else {
+        result.second = ceil_col - 1;
+    }
+    return result;
 }

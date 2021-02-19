@@ -54,7 +54,7 @@ bool BombManager::update(const sf::Time& time, sf::Packet& packet) {
 }
 
 void BombManager::create_bomb(const EntityCoords& pos, ServerPlayerEntity& spe) {
-    bombs.emplace(n_deployed_bombs, ServerBombEntity(pos, bomb_time, n_deployed_bombs, spe));
+    bombs.emplace(n_deployed_bombs, ServerBombEntity(to_integral(pos), bomb_time, n_deployed_bombs, spe));
     n_deployed_bombs++;
 }
 

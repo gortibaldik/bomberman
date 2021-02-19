@@ -13,26 +13,17 @@ public:
              , EntityDirection direction
              , sf::Int8 type
              , int lives
-             , float move_factor
-             , const GameMapLogic& map
-             , const BombManager& bomb_manager
-             , const Players& players)
+             , float move_factor)
              : ServerPlayerEntity( name
                                  , spawn_pos
                                  , actual_pos
                                  , direction
                                  , type
                                  , lives
-                                 , move_factor)
-             , map(map)
-             , bomb_manager(bomb_manager)
-             , players(players) {}
+                                 , move_factor) {}
+    void update_loop();
+    void notify(sf::Packet& packet);
     void update(float dt) override;
-    std::vector<EntityDirection> find_bomb_free_views(const std::vector<int>&);
-    std::vector<EntityDirection> find_player_free_views(const std::vector<int>&);
-    const GameMapLogic& map;
-    const BombManager& bomb_manager;
-    const Players& players;
     float review_time = 0.f;
 };
 

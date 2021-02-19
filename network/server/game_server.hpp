@@ -14,7 +14,7 @@ enum class ServerState {
         RUNNING
 };
 
-using AIPlayers = std::unordered_map<std::string, AIEscaper>;
+using AIPlayers = std::unordered_map<std::string, AIEscaper*>;
 
 class GameServer: public Server {
 public:
@@ -34,9 +34,11 @@ protected:
     
     BombManager bomb_manager;
     Players players;
+    AIPlayers ais;
     GameMapLogic map;
 
     std::thread notifier;
+    std::thread ai_thread;
     std::atomic<bool> end_notifier = false;
     std::mutex players_mutex;
 

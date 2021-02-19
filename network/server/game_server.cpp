@@ -132,20 +132,19 @@ void GameServer::start_game() {
     if (players.size() < max_clients) {
         auto [row, column, type] = map.get_spawn_pos();
         std::pair<int, int> coords(row, column);
-        auto player = 
-        players.emplace("ai_escaper", std::make_unique<AIEscaper>( "ai_escaper"
-                                                                 , coords
-                                                                 , coords
-                                                                 , EntityDirection::UP
-                                                                 , type
-                                                                 , player_lives
-                                                                 , move_factor * 1.8f
-                                                                 , map
-                                                                 , bomb_manager
-                                                                 , players));
+        const std::string ai_name = "ai_escaper";
+        players.emplace(ai_name, std::make_unique<AIEscaper>( ai_name
+                                                            , coords
+                                                            , coords
+                                                            , EntityDirection::UP
+                                                            , type
+                                                            , player_lives
+                                                            , move_factor * 1.8f));
+        ais.emplace(ai_name, dynamic_cast<AIEscaper*>(players.at(ai_name).get()));
+        ai_thread = std::thread([player = ais.at(ai_name)](){ player->update_loop(); });
         p << sf::Int8(Network::Delimiter);
         add_type_to_packet(p, PacketType::SpawnPosition);
-        p << *(players.at("ai_escaper"));
+        p << *(players.at(ai_name));
     }
     // and all the positions of the soft blocks
     int i = -1;
@@ -174,6 +173,7 @@ void GameServer::game_notify_loop() {
         add_type_to_packet(packet, PacketType::Update);
         sf::Time time = clock.restart();
         for(auto&& p : players) {
+            std::cout << "Updating " << p.first << std::endl;
             int power_up_id = 0;
             auto pu = map.is_on_power_up(p.second->actual_pos, power_up_id);
             if (pu != PowerUpType::NONE) {
@@ -207,6 +207,13 @@ void GameServer::game_notify_loop() {
         
         if (at_least_one && !end_notifier) {
             broadcast(packet);
+        }
+
+        // ais run in separate threads and aren't direct part
+        // of the client server architecture, therefore we
+        // treat them separately
+        for (auto&& ai : ais) {
+            ai.second->notify(packet);
         }
 
         if (players.size() == 1) {
@@ -260,5 +267,11 @@ GameServer::~GameServer() {
         std::cout << "SERVER : joined notifier!" << std::endl;
     } else {
         std::cout << "SERVER : notifier already joined!" << std::endl;
+    }
+    if (ai_thread.joinable()) {
+        ai_thread.join();
+        std::cout << "SERVER : joined ai_thread!" << std::endl;
+    } else {
+        std::cout << "SERVER : ai_thread already joined!" << std::endl;
     }
 }

@@ -57,5 +57,6 @@ public:
 };
 
 bool naive_bbox_intersect(const EntityCoords& c1, const EntityCoords& c2, float intersection_tolerance);
+std::pair<int, int> to_integral(const EntityCoords&);
 
 #endif
