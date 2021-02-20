@@ -248,6 +248,62 @@ bool GameServer::update_soft_blocks(sf::Packet& packet) {
     return result;
 }
 
+bool GameServer::update_player( const sf::Time& time
+                              , ServerPlayerEntity& player
+                              , sf::Packet& packet) {
+    bool result = false;
+    int power_up_id = 0;
+    auto pu = map.is_on_power_up(player.actual_pos, power_up_id);
+    if (pu != PowerUpType::NONE) {
+        result = true;
+        sf::Time duration = sf::seconds(10.f);
+        packet << sf::Int8(Network::Delimiter);
+        add_type_to_packet(packet, PacketType::ServerNotifyPowerUpDestroyed);
+        packet << sf::Int32(power_up_id);
+        packet << sf::Int8(static_cast<int>(pu));
+        packet << player.name;
+        if (pu == PowerUpType::REFLECT) {
+            for (auto&& victim : players) {
+                if (victim.first.compare(player.name) == 0) { continue; }
+                victim.second->apply_power_up(pu, duration);
+            }
+        } else {
+            player.apply_power_up(pu, duration);
+        }
+    }
+    player.update(time.asSeconds());
+    if (player.updated) {
+        result = true;
+        player.updated = false;
+        packet << sf::Int8(Network::Delimiter);
+        add_type_to_packet(packet, PacketType::ServerPlayerUpdate);
+        packet << player;
+    }
+    return result;
+}
+
+void GameServer::game_end_notify_loop( sf::Time& time
+                                     , sf::Clock& clock) {
+    using namespace std::chrono;
+    sf::Packet game_ending_packet;
+    add_type_to_packet(game_ending_packet, PacketType::ServerNotifyGameEnd);
+    game_ending_packet << players.begin()->second->name;
+    broadcast(game_ending_packet);
+    sf::Time till_end = time;
+    while ((time - till_end).asSeconds() <= 3.f) {
+        sf::Packet packet;
+        std::this_thread::sleep_for(100ms);
+        time += clock.restart();
+        add_type_to_packet(packet, PacketType::Update);
+        bool at_least_one = false;
+        at_least_one = update_bombs_explosions(time.asSeconds(), packet);
+        at_least_one = update_soft_blocks(packet) || at_least_one;
+        if (at_least_one) {
+            broadcast(packet);
+        }
+    }
+} 
+
 void GameServer::game_notify_loop() {
     using namespace std::chrono;
     sf::Clock clock;
@@ -259,32 +315,7 @@ void GameServer::game_notify_loop() {
         add_type_to_packet(packet, PacketType::Update);
         sf::Time time = clock.restart();
         for(auto&& p : players) {
-            int power_up_id = 0;
-            auto pu = map.is_on_power_up(p.second->actual_pos, power_up_id);
-            if (pu != PowerUpType::NONE) {
-                sf::Time duration = sf::seconds(10.f);
-                packet << sf::Int8(Network::Delimiter);
-                add_type_to_packet(packet, PacketType::ServerNotifyPowerUpDestroyed);
-                packet << sf::Int32(power_up_id);
-                packet << sf::Int8(static_cast<int>(pu));
-                packet << p.second->name;
-                if (pu == PowerUpType::REFLECT) {
-                    for (auto&& victim : players) {
-                        if (victim.first.compare(p.second->name) == 0) { continue; }
-                        victim.second->apply_power_up(pu, duration);
-                    }
-                } else {
-                    p.second->apply_power_up(pu, duration);
-                }
-            }
-            p.second->update(time.asSeconds());
-            if (p.second->updated) {
-                p.second->updated = false;
-                at_least_one = true;
-                packet << sf::Int8(Network::Delimiter);
-                add_type_to_packet(packet, PacketType::ServerPlayerUpdate);
-                packet << *p.second;
-            }
+            at_least_one = update_player(time, *p.second, packet) || at_least_one;
         }
         at_least_one = update_bombs_explosions(time.asSeconds(), packet) || at_least_one;
         at_least_one = update_players_damage(packet) || at_least_one;
@@ -301,25 +332,11 @@ void GameServer::game_notify_loop() {
             ai.second->notify(packet);
         }
 
+        // we are at the end of the game if only one player is left
         if (players.size() == 1) {
             std::cout << "SERVER : only one player left!" << std::endl;
-            sf::Packet game_ending_packet;
-            add_type_to_packet(game_ending_packet, PacketType::ServerNotifyGameEnd);
-            game_ending_packet << players.begin()->second->name;
-            broadcast(game_ending_packet);
+            game_end_notify_loop(time, clock);
             end_notifier = true;
-            sf::Time till_end = time;
-            while ((time - till_end).asSeconds() <= 3.f) {
-                sf::Packet ending_packet;
-                std::this_thread::sleep_for(100ms);
-                time += clock.restart();
-                add_type_to_packet(ending_packet, PacketType::Update);
-                at_least_one = false;
-                //at_least_one = bomb_manager.update(time, ending_packet);
-                if (at_least_one) {
-                    broadcast(ending_packet);
-                }
-            }
             break;
         }
     }

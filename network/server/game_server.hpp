@@ -34,6 +34,8 @@ protected:
     bool update_bombs_explosions(float dt, sf::Packet&);
     bool update_players_damage(sf::Packet&);
     bool update_soft_blocks(sf::Packet&);
+    bool update_player(const sf::Time&, ServerPlayerEntity&, sf::Packet&);
+    void game_end_notify_loop(sf::Time&, sf::Clock&);
     ServerState state;
 
     ServerPlayers players;
