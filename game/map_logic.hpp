@@ -59,6 +59,7 @@ public:
 
     Collision collision_checking(float move_factor, EntityCoords&, EntityDirection) const;
     void place_bomb(const EntityCoords&, PlayerEntity&);
+    void place_bomb(int coords);
     PowerUpType is_on_power_up(const EntityCoords&, int& power_up_id);
     int view(const EntityCoords&, EntityDirection) const;
 
@@ -67,6 +68,8 @@ public:
                , IDPosVector& erased_explosions
                , IDPosVector& new_bombs
                , IDPosTypeVector& new_explosions);
+
+    void update(float dt);
     bool check_damage(const PlayerEntity&);
     void check_soft_blocks(IDTypeVector& erased_soft_blocks);
 private:
@@ -78,6 +81,7 @@ private:
     ExplosionMap explosions;
     IDType general_ID;
     mutable RandomNumberBetween rnb;
+    PlayerEntity dummy_entity;
 };
 
 #endif

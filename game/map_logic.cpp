@@ -185,6 +185,12 @@ Collision GameMapLogic::collision_checking( float move_factor
 #define EXPLOSION_TIME 1.5f
 #define VIEW_EXPLOSION_TIME 0.5f
 
+void GameMapLogic::place_bomb(int coords) {
+    bombs.emplace(coords, BombEntity( EXPLOSION_TIME
+                                    , general_ID++
+                                    , dummy_entity));
+}
+
 void GameMapLogic::place_bomb(const EntityCoords& coords, PlayerEntity& entity) {
     auto new_coords = to_integral(coords);
     bombs.emplace(transform_to_int(new_coords), BombEntity( EXPLOSION_TIME
@@ -202,17 +208,45 @@ void GameMapLogic::update(float dt
         auto id = b.first;
         bomb.update(dt);
         if (bomb.is_new()) {
-            new_bombs.emplace_back(bomb.get_id(), b.first);
+            new_bombs.emplace_back(bomb.get_id(), id);
         }
         if (bomb.is_expired()) {
             bomb.player_entity.remove_deployed();
-            erased_bombs.emplace_back(bomb.get_id(), b.first);
-            for (auto&& exp : bomb.explode( b.first
+            erased_bombs.emplace_back(bomb.get_id(), id);
+            for (auto&& exp : bomb.explode( id
                                           , general_ID
                                           , *this
                                           , VIEW_EXPLOSION_TIME)) {
                 new_explosions.emplace_back(IDPos(exp.second.get_id(), exp.first)
                                            , exp.second.get_type());
+                explosions.emplace(std::move(exp));
+            }
+        }
+    }
+    for (auto&& e : explosions) {
+        e.second.update(dt);
+        if (e.second.is_expired()) {
+            erased_explosions.emplace_back(e.second.get_id(), e.first);
+        }
+    }
+    for (auto&& i : erased_explosions) {
+        explosions.erase(i.second);
+    }
+    for (auto&& i : erased_bombs) {
+        bombs.erase(i.second);
+    }
+}
+
+void GameMapLogic::update(float dt) {
+    IDPosVector erased_bombs, erased_explosions;
+    for (auto&& b : bombs) {
+        b.second.update(dt);
+        if (b.second.is_expired()) {
+            erased_bombs.emplace_back(b.second.get_id(), b.first);
+            for (auto&& exp : b.second.explode( b.first
+                                          , general_ID
+                                          , *this
+                                          , VIEW_EXPLOSION_TIME)) {
                 explosions.emplace(std::move(exp));
             }
         }
@@ -297,4 +331,5 @@ void GameMapLogic::initialize() {
 }
 
 GameMapLogic::GameMapLogic(): rnb(1, 12)
-                            , general_ID(std::numeric_limits<int>::min()) {}
+                            , general_ID(std::numeric_limits<int>::min())
+                            , dummy_entity("",EntityCoords(), EntityDirection::UP) {}

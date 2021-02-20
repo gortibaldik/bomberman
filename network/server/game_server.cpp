@@ -138,7 +138,8 @@ void GameServer::start_game() {
                                                             , EntityDirection::UP
                                                             , type
                                                             , player_lives
-                                                            , move_factor * 1.8f));
+                                                            , move_factor * 1.8f
+                                                            , map));
         ais.emplace(ai_name, dynamic_cast<AIEscaper*>(players.at(ai_name).get()));
         ai_thread = std::thread([player = ais.at(ai_name)](){ player->update_loop(); });
         p << sf::Int8(Network::Delimiter);
@@ -179,6 +180,10 @@ bool GameServer::update_bombs_explosions(float dt, sf::Packet& packet) {
         packet << sf::Int8(Network::Delimiter);
         add_type_to_packet(packet, PacketType::ServerNewBomb);
         add_id_pos_to_packet(packet, map, bomb);
+        // notify all the agents about the new bomb
+        for (auto&& ai : ais) {
+            ai.second->notify_new_bomb(bomb);
+        }
         result = true;
     }
     for (auto&& exp : new_explosions) {
@@ -209,14 +214,20 @@ bool GameServer::update_players_damage(sf::Packet& packet) {
     for (auto&& player: players) {
         if (!map.check_damage(*player.second)) { continue; }
         if (!player.second->is_attackable()) { continue; }
-        if (players.size() == 1) { continue; } /* someone must be the winner, 
-                                                * he shouldn't die 
-                                                */
+        /* someone must be the winner, 
+         * he shouldn't die 
+         */
+        if ((players.size() - to_erase.size()) == 1) { continue; } 
         result = true;
         if (player.second->lives == 1) {
             packet << sf::Int8(Network::Delimiter);
             add_type_to_packet(packet, PacketType::ServerNotifyPlayerDied);
             packet << player.first;
+            auto it = ais.find(player.first);
+            if (it != ais.end()) {
+                ais.at(player.first)->terminate();
+                ais.erase(player.first);
+            }
             to_erase.emplace_back(player.first);
         } else {
             player.second->lives--;
@@ -244,6 +255,9 @@ bool GameServer::update_soft_blocks(sf::Packet& packet) {
         add_type_to_packet(packet, PacketType::ServerNotifySoftBlockDestroyed);
         packet << sf::Int32(sb.first); /* identification of the soft block to erase on the client side */
         packet << sf::Int8(sb.second); /* type of the power up hidden behind the soft block (0 in case of none) */
+        for (auto&& ai : ais) {
+            ai.second->notify_sb_destroyed(sb.first);
+        }
     }
     return result;
 }
@@ -290,6 +304,9 @@ void GameServer::game_end_notify_loop( sf::Time& time
     game_ending_packet << players.begin()->second->name;
     broadcast(game_ending_packet);
     sf::Time till_end = time;
+    for (auto&& ai : ais) {
+        ai.second->terminate();
+    }
     while ((time - till_end).asSeconds() <= 3.f) {
         sf::Packet packet;
         std::this_thread::sleep_for(100ms);
@@ -323,13 +340,6 @@ void GameServer::game_notify_loop() {
         
         if (at_least_one && !end_notifier) {
             broadcast(packet);
-        }
-
-        // ais run in separate threads and aren't direct part
-        // of the client server architecture, therefore we
-        // treat them separately
-        for (auto&& ai : ais) {
-            ai.second->notify(packet);
         }
 
         // we are at the end of the game if only one player is left

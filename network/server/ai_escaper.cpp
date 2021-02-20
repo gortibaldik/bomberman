@@ -17,9 +17,21 @@ bool is_in(T value, std::vector<T> vct) {
     return false;
 }
 
-void AIEscaper::update_loop() {}
+void AIEscaper::update_loop() {
+    while (is_running) {}
+}
 
-void AIEscaper::notify(sf::Packet& packet) {}
+void AIEscaper::BFS() {
+    
+}
+
+void AIEscaper::notify_new_bomb(const IDPos& idp) {
+    map.place_bomb(idp.second);
+}
+
+void AIEscaper::notify_sb_destroyed(int i) {
+    map.erase_soft_block(i);
+}
 
 void AIEscaper::update(float dt) {
     ServerPlayerEntity::update(dt);
