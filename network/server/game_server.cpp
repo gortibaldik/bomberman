@@ -6,8 +6,7 @@
 
 GameServer::GameServer(const std::string& name_of_map)
                       : state(ServerState::WAITING_ROOM)
-                      , map()
-                      , bomb_manager(map) {
+                      , map() {
     try {
         map.load_from_config(name_of_map);
         max_clients = static_cast<int>(map.get_max_players());
@@ -94,7 +93,7 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
                     return;
                 }
                 p->deploy();
-                bomb_manager.create_bomb(p->actual_pos, *p);
+                map.place_bomb(p->actual_pos, *p);
             }
 
         }
@@ -162,6 +161,93 @@ void GameServer::start_game() {
     notifier = std::thread([this]() { game_notify_loop(); });
 }
 
+static void add_id_pos_to_packet( sf::Packet& packet
+                                , const GameMapLogic& map
+                                , const IDPos& idp) {
+    packet << sf::Int32(idp.first); /* id */
+    auto coords = map.transform_to_coords(idp.second);
+    packet << static_cast<float>(coords.first); /* pos.row */
+    packet << static_cast<float>(coords.second); /* pos.col */
+}
+
+bool GameServer::update_bombs_explosions(float dt, sf::Packet& packet) {
+    IDPosVector erased_bombs, erased_explosions, new_bombs;
+    IDPosTypeVector new_explosions;
+    map.update(dt, erased_bombs, erased_explosions, new_bombs, new_explosions);
+    bool result;
+    for (auto&& bomb : new_bombs) {
+        packet << sf::Int8(Network::Delimiter);
+        add_type_to_packet(packet, PacketType::ServerNewBomb);
+        add_id_pos_to_packet(packet, map, bomb);
+        result = true;
+    }
+    for (auto&& exp : new_explosions) {
+        packet << sf::Int8(Network::Delimiter);
+        add_type_to_packet(packet, PacketType::ServerCreateExplosion);
+        packet << sf::Int8(exp.second); /* add type of explosion to the packet */
+        add_id_pos_to_packet(packet, map, exp.first);
+        result = true;
+    }
+    for (auto&& bomb : erased_bombs) {
+        packet << sf::Int8(Network::Delimiter);
+        add_type_to_packet(packet, PacketType::ServerEraseBomb);
+        packet << sf::Int32(bomb.first); /* ID of the erased bomb */
+        result = true;
+    }
+    for (auto&& exp : erased_explosions) {
+        packet << sf::Int8(Network::Delimiter);
+        add_type_to_packet(packet, PacketType::ServerEraseExplosion);
+        packet << sf::Int32(exp.first); /* ID of the erased explosion */
+        result = true;
+    }
+    return result;
+}
+
+bool GameServer::update_players_damage(sf::Packet& packet) {
+    bool result = false;
+    std::vector<std::string> to_erase;
+    for (auto&& player: players) {
+        if (!map.check_damage(*player.second)) { continue; }
+        if (!player.second->is_attackable()) { continue; }
+        if (players.size() == 1) { continue; } /* someone must be the winner, 
+                                                * he shouldn't die 
+                                                */
+        result = true;
+        if (player.second->lives == 1) {
+            packet << sf::Int8(Network::Delimiter);
+            add_type_to_packet(packet, PacketType::ServerNotifyPlayerDied);
+            packet << player.first;
+            to_erase.emplace_back(player.first);
+        } else {
+            player.second->lives--;
+            player.second->respawn();
+            player.second->actual_pos = player.second->spawn_pos;
+            player.second->direction = EntityDirection::UP;
+            packet << sf::Int8(Network::Delimiter);
+            add_type_to_packet(packet, PacketType::SpawnPosition);
+            packet << *player.second;
+        }
+    }
+    for (auto&& str : to_erase) {
+        players.erase(str);
+    }
+    return result;
+}
+
+bool GameServer::update_soft_blocks(sf::Packet& packet) {
+    bool result = false;
+    IDTypeVector erased_soft_blocks;
+    map.check_soft_blocks(erased_soft_blocks);
+    for (auto&& sb : erased_soft_blocks) {
+        result = true;
+        packet << sf::Int8(Network::Delimiter);
+        add_type_to_packet(packet, PacketType::ServerNotifySoftBlockDestroyed);
+        packet << sf::Int32(sb.first); /* identification of the soft block to erase on the client side */
+        packet << sf::Int8(sb.second); /* type of the power up hidden behind the soft block (0 in case of none) */
+    }
+    return result;
+}
+
 void GameServer::game_notify_loop() {
     using namespace std::chrono;
     sf::Clock clock;
@@ -173,7 +259,6 @@ void GameServer::game_notify_loop() {
         add_type_to_packet(packet, PacketType::Update);
         sf::Time time = clock.restart();
         for(auto&& p : players) {
-            std::cout << "Updating " << p.first << std::endl;
             int power_up_id = 0;
             auto pu = map.is_on_power_up(p.second->actual_pos, power_up_id);
             if (pu != PowerUpType::NONE) {
@@ -201,9 +286,9 @@ void GameServer::game_notify_loop() {
                 packet << *p.second;
             }
         }
-        at_least_one = bomb_manager.update(time, packet) || at_least_one;
-        at_least_one = bomb_manager.check_damage(players, packet) || at_least_one;
-        
+        at_least_one = update_bombs_explosions(time.asSeconds(), packet) || at_least_one;
+        at_least_one = update_players_damage(packet) || at_least_one;
+        at_least_one = update_soft_blocks(packet) || at_least_one;
         
         if (at_least_one && !end_notifier) {
             broadcast(packet);
@@ -229,7 +314,8 @@ void GameServer::game_notify_loop() {
                 std::this_thread::sleep_for(100ms);
                 time += clock.restart();
                 add_type_to_packet(ending_packet, PacketType::Update);
-                at_least_one = bomb_manager.update(time, ending_packet);
+                at_least_one = false;
+                //at_least_one = bomb_manager.update(time, ending_packet);
                 if (at_least_one) {
                     broadcast(ending_packet);
                 }

@@ -1,6 +1,7 @@
 #include "map_logic.hpp"
 #include <stdexcept>
 #include <iostream>
+#include <limits>
 
 std::tuple<int, int, int> GameMapLogic::get_spawn_pos() {
     auto tpl = std::move(spawn_positions.back());
@@ -11,10 +12,14 @@ std::tuple<int, int, int> GameMapLogic::get_spawn_pos() {
 // probability of soft box is PROB_SOFT / 12.f
 #define PROB_SOFT 8
 
-void GameMapLogic::process_loaded(const std::string& token, const std::string& animation,
-                                       const std::string& type, int row, int column) {
+void GameMapLogic::process_loaded( const std::string& token
+                                 , const std::string& animation
+                                 , const std::string& type
+                                 , int row
+                                 , int column) {
     TilesTypes t;
     bool is_soft_block = false;
+
     if (type.compare("NON_WALKABLE") == 0) {
         t = TilesTypes::NON_WALKABLE;
     } else if (type.compare("FREE") == 0) {
@@ -177,6 +182,88 @@ Collision GameMapLogic::collision_checking( float move_factor
     return Collision::NONE;
 }
 
+#define EXPLOSION_TIME 1.5f
+#define VIEW_EXPLOSION_TIME 0.5f
+
+void GameMapLogic::place_bomb(const EntityCoords& coords, PlayerEntity& entity) {
+    auto new_coords = to_integral(coords);
+    bombs.emplace(transform_to_int(new_coords), BombEntity( EXPLOSION_TIME
+                                                          , general_ID++
+                                                          , entity));
+}
+
+void GameMapLogic::update(float dt
+                         , IDPosVector& erased_bombs
+                         , IDPosVector& erased_explosions
+                         , IDPosVector& new_bombs
+                         , IDPosTypeVector& new_explosions) {
+    for (auto&& b : bombs) {
+        auto&& bomb = b.second;
+        auto id = b.first;
+        bomb.update(dt);
+        if (bomb.is_new()) {
+            new_bombs.emplace_back(bomb.get_id(), b.first);
+        }
+        if (bomb.is_expired()) {
+            bomb.player_entity.remove_deployed();
+            erased_bombs.emplace_back(bomb.get_id(), b.first);
+            for (auto&& exp : bomb.explode( b.first
+                                          , general_ID
+                                          , *this
+                                          , VIEW_EXPLOSION_TIME)) {
+                new_explosions.emplace_back(IDPos(exp.second.get_id(), exp.first)
+                                           , exp.second.get_type());
+                explosions.emplace(std::move(exp));
+            }
+        }
+    }
+    for (auto&& e : explosions) {
+        e.second.update(dt);
+        if (e.second.is_expired()) {
+            erased_explosions.emplace_back(e.second.get_id(), e.first);
+        }
+    }
+    for (auto&& i : erased_explosions) {
+        explosions.erase(i.second);
+    }
+    for (auto&& i : erased_bombs) {
+        bombs.erase(i.second);
+    }
+}
+
+bool GameMapLogic::check_damage( const PlayerEntity& player) {
+    static const float intersection_tolerance = 0.3f;
+    for (auto&& exp : explosions) {
+        auto exp_coords = transform_to_coords(exp.first);
+        if (naive_bbox_intersect( player.actual_pos
+                                , exp_coords
+                                , intersection_tolerance)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void GameMapLogic::check_soft_blocks( IDTypeVector& erased_soft_blocks) {
+    for ( auto&& exp : explosions) {
+        auto exp_coords = transform_to_coords(exp.first);
+        int i = -1;
+        for (auto&& exists : soft_blocks) {
+            i++;
+            if (!exists) { continue; }
+            auto soft_block_coords = transform_to_coords(i);
+            if (soft_block_coords == exp_coords) {
+                auto type = erase_soft_block(i);
+                erased_soft_blocks.emplace_back(i, type);
+            }
+        }
+    }
+}
+
+/* Check if coords are the same as power up coords
+ * if yes erase the power up from the map
+ * @return PowerUpType which is at the position of PowerUpType::NONE in the respective case
+ */
 PowerUpType GameMapLogic::is_on_power_up(const EntityCoords& coords, int& power_up_id) {
     static const float tolerance = 0.4f;
     for (auto&& pu : power_ups) {
@@ -198,7 +285,6 @@ int GameMapLogic::erase_soft_block(int i) {
     soft_blocks[i] = false;
     if (power_ups.find(i) != power_ups.end()) {
         auto pu = static_cast<int>(power_ups.at(i));
-        std::cout << "SERVER : power up " << pu << " found!" << std::endl;
         return pu;
     }
     return 0;
@@ -210,4 +296,5 @@ void GameMapLogic::initialize() {
     spawn_positions.clear();
 }
 
-GameMapLogic::GameMapLogic(): rnb(1, 12) {}
+GameMapLogic::GameMapLogic(): rnb(1, 12)
+                            , general_ID(std::numeric_limits<int>::min()) {}

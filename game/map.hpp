@@ -10,7 +10,8 @@ public:
     virtual void process_loaded(const std::string& token, const std::string& animation,
                                 const std::string& type, int row, int column) = 0;
     virtual void initialize() = 0;
-    std::pair<int, int> transform_to_coords(int);
+    int transform_to_int(const std::pair<int, int>&) const;
+    std::pair<int, int> transform_to_coords(int) const;
     const std::string& get_name() const { return name; }
     int get_rows() const { return rows; }
     int get_columns() const { return columns; }

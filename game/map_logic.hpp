@@ -22,6 +22,13 @@ enum class Collision {
 using LogicMap = std::vector<TilesTypes>;
 using SoftBlockMap = std::vector<bool>;
 using PowerUpMap = std::unordered_map<int, PowerUpType>;
+using BombMap = std::unordered_multimap<int, BombEntity>;
+using ExplosionMap = std::unordered_multimap<int, ExplosionEntity>;
+using IDPos = std::pair<IDType, int>;
+using IDPosVector = std::vector<IDPos>;
+using IDPosTypeVector = std::vector<std::pair<IDPos, ExplosionType>>;
+using IDTypeVector = std::vector<std::pair<IDType, int>>;
+using IDVector = std::vector<IDType>;
 
 // code from https://www.fluentcpp.com/2019/05/24/how-to-fill-a-cpp-collection-with-random-values/
 class RandomNumberBetween {
@@ -51,13 +58,25 @@ public:
     int erase_soft_block(int);
 
     Collision collision_checking(float move_factor, EntityCoords&, EntityDirection) const;
+    void place_bomb(const EntityCoords&, PlayerEntity&);
     PowerUpType is_on_power_up(const EntityCoords&, int& power_up_id);
     int view(const EntityCoords&, EntityDirection) const;
+
+    void update( float dt
+               , IDPosVector& erased_bombs
+               , IDPosVector& erased_explosions
+               , IDPosVector& new_bombs
+               , IDPosTypeVector& new_explosions);
+    bool check_damage(const PlayerEntity&);
+    void check_soft_blocks(IDTypeVector& erased_soft_blocks);
 private:
     std::vector<std::tuple<int, int, int>> spawn_positions;
     LogicMap tiles;
     SoftBlockMap soft_blocks;
     PowerUpMap power_ups;
+    BombMap bombs;
+    ExplosionMap explosions;
+    IDType general_ID;
     mutable RandomNumberBetween rnb;
 };
 

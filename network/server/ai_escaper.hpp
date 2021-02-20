@@ -2,7 +2,6 @@
 #define GAME_AI_ENTITY_ESCAPER_HPP
 
 #include "server_entity.hpp"
-#include "bomb_manager.hpp"
 
 // The basic AI, doesn't want to die
 class AIEscaper: public ServerPlayerEntity {

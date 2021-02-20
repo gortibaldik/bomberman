@@ -113,7 +113,7 @@ ClientExplosionEntity ClientExplosionEntity::extract_from_packet(const TextureMa
     sf::Int32 id = 0;
     sf::Int8 type = 0;
     float f = 0.f, s = 0.f;
-    packet >> id >> type >> f >> s;
+    packet >> type >> id >> f >> s;
     auto cee = ClientExplosionEntity(tm, exp_to_str.at(static_cast<ExplosionType>(type)), id);
     cee.actual_pos = EntityCoords(f, s);
     return cee;

@@ -78,9 +78,13 @@ void GameMap::generate_config(const std::string& file_name, int rows, int column
     }
 }
 
-std::pair<int, int> GameMap::transform_to_coords(int i) {
+std::pair<int, int> GameMap::transform_to_coords(int i) const {
     std::pair<int, int> result;
     result.first = i / columns;
     result.second = i % columns;
     return result;
+}
+
+int GameMap::transform_to_int(const std::pair<int, int>& coords) const {
+    return coords.first * columns + coords.second;
 }

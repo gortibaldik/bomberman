@@ -73,11 +73,11 @@ void GameClient::create_bomb(sf::Packet& packet) {
 }
 
 void GameClient::erase_bomb(sf::Packet& packet) {
-    ClientBombEntity cbe(tm);
-    packet >> cbe;
-    auto it = bombs.find(cbe.ID);
+    sf::Int32 bomb_ID;
+    packet >> bomb_ID;
+    auto it = bombs.find(bomb_ID);
     if (it != bombs.end()) {
-        bombs.erase(cbe.ID);
+        bombs.erase(bomb_ID);
     }
 }
 
@@ -91,10 +91,11 @@ void GameClient::create_explosion(sf::Packet& packet) {
 }
 
 void GameClient::erase_explosion(sf::Packet& packet) {
-    auto cee = ClientExplosionEntity::extract_from_packet(tm, packet);
-    auto it = explosions.find(cee.ID);
+    sf::Int32 exp_ID;
+    packet >> exp_ID;
+    auto it = explosions.find(exp_ID);
     if (it != explosions.end()) {
-        explosions.erase(cee.ID);
+        explosions.erase(exp_ID);
     }
 }
 
