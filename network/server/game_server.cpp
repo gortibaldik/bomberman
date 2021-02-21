@@ -202,7 +202,7 @@ bool GameServer::update_players_damage(sf::Packet& packet) {
     bool result = false;
     std::vector<std::string> to_erase;
     for (auto&& player: players) {
-        if (!map.check_damage(*player.second)) { continue; }
+        if (!map.check_damage(player.second->actual_pos)) { continue; }
         if (!player.second->is_attackable()) { continue; }
         /* someone must be the winner, 
          * he shouldn't die 
@@ -222,8 +222,6 @@ bool GameServer::update_players_damage(sf::Packet& packet) {
         } else {
             player.second->lives--;
             player.second->respawn();
-            player.second->actual_pos = player.second->spawn_pos;
-            player.second->direction = EntityDirection::UP;
             packet << sf::Int8(Network::Delimiter);
             add_type_to_packet(packet, PacketType::SpawnPosition);
             packet << *player.second;

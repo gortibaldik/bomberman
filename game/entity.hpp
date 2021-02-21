@@ -47,6 +47,7 @@ public:
 
 void go(EntityCoords&, EntityDirection, float move_factor);
 EntityDirection opposite(EntityDirection dir);
+std::string to_string(EntityDirection dir);
 
 class PlayerEntity: public Entity {
 public:

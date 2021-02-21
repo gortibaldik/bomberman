@@ -61,7 +61,6 @@ public:
     void place_bomb(const EntityCoords&, PlayerEntity&);
     void place_bomb(int coords);
     PowerUpType is_on_power_up(const EntityCoords&, int& power_up_id);
-    int view(const EntityCoords&, EntityDirection) const;
 
     void update( float dt
                , IDPosVector& erased_bombs
@@ -70,7 +69,7 @@ public:
                , IDPosTypeVector& new_explosions);
 
     void update(float dt);
-    bool check_damage(const PlayerEntity&);
+    bool check_damage(const EntityCoords&);
     void check_soft_blocks(IDTypeVector& erased_soft_blocks);
 private:
     std::vector<std::tuple<int, int, int>> spawn_positions;

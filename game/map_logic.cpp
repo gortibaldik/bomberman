@@ -82,19 +82,6 @@ static bool try_correct(int free, float& me) {
     return false;
 }
 
-int GameMapLogic::view(const EntityCoords& coords, EntityDirection direction) const {
-    int result = 0;
-    auto c = coords;
-    for (;;result++) {
-        if (collision_checking(1.f, c, direction) != Collision::NONE) {
-            break;
-        } else {
-            go(c, direction, 1.f);
-        }
-    }
-    return result;
-}
-
 template<typename T>
 static T unsafe_get(std::vector<T>& map, int row, int column, int columns) {
     return map.at(static_cast<long>(row)*columns + column);
@@ -115,8 +102,6 @@ static bool col_checking(const GameMapLogic& map, std::vector<T> to_check, T val
     int flr_row = static_cast<int>(floorf(coords.first));
     int flr_col = static_cast<int>(floorf(coords.second));
     bool check_f = false, check_c = false;
-    float mid_row = (ceil_row + flr_row) / 2.f;
-    float mid_col = (ceil_col + flr_col) / 2.f;
     if ( (flr_row < 0) || (flr_col < 0) || (ceil_row >= map.get_rows()) || (ceil_col >= map.get_columns())) {
         throw std::runtime_error("Invalid index to map: (" + std::to_string(coords.first) + "," + std::to_string(coords.second) + ")");
     }
@@ -265,11 +250,11 @@ void GameMapLogic::update(float dt) {
     }
 }
 
-bool GameMapLogic::check_damage( const PlayerEntity& player) {
+bool GameMapLogic::check_damage( const EntityCoords& pos) {
     static const float intersection_tolerance = 0.3f;
     for (auto&& exp : explosions) {
         auto exp_coords = transform_to_coords(exp.first);
-        if (naive_bbox_intersect( player.actual_pos
+        if (naive_bbox_intersect( pos
                                 , exp_coords
                                 , intersection_tolerance)) {
             return true;
@@ -332,4 +317,4 @@ void GameMapLogic::initialize() {
 
 GameMapLogic::GameMapLogic(): rnb(1, 12)
                             , general_ID(std::numeric_limits<int>::min())
-                            , dummy_entity("",EntityCoords(), EntityDirection::UP) {}
+                            , dummy_entity("", EntityCoords(), EntityDirection::UP) {}

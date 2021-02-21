@@ -33,6 +33,20 @@ EntityDirection opposite(EntityDirection direction) {
     return direction;
 }
 
+std::string to_string(EntityDirection direction) {
+    switch (direction) {
+    case EntityDirection::UP:
+        return "EntityDirection::UP";
+    case EntityDirection::DOWN:
+         return "EntityDirection::DOWN";
+    case EntityDirection::RIGHT:
+        return "EntityDirection::RIGHT";
+    case EntityDirection::LEFT:
+        return "EntityDirection::LEFT";
+    }
+    return "";
+}
+
 /* Naive, because of the assumption, that both c1 and c2 are coordinates
  *  of top left corner of a square with a side of length 1
  * 

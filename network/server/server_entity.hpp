@@ -7,6 +7,7 @@
 #include <vector>
 #include <deque>
 #include <memory>
+#include <atomic>
 #include <iostream>
 
 #define SPAWN_PROTECTION 2.f
@@ -37,9 +38,9 @@ public:
     virtual ~ServerPlayerEntity() = default;
     virtual void update(float dt);
     bool is_attackable() { return spawn_protection == 0.f; }
-    void respawn() { spawn_protection = SPAWN_PROTECTION; }
-    void update_pos_dir(EntityCoords&&, EntityDirection);
-    void apply_power_up(PowerUpType, const sf::Time&);
+    virtual void respawn();
+    virtual void update_pos_dir(EntityCoords&&, EntityDirection);
+    virtual void apply_power_up(PowerUpType, const sf::Time&);
 };
 
 sf::Packet& operator <<(sf::Packet&, const ServerPlayerEntity&);

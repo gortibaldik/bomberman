@@ -4,6 +4,7 @@
 #include "server_entity.hpp"
 #include "game/map_logic.hpp"
 #include <atomic>
+#include <mutex>
 
 // The basic AI, doesn't want to die
 class AIEscaper: public ServerPlayerEntity {
@@ -23,7 +24,11 @@ public:
                                  , type
                                  , lives
                                  , move_factor)
-             , map(map) {}
+             , map(map)
+             , next_move(EntityDirection::UP) {}
+    void respawn() override ;
+    void update_pos_dir(EntityCoords&&, EntityDirection) override ;
+    void apply_power_up(PowerUpType, const sf::Time&) override ;
     void update_loop();
     void notify_new_bomb(const IDPos&);
     void notify_sb_destroyed(int i);
@@ -32,8 +37,11 @@ public:
     float review_time = 0.f;
 private:
     void BFS();
+    EntityDirection next_move;
     GameMapLogic map;
     std::atomic<bool> is_running = true;
+    std::atomic<bool> new_pos_calculated = false;
+    std::mutex resources_mutex;
 };
 
 #endif

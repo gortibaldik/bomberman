@@ -45,6 +45,12 @@ void ServerPlayerEntity::update(float dt) {
     }
 }
 
+void ServerPlayerEntity::respawn() {
+    spawn_protection = SPAWN_PROTECTION;
+    actual_pos = spawn_pos;
+    direction = EntityDirection::UP;
+}
+
 void ServerPlayerEntity::apply_power_up(PowerUpType pu, const sf::Time& duration) {
     switch (pu) {
     case PowerUpType::FASTER:
