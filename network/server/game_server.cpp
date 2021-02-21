@@ -58,28 +58,18 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
                 if (it == players.end()) { return; }
                 auto&& p = it->second;
                 sf::Int8 dir = 0, row = 0, col = 0;
-                if(!(packet >> row >> col >> dir) ){
+                if(!(packet >> dir) ){
                     std::cout << "Invalid packet!" << std::endl;
                     return;
                 }
-                auto d = static_cast<EntityDirection>(dir);
+                auto direction = static_cast<EntityDirection>(dir);
                 if (p->reflect) {
-                    row *= -1;
-                    col *= -1;
-                    switch (d) {
-                    case EntityDirection::UP:
-                        d = EntityDirection::DOWN; break;
-                    case EntityDirection::DOWN:
-                        d = EntityDirection::UP; break;
-                    case EntityDirection::RIGHT:
-                        d = EntityDirection::LEFT; break;
-                    case EntityDirection::LEFT:
-                        d = EntityDirection::RIGHT; break;
-                    }
+                    direction = opposite(direction);
                 }
-                EntityCoords coords(row*p->move_factor+p->actual_pos.first, col*p->move_factor+p->actual_pos.second);
-                map.collision_checking(p->move_factor, coords, d);
-                p->update_pos_dir(std::move(coords), d);
+                EntityCoords next_position = p->actual_pos;
+                go(next_position,direction, p->move_factor);
+                map.collision_checking(p->move_factor, next_position, direction);
+                p->update_pos_dir(std::move(next_position), direction);
                 p->updated = true;
             }
             break;
@@ -374,6 +364,9 @@ void GameServer::notify_disconnect(const std::string& client_name) {
 }
 
 GameServer::~GameServer() {
+    for (auto&& ai : ais) {
+        ai.second->terminate();
+    }
     if (notifier.joinable()) {
         end_notifier = true;
         notifier.join();

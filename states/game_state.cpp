@@ -52,28 +52,26 @@ static float client_update_constant = 0.05f;
 using Coords = std::pair<int, int>;
 
 bool GameState::check_move(sf::Packet& packet) {
-    using coords_dir = std::pair<Coords, EntityDirection>;
-    static const std::unordered_map<sf::Keyboard::Key, coords_dir> key_to_dir =
-        { {sf::Keyboard::Left, {Coords(0,-1), EntityDirection::LEFT}},
-          {sf::Keyboard::Right, {Coords(0,1), EntityDirection::RIGHT}},
-          {sf::Keyboard::Up, {Coords(-1,0), EntityDirection::UP}},
-          {sf::Keyboard::Down, {Coords(1,0), EntityDirection::DOWN}} };
+    static const std::unordered_map<sf::Keyboard::Key, EntityDirection> key_to_dir =
+        { {sf::Keyboard::Left,  EntityDirection::LEFT},
+          {sf::Keyboard::Right, EntityDirection::RIGHT},
+          {sf::Keyboard::Up,    EntityDirection::UP},
+          {sf::Keyboard::Down,  EntityDirection::DOWN}};
 
-    Coords c(0,0);
+    bool moved = false;
     auto d = client->me->direction;
     
     for (auto&& key : key_to_dir) {
         if (sf::Keyboard::isKeyPressed(key.first)) {
-            c.first += key.second.first.first;
-            c.second += key.second.first.second;
-            d = key.second.second;
+            d = key.second;
+            moved = true;
             break;
         }
     }
-    if (c != Coords(0,0)) {
+    if (moved) {
         packet << sf::Int8(Network::Delimiter);
         add_type_to_packet(packet, PacketType::ClientMove);
-        packet << sf::Int8(c.first) << sf::Int8(c.second) << sf::Int8(d);
+        packet << sf::Int8(d);
         can_deploy = true;
         return true;
     }

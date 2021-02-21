@@ -46,6 +46,7 @@ public:
 };
 
 void go(EntityCoords&, EntityDirection, float move_factor);
+EntityDirection opposite(EntityDirection dir);
 
 class PlayerEntity: public Entity {
 public:

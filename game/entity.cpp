@@ -19,6 +19,20 @@ void go(EntityCoords& coords, EntityDirection direction, float move_factor) {
     }
 }
 
+EntityDirection opposite(EntityDirection direction) {
+    switch (direction) {
+    case EntityDirection::UP:
+         return EntityDirection::DOWN;
+    case EntityDirection::DOWN:
+        return EntityDirection::UP;
+    case EntityDirection::RIGHT:
+        return EntityDirection::LEFT;
+    case EntityDirection::LEFT:
+        return EntityDirection::RIGHT;
+    }
+    return direction;
+}
+
 /* Naive, because of the assumption, that both c1 and c2 are coordinates
  *  of top left corner of a square with a side of length 1
  * 
