@@ -70,7 +70,7 @@ public:
 
     void update(float dt);
     bool check_damage(const EntityCoords&);
-    void check_soft_blocks(IDTypeVector& erased_soft_blocks);
+    IDTypeVector check_soft_blocks();
 private:
     std::vector<std::tuple<int, int, int>> spawn_positions;
     LogicMap tiles;

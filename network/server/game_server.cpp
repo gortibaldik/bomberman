@@ -235,9 +235,7 @@ bool GameServer::update_players_damage(sf::Packet& packet) {
 
 bool GameServer::update_soft_blocks(sf::Packet& packet) {
     bool result = false;
-    IDTypeVector erased_soft_blocks;
-    map.check_soft_blocks(erased_soft_blocks);
-    for (auto&& sb : erased_soft_blocks) {
+    for (auto&& sb : map.check_soft_blocks()) {
         result = true;
         packet << sf::Int8(Network::Delimiter);
         add_type_to_packet(packet, PacketType::ServerNotifySoftBlockDestroyed);

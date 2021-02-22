@@ -263,7 +263,8 @@ bool GameMapLogic::check_damage( const EntityCoords& pos) {
     return false;
 }
 
-void GameMapLogic::check_soft_blocks( IDTypeVector& erased_soft_blocks) {
+IDTypeVector GameMapLogic::check_soft_blocks() {
+    IDTypeVector erased_soft_blocks;
     for ( auto&& exp : explosions) {
         auto exp_coords = transform_to_coords(exp.first);
         int i = -1;
@@ -277,6 +278,7 @@ void GameMapLogic::check_soft_blocks( IDTypeVector& erased_soft_blocks) {
             }
         }
     }
+    return erased_soft_blocks;
 }
 
 /* Check if coords are the same as power up coords

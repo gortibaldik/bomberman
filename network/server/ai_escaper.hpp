@@ -5,6 +5,7 @@
 #include "game/map_logic.hpp"
 #include <atomic>
 #include <mutex>
+#include <condition_variable>
 
 // The basic AI, doesn't want to die
 class AIEscaper: public ServerPlayerEntity {
@@ -26,6 +27,7 @@ public:
                                  , move_factor)
              , map(map)
              , next_move(EntityDirection::UP) {}
+    ~AIEscaper();
     void respawn() override ;
     void update_pos_dir(EntityCoords&&, EntityDirection) override ;
     void apply_power_up(PowerUpType, const sf::Time&) override ;
@@ -41,7 +43,8 @@ private:
     GameMapLogic map;
     std::atomic<bool> is_running = true;
     std::atomic<bool> new_pos_calculated = false;
-    std::mutex resources_mutex;
+    std::mutex resources_mutex, cond_mutex;
+    std::condition_variable cond;
 };
 
 #endif

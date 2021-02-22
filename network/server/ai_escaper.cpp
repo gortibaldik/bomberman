@@ -23,43 +23,45 @@ bool is_in(T value, std::vector<T> vct) {
 }
 
 void AIEscaper::update_loop() {
-    while (is_running) {
-        if (!new_pos_calculated) {
+    for(;;) {
+        std::unique_lock<std::mutex> l(cond_mutex);
+        cond.wait(l);
+        if (is_running && !new_pos_calculated) {
             BFS();
+        } else if (!is_running) {
+            break;
         }
     }
 }
 
 struct SGDTuple {
     GameMapLogic map;
-    int score = 0;
-    int depth = 0;
+    int score;
+    int depth;
     EntityCoords pos;
     EntityDirection dir;
-    int predecessor_index = -1;
+    int predecessor_index;
     SGDTuple(GameMapLogic map
             , int score
             , int depth
             , const EntityCoords& pos
-            , EntityDirection dir)
+            , EntityDirection dir
+            , int predecessor_index)
             : map(map)
             , score(score)
             , depth(depth)
             , pos(pos)
-            , dir(dir) {}
-    void add_predecessor(int index) {
-        predecessor_index = index;
-    }
+            , dir(dir)
+            , predecessor_index(predecessor_index) {}
     bool operator < (const SGDTuple& right) const { 
         return score < right.score;
     }
 };
 
-#define DEPTH 15
+#define DEPTH 20
 #define THREADS 3
 #define PENALTY_MOVE (-10)
 #define REWARD_KEEP_DIRECTION (+30)
-#define PENALTY_BOMB (-400000000)
 static const std::vector<EntityDirection> possible_moves = {
     EntityDirection::UP,
     EntityDirection::DOWN,
@@ -81,26 +83,45 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
                        , float move_factor
                        , std::atomic<bool>& terminate
                        , std::atomic<int>& running_threads) {
-    SGDTuple last(GameMapLogic(), 0, 0, EntityCoords(), EntityDirection::STATIC);
+    sf::Clock clock;
+    SGDTuple last(GameMapLogic(), 0, 0, EntityCoords(), EntityDirection::STATIC, -1);
+    int index = -1;
+    int last_index = -1;
     while (!terminate) {
         {
             std::unique_lock<std::mutex> l(solution_m);
-            if (index_of_solution > 0) {
+            // the default of index_of_solution is -1
+            // index_of_solution is set if a solution is found
+            // then we want to exit from all of the threads
+            if (index_of_solution >= 0) {
+                break;
+            }
+            // we prun all the computations that exceed the limit
+            // of 0.1f per step
+            if (clock.getElapsedTime().asSeconds() >= 0.09f) {
+                index_of_solution = (last_index >= 0) ? last_index : 0;
                 break;
             }
         }
         {
             std::unique_lock<std::mutex> l(q_m);
+            // to enable greater parellelism we wait if there isn't anything
+            // in the queue and it hasn't passed more than a half of the described
+            // computation time
             if (q.empty()) {
-                break;
+                if (clock.getElapsedTime().asSeconds() >= 0.05f) {
+                    break;
+                } else {
+                    continue;
+                }
             }
             last = std::move(const_cast<SGDTuple&>(q.top()));
             q.pop();
         }
-        int index = -1;
         {
             std::unique_lock<std::mutex> predecessors_lock(predecessors_m);
             predecessors.push_back(last);
+            last_index = index;
             index = predecessors.size() - 1;
         }
         // if ai dies in the move, we don't consider the move at all
@@ -121,26 +142,16 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
                 continue;
             }
             if (last.map.collision_checking(move_factor, position, direction) == Collision::NONE) {
-                auto next = SGDTuple(last.map, last.score + PENALTY_MOVE, last.depth + 1, position, direction);
                 explored.emplace(position);
                 explored_lock.unlock();
-                next.add_predecessor(index);
+                float penalty = PENALTY_MOVE;
+                if (static_cast<int>(last.dir) == static_cast<int>(direction)) {
+                    penalty = REWARD_KEEP_DIRECTION;
+                }
                 {
                     std::unique_lock<std::mutex> l(q_m);
-                    q.emplace(std::move(next));
+                    q.emplace(SGDTuple(last.map, last.score + penalty, last.depth + 1, position, direction, index));
                 }
-            }
-        }
-        {
-            std::unique_lock<std::mutex> bombs_lock(placed_bombs_m);
-            if (placed_bombs.find(last.pos) == placed_bombs.end()) {
-                placed_bombs.emplace(last.pos);
-                bombs_lock.unlock();
-                last.map.place_bomb(last.map.transform_to_int(last.pos));
-                auto next = SGDTuple(last.map, last.score + PENALTY_BOMB, last.depth + 1, last.pos, EntityDirection::STATIC);
-                
-                std::unique_lock<std::mutex> l(q_m);
-                q.emplace(std::move(next));
             }
         }
     }
@@ -164,34 +175,8 @@ void AIEscaper::BFS() {
     float mf = 0.f;
     {
         std::unique_lock<std::mutex> l(resources_mutex);
-        q.emplace(map, 0, 0, actual_pos, direction);
+        q.emplace(map, 0, 0, actual_pos, direction, -1);
         mf = move_factor;
-    }
-    {
-        auto top = std::move(const_cast<SGDTuple&>(q.top()));
-        q.pop();
-        predecessors.push_back(std::move(top));
-        int index = predecessors.size() - 1;
-        auto&& last = predecessors.at(index);
-        last.map.update(0.1f);
-        for (auto&& dir : possible_moves) {
-            auto position = last.pos;
-            go(position, dir, move_factor);
-            if (last.map.collision_checking(move_factor, position, dir) == Collision::NONE) {
-                float penalty = PENALTY_MOVE;
-                if (static_cast<int>(dir) == static_cast<int>(last.dir)) {
-                    penalty = REWARD_KEEP_DIRECTION;
-                }
-                auto next = SGDTuple(last.map, last.score + penalty, last.depth + 1, position, dir);
-                explored.emplace(position);
-                next.add_predecessor(index);
-                q.emplace(std::move(next));
-            }
-        }
-        placed_bombs.emplace(last.pos);
-        last.map.place_bomb(last.map.transform_to_int(last.pos));
-        auto next = SGDTuple(last.map, last.score + PENALTY_BOMB, last.depth + 1, last.pos, EntityDirection::STATIC);
-        q.emplace(std::move(next));
     }
     for (int i = 0; i < THREADS; i++) {
         finding_threads.emplace_back(thread_BFS, std::ref(q)
@@ -241,18 +226,24 @@ void AIEscaper::notify_sb_destroyed(int i) {
 
 void AIEscaper::update(float dt) {
     ServerPlayerEntity::update(dt);
-    std::unique_lock<std::mutex> l(resources_mutex);
-    map.update(dt);
-    if (new_pos_calculated) {
-        if (next_move != EntityDirection::STATIC) {
-            direction = next_move;
-            go(actual_pos, next_move, move_factor);
-            map.collision_checking(move_factor, actual_pos, direction);
-        } else {
-            std::cout << "SERVER : ai wants to place a bomb at: " << actual_pos.first << "," << actual_pos.second << std::endl;
+    {
+        std::unique_lock<std::mutex> l(resources_mutex);
+        map.update(dt);
+        if (new_pos_calculated) {
+            if (next_move != EntityDirection::STATIC) {
+                direction = next_move;
+                go(actual_pos, next_move, move_factor);
+                map.collision_checking(move_factor, actual_pos, direction);
+            } else {
+                std::cout << "SERVER : ai wants to place a bomb at: " << actual_pos.first << "," << actual_pos.second << std::endl;
+            }
+            updated = true;
+            new_pos_calculated = false;
         }
-        updated = true;
-        new_pos_calculated = false;
+    }
+    {
+        std::unique_lock<std::mutex> l(cond_mutex);
+        cond.notify_all();
     }
 }
 
@@ -268,4 +259,10 @@ void AIEscaper::update_pos_dir(EntityCoords&& c, EntityDirection d) {
 void AIEscaper::apply_power_up(PowerUpType p, const sf::Time& t) {
     std::unique_lock<std::mutex> l(resources_mutex);
     ServerPlayerEntity::apply_power_up(p, t);
+}
+
+AIEscaper::~AIEscaper() {
+    is_running = false;
+    std::unique_lock<std::mutex> l(resources_mutex);
+    cond.notify_all();
 }
