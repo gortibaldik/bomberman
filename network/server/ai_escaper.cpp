@@ -72,10 +72,8 @@ static const std::vector<EntityDirection> possible_moves = {
 
 static void thread_BFS( std::priority_queue<SGDTuple>& q
                        , std::vector<SGDTuple>& predecessors
-                       , std::set<EntityCoords>& explored
                        , std::mutex& q_m
                        , std::mutex& predecessors_m
-                       , std::mutex& explored_m
                        , std::mutex& solution_m
                        , std::condition_variable& found_solution
                        , std::atomic<int>& index_of_solution
@@ -139,13 +137,7 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
         for (auto&& direction : possible_moves) {
             auto position = last.pos;
             go(position, direction, move_factor);
-            std::unique_lock<std::mutex> explored_lock(explored_m);
-            // if (explored.find(position) != explored.end()) {
-            //     continue;
-            // }
             if (last.map.collision_checking(move_factor, position, direction) == Collision::NONE) {
-                explored.emplace(position);
-                explored_lock.unlock();
                 float penalty = 0;
                 if (last.depth == 0) {
                     if (static_cast<int>(last.dir) == static_cast<int>(direction)) {
@@ -172,10 +164,9 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
 
 void AIEscaper::BFS() {
     std::priority_queue<SGDTuple> q;
-    std::mutex predecessors_m, explored_m, q_m;
+    std::mutex predecessors_m, q_m;
     std::atomic<int> index_of_solution = -1, running_threads = THREADS;
     std::vector<SGDTuple> predecessors;
-    std::set<EntityCoords> explored;
     std::atomic<bool> terminate = false;
     workers.clear();
     float mf = 0.f;
@@ -186,10 +177,8 @@ void AIEscaper::BFS() {
         for (int i = 0; i < THREADS; i++) {
             workers.emplace_back(thread_BFS, std::ref(q)
                                         , std::ref(predecessors)
-                                        , std::ref(explored)
                                         , std::ref(q_m)
                                         , std::ref(predecessors_m)
-                                        , std::ref(explored_m)
                                         , std::ref(solution_m)
                                         , std::ref(solution_found)
                                         , std::ref(index_of_solution)
