@@ -188,17 +188,20 @@ void GameMapLogic::update(float dt
                          , IDPosVector& erased_explosions
                          , IDPosVector& new_bombs
                          , IDPosTypeVector& new_explosions) {
-    for (auto&& b : bombs) {
-        auto&& bomb = b.second;
-        auto id = b.first;
+    std::vector<BombMap::const_iterator> bombs_to_remove;
+    std::vector<ExplosionMap::const_iterator> explosions_to_remove;
+    for ( auto&& b = bombs.begin(); b != bombs.end(); b++) {
+        auto&& bomb = b->second;
+        auto coords = b->first;
         bomb.update(dt);
         if (bomb.is_new()) {
-            new_bombs.emplace_back(bomb.get_id(), id);
+            new_bombs.emplace_back(bomb.get_id(), coords);
         }
         if (bomb.is_expired()) {
             bomb.player_entity.remove_deployed();
-            erased_bombs.emplace_back(bomb.get_id(), id);
-            for (auto&& exp : bomb.explode( id
+            erased_bombs.emplace_back(bomb.get_id(), coords);
+            bombs_to_remove.emplace_back(b);
+            for (auto&& exp : bomb.explode( coords
                                           , general_ID
                                           , *this
                                           , VIEW_EXPLOSION_TIME)) {
@@ -208,17 +211,18 @@ void GameMapLogic::update(float dt
             }
         }
     }
-    for (auto&& e : explosions) {
-        e.second.update(dt);
-        if (e.second.is_expired()) {
-            erased_explosions.emplace_back(e.second.get_id(), e.first);
+    for (auto&& e = explosions.begin(); e != explosions.end(); e++) {
+        e->second.update(dt);
+        if (e->second.is_expired()) {
+            erased_explosions.emplace_back(e->second.get_id(), e->first);
+            explosions_to_remove.emplace_back(e);
         }
     }
     for (auto&& i : erased_explosions) {
         explosions.erase(i.second);
     }
-    for (auto&& i : erased_bombs) {
-        bombs.erase(i.second);
+    for (auto&& i : bombs_to_remove) {
+        bombs.erase(i);
     }
 }
 

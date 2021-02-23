@@ -41,6 +41,7 @@ class Entity {
 public:
     EntityCoords actual_pos;
     Entity() = default;
+    virtual ~Entity() = default;
     Entity(EntityCoords actual_pos): actual_pos(actual_pos) {}
     
 };

@@ -132,7 +132,6 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
         }
         if (last.depth == DEPTH) {
             std::unique_lock<std::mutex> l(solution_m);
-            std::cout << last.score << "<- last.score" << std::endl;
             index_of_solution = index;
             break;
         }
