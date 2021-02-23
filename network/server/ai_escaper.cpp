@@ -59,10 +59,10 @@ struct SGDTuple {
     }
 };
 
-#define DEPTH 30
+#define DEPTH 15
 #define THREADS 4
-#define PENALTY_MOVE (-10)
-#define REWARD_KEEP_DIRECTION (+50)
+#define PENALTY_CHANGE -5
+#define REWARD_KEEP_DIRECTION 5
 static const std::vector<EntityDirection> possible_moves = {
     EntityDirection::UP,
     EntityDirection::DOWN,
@@ -140,9 +140,9 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
             auto position = last.pos;
             go(position, direction, move_factor);
             std::unique_lock<std::mutex> explored_lock(explored_m);
-            if (explored.find(position) != explored.end()) {
-                continue;
-            }
+            // if (explored.find(position) != explored.end()) {
+            //     continue;
+            // }
             if (last.map.collision_checking(move_factor, position, direction) == Collision::NONE) {
                 explored.emplace(position);
                 explored_lock.unlock();
@@ -150,10 +150,11 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
                 if (last.depth == 0) {
                     if (static_cast<int>(last.dir) == static_cast<int>(direction)) {
                         penalty = REWARD_KEEP_DIRECTION;
-                    } else {
-                        penalty = PENALTY_MOVE;
                     }
                 }
+                if (static_cast<int>(opposite(last.dir)) == static_cast<int>(direction)){
+                    penalty = PENALTY_CHANGE;
+                } 
                 {
                     std::unique_lock<std::mutex> l(q_m);
                     q.emplace(SGDTuple(last.map, last.score + penalty, last.depth + 1, position, direction, index));
@@ -233,9 +234,10 @@ void AIEscaper::BFS() {
     new_pos_calculated = true;
 }
 
+#define BOMB_PLACE_TIME 1.4f
 void AIEscaper::notify_new_bomb(const IDPos& idp) {
     std::unique_lock<std::mutex> l(resources_m);
-    map.place_bomb(idp.second);
+    map.place_bomb(idp.second, BOMB_PLACE_TIME);
 }
 
 void AIEscaper::notify_sb_destroyed(int i) {

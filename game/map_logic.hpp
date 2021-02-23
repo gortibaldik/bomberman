@@ -59,7 +59,7 @@ public:
 
     Collision collision_checking(float move_factor, EntityCoords&, EntityDirection) const;
     void place_bomb(const EntityCoords&, PlayerEntity&);
-    void place_bomb(int coords);
+    void place_bomb(int coords, float time);
     PowerUpType is_on_power_up(const EntityCoords&, int& power_up_id);
 
     void update( float dt

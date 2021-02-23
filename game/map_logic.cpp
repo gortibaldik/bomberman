@@ -170,8 +170,8 @@ Collision GameMapLogic::collision_checking( float move_factor
 #define EXPLOSION_TIME 1.5f
 #define VIEW_EXPLOSION_TIME 0.5f
 
-void GameMapLogic::place_bomb(int coords) {
-    bombs.emplace(coords, BombEntity( EXPLOSION_TIME
+void GameMapLogic::place_bomb(int coords, float time) {
+    bombs.emplace(coords, BombEntity( time
                                     , general_ID++
                                     , dummy_entity));
 }
