@@ -24,7 +24,7 @@ bool is_in(T value, std::vector<T> vct) {
 
 void AIEscaper::update_loop() {
     for(;;) {
-        std::unique_lock<std::mutex> l(cond_mutex);
+        std::unique_lock<std::mutex> l(cond_m);
         cond.wait(l);
         if (is_running && !new_pos_calculated) {
             BFS();
@@ -84,13 +84,14 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
                        , std::atomic<int>& index_of_solution
                        , float move_factor
                        , std::atomic<bool>& terminate
+                       , std::atomic<bool>& is_running
                        , std::atomic<int>& running_threads
                        , PlayerEntity* this_ai) {
     sf::Clock clock;
     SGDTuple last(GameMapLogic(), 0, 0, EntityCoords(), EntityDirection::STATIC, -1);
     int index = -1;
     int last_index = -1;
-    while (!terminate) {
+    while (is_running && !terminate) {
         {
             std::unique_lock<std::mutex> l(solution_m);
             // the default of index_of_solution is -1
@@ -187,8 +188,7 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
 
 void AIEscaper::BFS() {
     std::priority_queue<SGDTuple> q;
-    std::mutex predecessors_m, explored_m, placed_bombs_m, q_m, solution_m;
-    std::condition_variable found_solution;
+    std::mutex predecessors_m, explored_m, placed_bombs_m, q_m;
     std::atomic<int> index_of_solution = -1, running_threads = THREADS;
     std::vector<SGDTuple> predecessors;
     std::set<EntityCoords> explored, placed_bombs;
@@ -196,38 +196,48 @@ void AIEscaper::BFS() {
     workers.clear();
     float mf = 0.f;
     {
-        std::unique_lock<std::mutex> l(resources_mutex);
+        std::unique_lock<std::mutex> l(resources_m);
         q.emplace(map, 0, 0, actual_pos, direction, -1);
         mf = move_factor;
-    }
-    for (int i = 0; i < THREADS; i++) {
-        workers.emplace_back(thread_BFS, std::ref(q)
-                                       , std::ref(predecessors)
-                                       , std::ref(explored)
-                                       , std::ref(placed_bombs)
-                                       , std::ref(q_m)
-                                       , std::ref(predecessors_m)
-                                       , std::ref(explored_m)
-                                       , std::ref(placed_bombs_m)
-                                       , std::ref(solution_m)
-                                       , std::ref(found_solution)
-                                       , std::ref(index_of_solution)
-                                       , move_factor
-                                       , std::ref(terminate)
-                                       , std::ref(running_threads)
-                                       , this);
+        for (int i = 0; i < THREADS; i++) {
+            workers.emplace_back(thread_BFS, std::ref(q)
+                                        , std::ref(predecessors)
+                                        , std::ref(explored)
+                                        , std::ref(placed_bombs)
+                                        , std::ref(q_m)
+                                        , std::ref(predecessors_m)
+                                        , std::ref(explored_m)
+                                        , std::ref(placed_bombs_m)
+                                        , std::ref(solution_m)
+                                        , std::ref(solution_found)
+                                        , std::ref(index_of_solution)
+                                        , move_factor
+                                        , std::ref(terminate)
+                                        , std::ref(is_running)
+                                        , std::ref(running_threads)
+                                        , this);
+        }
     }
     {
         std::unique_lock<std::mutex> l(solution_m);
-        found_solution.wait(l);
+        using namespace std::chrono_literals;
+        auto status = solution_found.wait_for(l, 200ms);
         terminate = true;
+        if (status == std::cv_status::timeout) {
+            std::cout << "Solution not found, time out on condition variable!" << std::endl;
+        }
         if (index_of_solution == -1) {
             index_of_solution = 0; // don't do anything, 0 is the index of actual position
             std::cout << "Solution not found!" << std::endl;
         }
     }
-    for (auto&& thread : workers) {
-        thread.join();
+    {
+        std::unique_lock<std::mutex> l(resources_m);
+        for (auto&& thread : workers) {
+            if (thread.joinable()) {
+                thread.join();
+            }
+        }
     }
     auto&& last = predecessors.at(index_of_solution);
     while (last.predecessor_index > 0) {
@@ -238,19 +248,19 @@ void AIEscaper::BFS() {
 }
 
 void AIEscaper::notify_new_bomb(const IDPos& idp) {
-    std::unique_lock<std::mutex> l(resources_mutex);
+    std::unique_lock<std::mutex> l(resources_m);
     map.place_bomb(idp.second);
 }
 
 void AIEscaper::notify_sb_destroyed(int i) {
-    std::unique_lock<std::mutex> l(resources_mutex);
+    std::unique_lock<std::mutex> l(resources_m);
     map.erase_soft_block(i);
 }
 
 void AIEscaper::update(float dt) {
     ServerPlayerEntity::update(dt);
     {
-        std::unique_lock<std::mutex> l(resources_mutex);
+        std::unique_lock<std::mutex> l(resources_m);
         map.update(dt);
         if (new_pos_calculated) {
             if (next_move != EntityDirection::STATIC) {
@@ -265,22 +275,22 @@ void AIEscaper::update(float dt) {
         }
     }
     {
-        std::unique_lock<std::mutex> l(cond_mutex);
+        std::unique_lock<std::mutex> l(cond_m);
         cond.notify_all();
     }
 }
 
 void AIEscaper::respawn() {
-    std::unique_lock<std::mutex> l(resources_mutex);
+    std::unique_lock<std::mutex> l(resources_m);
     ServerPlayerEntity::respawn();
 }
 
 void AIEscaper::update_pos_dir(EntityCoords&& c, EntityDirection d) {
-    std::unique_lock<std::mutex> l(resources_mutex);
+    std::unique_lock<std::mutex> l(resources_m);
     ServerPlayerEntity::update_pos_dir(std::move(c), d);
 }
 void AIEscaper::apply_power_up(PowerUpType p, const sf::Time& t) {
-    std::unique_lock<std::mutex> l(resources_mutex);
+    std::unique_lock<std::mutex> l(resources_m);
     ServerPlayerEntity::apply_power_up(p, t);
 }
 
@@ -290,6 +300,6 @@ AIEscaper::~AIEscaper() {
 
 void AIEscaper::terminate() {
     is_running = false;
-    std::unique_lock<std::mutex> l(resources_mutex);
+    std::unique_lock<std::mutex> l(resources_m);
     cond.notify_all();
 }

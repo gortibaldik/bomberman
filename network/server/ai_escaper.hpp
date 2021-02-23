@@ -44,9 +44,9 @@ private:
     GameMapLogic map;
     std::atomic<bool> is_running = true;
     std::atomic<bool> new_pos_calculated = false;
-    std::mutex resources_mutex, cond_mutex;
+    std::mutex resources_m, cond_m, solution_m;
     std::vector<std::thread> workers;
-    std::condition_variable cond;
+    std::condition_variable cond, solution_found;
 };
 
 #endif
