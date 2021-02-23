@@ -27,7 +27,8 @@ public:
                                  , lives
                                  , move_factor)
              , map(map)
-             , next_move(EntityDirection::UP) {}
+             , next_move(EntityDirection::UP)
+             , updater([this](){ update_loop(); }) {}
     ~AIEscaper();
     void respawn() override ;
     void update_pos_dir(EntityCoords&&, EntityDirection) override ;
@@ -46,6 +47,7 @@ private:
     std::atomic<bool> new_pos_calculated = false;
     std::mutex resources_m, cond_m, solution_m;
     std::vector<std::thread> workers;
+    std::thread updater;
     std::condition_variable cond, solution_found;
 };
 

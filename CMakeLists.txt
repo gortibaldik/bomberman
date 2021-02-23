@@ -14,8 +14,6 @@ if (WIN32)
   message(WARNING "Detected that you're on windows! ")
   set(SFML_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/SFML-2.5.1")
   set(SFML_INCLUDES "${SFML_PREFIX}/include")
-else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 endif()
 
 # Enable debug symbols by default
@@ -35,14 +33,18 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
   set(SFML_LINK_DIRS "${SFML_PREFIX}/out/build/x64-Release (default)/lib")
 endif()
 
+if (NOT WIN32)
+  message(WARNING "detected that you aren't on windows!")
+  set(SFML_DIR "SFML-2.5.1/")
+  set(SFML_LINK_DIRS "SFML-2.5.1/lib/")
+  set(SFML_INCLUDES "SFML-2.5.1/include/")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+endif()
+
 find_package(SFML 2.5.1
     COMPONENTS 
         system window graphics network audio REQUIRED
-  )
-
-# set cmake multithreaded flags
-if (NOT _on_windows)
-endif()
+)
 
 # Compile executable
 link_directories("${SFML_LINK_DIRS}")

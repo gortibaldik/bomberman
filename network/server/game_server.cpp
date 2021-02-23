@@ -131,7 +131,6 @@ void GameServer::start_game() {
                                                             , move_factor * 1.8f
                                                             , map));
         ais.emplace(ai_name, dynamic_cast<AIEscaper*>(players.at(ai_name).get()));
-        ai_thread = std::thread([player = ais.at(ai_name)](){ player->update_loop(); });
         p << sf::Int8(Network::Delimiter);
         add_type_to_packet(p, PacketType::SpawnPosition);
         p << *(players.at(ai_name));
@@ -291,6 +290,7 @@ void GameServer::game_end_notify_loop( sf::Time& time
     broadcast(game_ending_packet);
     sf::Time till_end = time;
     for (auto&& ai : ais) {
+        std::cout << "SERVER : terminating " << ai.second->name << std::endl;
         ai.second->terminate();
     }
     while ((time - till_end).asSeconds() <= 3.f) {
@@ -369,11 +369,5 @@ GameServer::~GameServer() {
         std::cout << "SERVER : joined notifier!" << std::endl;
     } else {
         std::cout << "SERVER : notifier already joined!" << std::endl;
-    }
-    if (ai_thread.joinable()) {
-        ai_thread.join();
-        std::cout << "SERVER : joined ai_thread!" << std::endl;
-    } else {
-        std::cout << "SERVER : ai_thread already joined!" << std::endl;
     }
 }

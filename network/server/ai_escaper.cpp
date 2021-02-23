@@ -53,7 +53,8 @@ struct SGDTuple {
             , pos(pos)
             , dir(dir)
             , predecessor_index(predecessor_index) {}
-    bool operator < (const SGDTuple& right) const { 
+    bool operator < (const SGDTuple& right) const {
+        //std::cout << "Called comparator left.score : " << score << "; right.score : " << right.score << std::endl;
         return score < right.score;
     }
 };
@@ -131,6 +132,7 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
         }
         if (last.depth == DEPTH) {
             std::unique_lock<std::mutex> l(solution_m);
+            std::cout << last.score << "<- last.score" << std::endl;
             index_of_solution = index;
             break;
         }
@@ -145,7 +147,7 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
             if (last.map.collision_checking(move_factor, position, direction) == Collision::NONE) {
                 explored.emplace(position);
                 explored_lock.unlock();
-                float penalty = last.depth;
+                float penalty = 0;
                 if (last.depth == 0) {
                     if (static_cast<int>(last.dir) == static_cast<int>(direction)) {
                         penalty = REWARD_KEEP_DIRECTION;
@@ -169,9 +171,6 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
 }
 
 void AIEscaper::BFS() {
-    if (!is_running) {
-        return;
-    }
     std::priority_queue<SGDTuple> q;
     std::mutex predecessors_m, explored_m, q_m;
     std::atomic<int> index_of_solution = -1, running_threads = THREADS;
@@ -299,18 +298,24 @@ void AIEscaper::apply_power_up(PowerUpType p, const sf::Time& t) {
 
 AIEscaper::~AIEscaper() {
     terminate();
+    if (updater.joinable()) {
+        updater.join();
+        std::cout << "AIEscaper : joined updater" << std::endl;
+    } else {
+        std::cout << "AIEscaper : already joined" << std::endl;
+    }
 }
 
 /* Sets on the variables controlling
  * the update_loop and next move calculations
  */
 void AIEscaper::terminate() {
+    std::unique_lock<std::mutex> run_l(cond_m);
     if (!is_running) { return; }
     // update_loop goes until is_running = true
     is_running = false;
 
     // update_loop waits on cond to be notified if
     // the next move needs to be computed
-    std::unique_lock<std::mutex> l(resources_m);
     cond.notify_all();
 }

@@ -43,7 +43,6 @@ protected:
     GameMapLogic map;
 
     std::thread notifier;
-    std::thread ai_thread;
     std::atomic<bool> end_notifier = false;
     std::mutex players_mutex;
 
