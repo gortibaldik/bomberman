@@ -99,7 +99,10 @@ std::vector<std::pair<int, ExplosionEntity>> BombEntity::explode(int c_pos
                                                                 , float till_erasement) {
     EntityCoords actual_pos = map.transform_to_coords(c_pos);
     std::vector<std::pair<int, ExplosionEntity>> result;
-    result.emplace_back(c_pos, ExplosionEntity(till_erasement, id++, ExplosionType::CENTER));
+    result.emplace_back(c_pos, ExplosionEntity( till_erasement
+                                              , id++
+                                              , ExplosionType::CENTER
+                                              , player_entity));
     using type_dir = std::pair<ExplosionType, EntityDirection>;
     const std::vector<type_dir> to_right = {{ExplosionType::HORIZONTAL_RIGHT,   EntityDirection::RIGHT},
                                             {ExplosionType::RIGHT_END,          EntityDirection::RIGHT}};
@@ -124,7 +127,11 @@ std::vector<std::pair<int, ExplosionEntity>> BombEntity::explode(int c_pos
             }
             auto collision = map.collision_checking(0.f, c, d.at(s).second);
 
-            result.emplace_back(map.transform_to_int(c), ExplosionEntity(till_erasement, id++, d.at(s).first));
+            result.emplace_back( map.transform_to_int(c)
+                               , ExplosionEntity( till_erasement
+                                                , id++
+                                                , d.at(s).first
+                                                , player_entity));
             if (collision != Collision::NONE) {
                 break;
             }

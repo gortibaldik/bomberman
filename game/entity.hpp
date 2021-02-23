@@ -94,10 +94,13 @@ class ExplosionEntity: public TimedEntity {
 public:
     ExplosionEntity( float time_to_expire
                    , IDType ID
-                   , ExplosionType etype)
+                   , ExplosionType etype
+                   , PlayerEntity& player_entity)
                    : TimedEntity(time_to_expire, ID)
-                   , etype(etype) {}
+                   , etype(etype)
+                   , player_entity(player_entity) {}
     ExplosionType get_type() { return etype; }
+    PlayerEntity& player_entity;
 private:
     ExplosionType etype;
 };

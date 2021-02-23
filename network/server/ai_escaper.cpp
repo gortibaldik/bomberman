@@ -58,10 +58,12 @@ struct SGDTuple {
     }
 };
 
-#define DEPTH 20
-#define THREADS 3
+#define DEPTH 30
+#define THREADS 4
 #define PENALTY_MOVE (-10)
-#define REWARD_KEEP_DIRECTION (+30)
+#define REWARD_KEEP_DIRECTION (+50)
+#define REWARD_EXPLODED_SB 60
+#define BOMB_PENALTY (-40)
 static const std::vector<EntityDirection> possible_moves = {
     EntityDirection::UP,
     EntityDirection::DOWN,
@@ -82,7 +84,8 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
                        , std::atomic<int>& index_of_solution
                        , float move_factor
                        , std::atomic<bool>& terminate
-                       , std::atomic<int>& running_threads) {
+                       , std::atomic<int>& running_threads
+                       , PlayerEntity* this_ai) {
     sf::Clock clock;
     SGDTuple last(GameMapLogic(), 0, 0, EntityCoords(), EntityDirection::STATIC, -1);
     int index = -1;
@@ -128,6 +131,9 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
         if (last.map.check_damage(last.pos)) {
             continue;
         }
+        int count = 0;
+        last.map.check_soft_blocks(this_ai->name, count);
+        last.score += count * REWARD_EXPLODED_SB;
         if (last.depth == DEPTH) {
             std::unique_lock<std::mutex> l(solution_m);
             index_of_solution = index;
@@ -144,14 +150,30 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
             if (last.map.collision_checking(move_factor, position, direction) == Collision::NONE) {
                 explored.emplace(position);
                 explored_lock.unlock();
-                float penalty = PENALTY_MOVE;
-                if (static_cast<int>(last.dir) == static_cast<int>(direction)) {
-                    penalty = REWARD_KEEP_DIRECTION;
+                float penalty = last.depth;
+                if (last.depth == 0) {
+                    if (static_cast<int>(last.dir) == static_cast<int>(direction)) {
+                        penalty = REWARD_KEEP_DIRECTION;
+                    } else {
+                        penalty = PENALTY_MOVE;
+                    }
                 }
                 {
                     std::unique_lock<std::mutex> l(q_m);
                     q.emplace(SGDTuple(last.map, last.score + penalty, last.depth + 1, position, direction, index));
                 }
+            }
+        }
+        {
+            std::unique_lock<std::mutex> l(placed_bombs_m);
+            if (placed_bombs.find(last.pos) == placed_bombs.end()) {
+                placed_bombs.emplace(last.pos);
+                l.unlock();
+                last.map.place_bomb(last.pos, *this_ai);
+                {
+                    std::unique_lock<std::mutex> l(q_m);
+                    q.emplace(SGDTuple(last.map, last.score + BOMB_PENALTY, last.depth + 1, last.pos, EntityDirection::STATIC, index));
+                }            
             }
         }
     }
@@ -170,8 +192,8 @@ void AIEscaper::BFS() {
     std::atomic<int> index_of_solution = -1, running_threads = THREADS;
     std::vector<SGDTuple> predecessors;
     std::set<EntityCoords> explored, placed_bombs;
-    std::vector<std::thread> finding_threads;
     std::atomic<bool> terminate = false;
+    workers.clear();
     float mf = 0.f;
     {
         std::unique_lock<std::mutex> l(resources_mutex);
@@ -179,20 +201,21 @@ void AIEscaper::BFS() {
         mf = move_factor;
     }
     for (int i = 0; i < THREADS; i++) {
-        finding_threads.emplace_back(thread_BFS, std::ref(q)
-                                               , std::ref(predecessors)
-                                               , std::ref(explored)
-                                               , std::ref(placed_bombs)
-                                               , std::ref(q_m)
-                                               , std::ref(predecessors_m)
-                                               , std::ref(explored_m)
-                                               , std::ref(placed_bombs_m)
-                                               , std::ref(solution_m)
-                                               , std::ref(found_solution)
-                                               , std::ref(index_of_solution)
-                                               , move_factor
-                                               , std::ref(terminate)
-                                               , std::ref(running_threads));
+        workers.emplace_back(thread_BFS, std::ref(q)
+                                       , std::ref(predecessors)
+                                       , std::ref(explored)
+                                       , std::ref(placed_bombs)
+                                       , std::ref(q_m)
+                                       , std::ref(predecessors_m)
+                                       , std::ref(explored_m)
+                                       , std::ref(placed_bombs_m)
+                                       , std::ref(solution_m)
+                                       , std::ref(found_solution)
+                                       , std::ref(index_of_solution)
+                                       , move_factor
+                                       , std::ref(terminate)
+                                       , std::ref(running_threads)
+                                       , this);
     }
     {
         std::unique_lock<std::mutex> l(solution_m);
@@ -203,7 +226,7 @@ void AIEscaper::BFS() {
             std::cout << "Solution not found!" << std::endl;
         }
     }
-    for (auto&& thread : finding_threads) {
+    for (auto&& thread : workers) {
         thread.join();
     }
     auto&& last = predecessors.at(index_of_solution);
@@ -262,6 +285,10 @@ void AIEscaper::apply_power_up(PowerUpType p, const sf::Time& t) {
 }
 
 AIEscaper::~AIEscaper() {
+    terminate();
+}
+
+void AIEscaper::terminate() {
     is_running = false;
     std::unique_lock<std::mutex> l(resources_mutex);
     cond.notify_all();

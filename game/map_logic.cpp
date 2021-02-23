@@ -281,6 +281,25 @@ IDTypeVector GameMapLogic::check_soft_blocks() {
     return erased_soft_blocks;
 }
 
+void GameMapLogic::check_soft_blocks(const std::string& pe_name, int& count) {
+    count = 0;
+    for ( auto&& exp : explosions) {
+        auto exp_coords = transform_to_coords(exp.first);
+        int i = -1;
+        for (auto&& exists : soft_blocks) {
+            i++;
+            if (!exists) { continue; }
+            auto soft_block_coords = transform_to_coords(i);
+            if (soft_block_coords == exp_coords) {
+                auto type = erase_soft_block(i);
+                if (exp.second.player_entity.name.compare(pe_name) == 0) {
+                    count++;
+                }
+            }
+        }
+    }
+}
+
 /* Check if coords are the same as power up coords
  * if yes erase the power up from the map
  * @return PowerUpType which is at the position of PowerUpType::NONE in the respective case

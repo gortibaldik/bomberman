@@ -6,6 +6,7 @@
 #include <atomic>
 #include <mutex>
 #include <condition_variable>
+#include <thread>
 
 // The basic AI, doesn't want to die
 class AIEscaper: public ServerPlayerEntity {
@@ -35,7 +36,7 @@ public:
     void notify_new_bomb(const IDPos&);
     void notify_sb_destroyed(int i);
     void update(float dt) override;
-    void terminate() { is_running = false; }
+    void terminate();
     float review_time = 0.f;
 private:
     void BFS();
@@ -44,6 +45,7 @@ private:
     std::atomic<bool> is_running = true;
     std::atomic<bool> new_pos_calculated = false;
     std::mutex resources_mutex, cond_mutex;
+    std::vector<std::thread> workers;
     std::condition_variable cond;
 };
 
