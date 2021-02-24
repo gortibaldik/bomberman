@@ -25,6 +25,8 @@ using PowerUpMap = std::unordered_map<int, PowerUpType>;
 using BombMap = std::unordered_multimap<int, BombEntity>;
 using ExplosionMap = std::unordered_multimap<int, ExplosionEntity>;
 using IDPos = std::pair<IDType, int>;
+using BombInfo = std::pair<IDType, std::pair<EntityCoords, PlayerEntity&>>;
+using BombVector = std::vector<BombInfo>;
 using IDPosVector = std::vector<IDPos>;
 using IDPosTypeVector = std::vector<std::pair<IDPos, ExplosionType>>;
 using IDTypeVector = std::vector<std::pair<IDType, int>>;
@@ -58,14 +60,14 @@ public:
     int erase_soft_block(int);
 
     Collision collision_checking(float move_factor, EntityCoords&, EntityDirection) const;
-    void place_bomb(const EntityCoords&, PlayerEntity&);
+    void place_bomb(const EntityCoords&, PlayerEntity&, float time);
     void place_bomb(int coords, float time);
     PowerUpType is_on_power_up(const EntityCoords&, int& power_up_id);
 
     void update( float dt
                , IDPosVector& erased_bombs
                , IDPosVector& erased_explosions
-               , IDPosVector& new_bombs
+               , BombVector& new_bombs
                , IDPosTypeVector& new_explosions);
 
     void update(float dt);

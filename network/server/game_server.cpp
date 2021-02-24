@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sstream>
 
+#define TIME_TO_EXPLODE 1.5f
+
 GameServer::GameServer(const std::string& name_of_map)
                       : state(ServerState::WAITING_ROOM)
                       , map() {
@@ -83,7 +85,7 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
                     return;
                 }
                 p->deploy();
-                map.place_bomb(p->actual_pos, *p);
+                map.place_bomb(p->actual_pos, *p, TIME_TO_EXPLODE);
             }
 
         }
@@ -130,7 +132,8 @@ void GameServer::start_game() {
                                                             , type
                                                             , player_lives
                                                             , move_factor * 1.8f
-                                                            , map));
+                                                            , map
+                                                            , TIME_TO_EXPLODE));
         ais.emplace(ai_name, dynamic_cast<AIEscaper*>(players.at(ai_name).get()));
         p << sf::Int8(Network::Delimiter);
         add_type_to_packet(p, PacketType::SpawnPosition);
@@ -162,8 +165,17 @@ static void add_id_pos_to_packet( sf::Packet& packet
     packet << static_cast<float>(coords.second); /* pos.col */
 }
 
+static void add_id_pos_to_packet( sf::Packet& packet
+                                , const GameMapLogic& map
+                                , const BombInfo& bi) {
+    packet << sf::Int32(bi.first); /* id */
+    packet << bi.second.first.first; /* pos.row */
+    packet << bi.second.first.second; /* pos.col */
+}
+
 bool GameServer::update_bombs_explosions(float dt, sf::Packet& packet) {
-    IDPosVector erased_bombs, erased_explosions, new_bombs;
+    IDPosVector erased_bombs, erased_explosions;
+    BombVector new_bombs;
     IDPosTypeVector new_explosions;
     map.update(dt, erased_bombs, erased_explosions, new_bombs, new_explosions);
     bool result;
@@ -274,6 +286,12 @@ bool GameServer::update_player( const sf::Time& time
     }
     player.update(time.asSeconds());
     if (player.updated) {
+        // this situation happens only if player wants to
+        // place a new bomb => and only for ais
+        if (player.direction == EntityDirection::STATIC) {
+            map.place_bomb(player.actual_pos, player, TIME_TO_EXPLODE);
+            return result;
+        }
         result = true;
         player.updated = false;
         packet << sf::Int8(Network::Delimiter);

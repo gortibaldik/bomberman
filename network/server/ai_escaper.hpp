@@ -18,7 +18,8 @@ public:
              , sf::Int8 type
              , int lives
              , float move_factor
-             , const GameMapLogic& map)
+             , const GameMapLogic& map
+             , float server_bomb_explosion_time)
              : ServerPlayerEntity( name
                                  , spawn_pos
                                  , actual_pos
@@ -28,18 +29,19 @@ public:
                                  , move_factor)
              , map(map)
              , next_move(EntityDirection::UP)
-             , updater([this](){ update_loop(); }) {}
+             , updater([this](){ update_loop(); })
+             , server_bomb_explosion_time(server_bomb_explosion_time) {}
     ~AIEscaper();
     void respawn() override ;
     void update_pos_dir(EntityCoords&&, EntityDirection) override ;
     void apply_power_up(PowerUpType, const sf::Time&) override ;
     void update_loop();
-    void notify_new_bomb(const IDPos&);
+    void notify_new_bomb(BombInfo&);
     void notify_sb_destroyed(int i);
     void update(float dt) override;
     void terminate();
-    float review_time = 0.f;
 private:
+    float server_bomb_explosion_time;
     void BFS();
     EntityDirection next_move;
     GameMapLogic map;

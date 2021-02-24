@@ -167,7 +167,6 @@ Collision GameMapLogic::collision_checking( float move_factor
     return Collision::NONE;
 }
 
-#define EXPLOSION_TIME 1.5f
 #define VIEW_EXPLOSION_TIME 0.5f
 
 void GameMapLogic::place_bomb(int coords, float time) {
@@ -176,9 +175,11 @@ void GameMapLogic::place_bomb(int coords, float time) {
                                     , dummy_entity));
 }
 
-void GameMapLogic::place_bomb(const EntityCoords& coords, PlayerEntity& entity) {
+void GameMapLogic::place_bomb( const EntityCoords& coords
+                             , PlayerEntity& entity
+                             , float time) {
     auto new_coords = to_integral(coords);
-    bombs.emplace(transform_to_int(new_coords), BombEntity( EXPLOSION_TIME
+    bombs.emplace(transform_to_int(new_coords), BombEntity( time
                                                           , general_ID++
                                                           , entity));
 }
@@ -186,7 +187,7 @@ void GameMapLogic::place_bomb(const EntityCoords& coords, PlayerEntity& entity) 
 void GameMapLogic::update(float dt
                          , IDPosVector& erased_bombs
                          , IDPosVector& erased_explosions
-                         , IDPosVector& new_bombs
+                         , BombVector& new_bombs
                          , IDPosTypeVector& new_explosions) {
     std::vector<BombMap::const_iterator> bombs_to_remove;
     std::vector<ExplosionMap::const_iterator> explosions_to_remove;
@@ -195,7 +196,9 @@ void GameMapLogic::update(float dt
         auto coords = b->first;
         bomb.update(dt);
         if (bomb.is_new()) {
-            new_bombs.emplace_back(bomb.get_id(), coords);
+            new_bombs.emplace_back( bomb.get_id()
+                                  , std::pair<EntityCoords, PlayerEntity&>( transform_to_coords(coords)
+                                                  , bomb.player_entity));
         }
         if (bomb.is_expired()) {
             bomb.player_entity.remove_deployed();
@@ -218,8 +221,8 @@ void GameMapLogic::update(float dt
             explosions_to_remove.emplace_back(e);
         }
     }
-    for (auto&& i : erased_explosions) {
-        explosions.erase(i.second);
+    for (auto&& i : explosions_to_remove) {
+        explosions.erase(i);
     }
     for (auto&& i : bombs_to_remove) {
         bombs.erase(i);
