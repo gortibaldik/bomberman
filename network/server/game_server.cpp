@@ -118,10 +118,11 @@ void GameServer::start_game() {
         p << *player.second;
     }
     // place simple ai to the game if it isn't full
-    if (players.size() < max_clients) {
+    int ai_number = 0;
+    while (players.size() < max_clients) {
         auto [row, column, type] = map.get_spawn_pos();
         std::pair<int, int> coords(row, column);
-        const std::string ai_name = "ai_escaper";
+        const std::string ai_name = "ai_escaper_" + std::to_string(ai_number);
         players.emplace(ai_name, std::make_unique<AIEscaper>( ai_name
                                                             , coords
                                                             , coords
@@ -134,6 +135,7 @@ void GameServer::start_game() {
         p << sf::Int8(Network::Delimiter);
         add_type_to_packet(p, PacketType::SpawnPosition);
         p << *(players.at(ai_name));
+        ai_number++;
     }
     // and all the positions of the soft blocks
     int i = -1;
