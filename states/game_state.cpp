@@ -41,9 +41,6 @@ void GameState::handle_btn_pressed() {
     case BTN::DISCONNECT:
         client = nullptr;
         break;
-    default:
-        std::cout << "unknown option" << std::endl;
-        break;
     }
 }
 

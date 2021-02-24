@@ -48,7 +48,6 @@ void ServerCreateState::handle_btn_pressed() {
                 }
             break;
         case BTN::MM_RETURN:
-            std::cout << "pop from server create state" << std::endl;
             window_manager.pop_states(1);
             break;
         case BTN::QUIT:
