@@ -12,16 +12,6 @@ static const std::vector<EntityDirection> directions = { EntityDirection::UP
                                                        , EntityDirection::RIGHT
                                                        , EntityDirection::LEFT};
 
-template<typename T>
-bool is_in(T value, std::vector<T> vct) {
-    for (auto&& t : vct) {
-        if (t == value) {
-            return  true;
-        }
-    }
-    return false;
-}
-
 void AIEscaper::update_loop() {
     for(;;) {
         std::unique_lock<std::mutex> l(cond_m);
@@ -54,7 +44,6 @@ struct SGDTuple {
             , dir(dir)
             , predecessor_index(predecessor_index) {}
     bool operator < (const SGDTuple& right) const {
-        //std::cout << "Called comparator left.score : " << score << "; right.score : " << right.score << std::endl;
         return score < right.score;
     }
 };
@@ -103,7 +92,6 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
             // we prun all the computations that exceed the limit
             // of 0.1f per step
             if (clock.getElapsedTime().asSeconds() >= 0.09f) {
-                std::cout << this_ai->name << " : couldn't find the right solution, just prunning!" << std::endl;
                 index_of_solution = (last_index >= 0) ? last_index : 0;
                 break;
             }
@@ -159,7 +147,12 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
                 } 
                 {
                     std::unique_lock<std::mutex> l(q_m);
-                    q.emplace(SGDTuple(last.map, last.score + penalty, last.depth + 1, position, direction, index));
+                    q.emplace(SGDTuple(last.map
+                                      , last.score + penalty
+                                      , last.depth + 1
+                                      , static_cast<std::pair<int, int>>(position)
+                                      , direction
+                                      , index));
                 }
             }
         }
@@ -239,11 +232,11 @@ void AIEscaper::BFS() {
         std::cout << name << " : error - couldn't calculate solution because of wrong index!" << std::endl;
         return;
     }
-    auto&& last = predecessors.at(index_of_solution);
-    while (last.predecessor_index > 0) {
-        last = predecessors.at(last.predecessor_index);
+    auto last = &predecessors.at(index_of_solution);
+    while (last->predecessor_index > 0) {
+        last = &predecessors.at(last->predecessor_index);
     }
-    next_move = last.dir;
+    next_move = last->dir;
     new_pos_calculated = true;
 }
 
