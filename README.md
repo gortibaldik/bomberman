@@ -3,7 +3,6 @@
 - uses udp sockets for networking, with application specific heartbeat protocol
 ![bombermanGame](media/bomberman.png)
 
-
 # Compilation guide
 
 ## Dependencies
@@ -28,4 +27,12 @@ cmake ..
 
 ### Notice
 - developed on linux, tested both on windows and linux
+
+# Acknowledgements
+- [bomb party art](https://opengameart.org/content/bomb-party-the-complete-set)
+- [small pixel hearts](https://opengameart.org/content/simple-small-pixel-hearts)
+- [FFFTusj font](https://www.fontsquirrel.com/fonts/fff-tusj)
+- [Raleway font](https://www.fontsquirrel.com/fonts/raleway)
+- my girlfriend for all the power-ups drawings
+- [Game development by example](https://www.packtpub.com/product/sfml-game-development-by-example/9781785287343)
 
