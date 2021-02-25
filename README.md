@@ -1,8 +1,13 @@
-# Installation guide
+# Network Bomberman
+- just an usual bomberman game playable both in single player and in multiplayer mode
+- uses udp sockets for networking, with application specific heartbeat protocol
+![bombermanGame](media/bomberman.png)
+
+
+# Compilation guide
 
 ## Dependencies
 - `SFML` library, version `2.5.1`
-- `Boost` library, version `1.75.0`
 
 - download `SFML` library, version `2.5.1`
     - __possibility 1:__ install it system-wide and add relevant binaries to the `PATH` variable
@@ -24,6 +29,3 @@ cmake ..
 ### Notice
 - developed on linux, tested both on windows and linux
 
-### Actual issues
-- bug in client connecting - after unsuccessfull duplicate connection, another
-    connection is marked as duplicate even if it isn't
