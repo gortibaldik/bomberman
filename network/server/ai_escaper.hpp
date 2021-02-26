@@ -30,7 +30,9 @@ public:
              , map(map)
              , next_move(EntityDirection::UP)
              , updater([this](){ update_loop(); })
-             , server_bomb_explosion_time(server_bomb_explosion_time) {}
+             , server_bomb_explosion_time(server_bomb_explosion_time)
+             , is_running(true)
+             , new_pos_calculated(false) {}
     ~AIEscaper();
     void respawn() override ;
     void update_pos_dir(EntityCoords&&, EntityDirection) override ;
@@ -45,8 +47,8 @@ private:
     void BFS();
     EntityDirection next_move;
     GameMapLogic map;
-    std::atomic<bool> is_running = true;
-    std::atomic<bool> new_pos_calculated = false;
+    std::atomic<bool> is_running;
+    std::atomic<bool> new_pos_calculated;
     std::mutex resources_m, cond_m, solution_m;
     std::vector<std::thread> workers;
     std::thread updater;

@@ -43,7 +43,7 @@ protected:
     GameMapLogic map;
 
     std::thread notifier;
-    std::atomic<bool> end_notifier = false;
+    std::atomic<bool> end_notifier;
     std::mutex players_mutex;
 
     int n_deployed_bombs = 0;

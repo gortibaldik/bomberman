@@ -56,7 +56,7 @@ MenuState::MenuState(WindowManager& mngr
                     , view(view)
                     , factor(mngr.get_cgsh().get_style(style_name).factor)
                     , menu( mngr.get_cgsh().get_style(style_name)
-                          , mngr.get_window_size()){}
+                          , mngr.get_window_size()) {}
 
 void MenuState::update(float dt) {
     menu.update();

@@ -8,7 +8,8 @@
 
 GameServer::GameServer(const std::string& name_of_map)
                       : state(ServerState::WAITING_ROOM)
-                      , map() {
+                      , map()
+                      , end_notifier(false) {
     try {
         map.load_from_config(name_of_map);
         max_clients = static_cast<int>(map.get_max_players());

@@ -32,55 +32,39 @@ static void must_get_tokens( const std::string& line
     }
 }
 
-
-static std::unordered_map<std::string, sf::Color> colors = {
-    { "TRANSPARENT", sf::Color::Transparent },
-    { "BLACK", sf::Color::Black },
-    { "BLUE", sf::Color::Blue },
-    { "WHITE", sf::Color::White }
-};
-
-static const sf::Color& must_get_color( const std::string& color) {
-    auto it = colors.find(color);
-    if (it == colors.end()) {
-        throw std::runtime_error("Unknown color! " + color);
-    }
-    return it->second;
-}
-
-static void load_color_def(std::istream& is, const std::string& name) {
+static void load_color_def(std::istream& is, const std::string& name, TextureManager& tm) {
     int r = 0, g = 0, b = 0, alpha = 0;
     if (!(is >> r >> g >> b >> alpha)) {
         throw std::runtime_error("WRONG DEFINITION OF COLOR!");
     }
-    colors.emplace(name, sf::Color(r, g, b, alpha));
+    tm.load_color(name, sf::Color(r, g, b, alpha));
 }
 
 static GStyle load_style(std::istream& is, const TextureManager& tm) {
     std::string line, result;
     must_getline(is, line);
     must_get_tokens(line, "BACKGROUND", result);
-    auto&& bck = must_get_color(result);
+    auto&& bck = tm.get_color(result);
 
     must_getline(is, line);
     must_get_tokens(line, "BACKGROUND_HIGH", result);
-    auto&& bck_h = must_get_color(result);
+    auto&& bck_h = tm.get_color(result);
 
     must_getline(is, line);
     must_get_tokens(line, "BORDER", result);
-    auto&& brdr = must_get_color(result);
+    auto&& brdr = tm.get_color(result);
 
     must_getline(is, line);
     must_get_tokens(line, "BORDER_HIGH", result);
-    auto&& brdr_h = must_get_color(result);
+    auto&& brdr_h = tm.get_color(result);
 
     must_getline(is, line);
     must_get_tokens(line, "TEXT", result);
-    auto&& txt = must_get_color(result);
+    auto&& txt = tm.get_color(result);
 
     must_getline(is, line);
     must_get_tokens(line, "TEXT_HIGH", result);
-    auto&& txt_h = must_get_color(result);
+    auto&& txt_h = tm.get_color(result);
 
     must_getline(is, line);
     must_get_tokens(line, "FONT", result);
@@ -107,7 +91,7 @@ static GStyle load_style(std::istream& is, const TextureManager& tm) {
 }
 
 StyleLoader::StyleLoader(const std::string& file_name
-                        , const TextureManager& tm)
+                        , TextureManager& tm)
                         : ifs(file_name)
                         , tm(tm) {
     if (!ifs) {
@@ -126,7 +110,7 @@ void StyleLoader::load(StylesHolder<GStyle>& sh) {
             auto&& style = load_style(ifs, tm);
             sh.add_style(name, std::move(style));
         } else if ((token.compare("DEFINE") == 0) && (ss >> name)) {
-            load_color_def(ifs, name);
+            load_color_def(ifs, name, tm);
         } else {
             throw std::runtime_error("INVALID LINE: "+line);
         }

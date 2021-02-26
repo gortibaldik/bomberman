@@ -49,28 +49,52 @@ bool TextureManager::load_texture(const std::string& name, const std::string& fi
 
 bool TextureManager::load_font(const std::string& name, const std::string& filename) {
     if (fonts.find(name) == fonts.end()) {
-        sf::Font font;
-        bool result = font.loadFromFile(filename);
+        fonts.emplace(name, sf::Font());
+        bool result = fonts.at(name).loadFromFile(filename);
         if (result) {
-            fonts.emplace(name, std::move(font));
             return true;
         } else {
+            fonts.erase(name);
             return false;
         }
     }
     return fonts[name].loadFromFile(filename);
 }
 
+void TextureManager::load_color(const std::string& name, sf::Color&& color) {
+    if (colors.find(name) == colors.end()) {
+        colors.emplace(name, std::move(color));
+    } else {
+        colors.at(name) = std::move(color);
+    }
+}
+
 const sf::Font& TextureManager::get_font(const std::string& name) const {
     if (fonts.find(name) == fonts.end()) {
-        throw std::runtime_error("Invalid font name!");
+        throw std::runtime_error("Invalid font name! : " + name);
     }
     return fonts.at(name);
 }
 
-sf::Texture& TextureManager::get_texture(const std::string& texture) {
-    if (textures.find(texture) == textures.end()) {
-        throw std::runtime_error("Invalid texture name!");
+sf::Texture& TextureManager::get_texture(const std::string& name) {
+    if (textures.find(name) == textures.end()) {
+        throw std::runtime_error("Invalid texture name! : " + name);
     }
-    return textures[texture];
+    return textures.at(name);
+}
+
+const sf::Color& TextureManager::get_color(const std::string& name) const {
+    if (colors.find(name) == colors.end()) {
+        throw std::runtime_error("Invalid color name! : " + name);
+    }
+    return colors.at(name);
+}
+
+TextureManager::TextureManager() {
+    colors = {
+        { "TRANSPARENT", sf::Color::Transparent },
+        { "BLACK", sf::Color::Black },
+        { "BLUE", sf::Color::Blue },
+        { "WHITE", sf::Color::White }
+    };
 }

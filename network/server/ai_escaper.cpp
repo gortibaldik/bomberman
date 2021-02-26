@@ -178,10 +178,10 @@ static void thread_BFS( std::priority_queue<SGDTuple>& q
 void AIEscaper::BFS() {
     std::priority_queue<SGDTuple> q;
     std::mutex predecessors_m, q_m, placed_bombs_m;
-    std::atomic<int> index_of_solution = -1, running_threads = THREADS;
+    std::atomic<int> index_of_solution(-1), running_threads(THREADS);
     std::vector<SGDTuple> predecessors;
     std::set<EntityCoords> placed_bombs;
-    std::atomic<bool> terminate = false;
+    std::atomic<bool> terminate(false);
     workers.clear();
     float mf = 0.f;
     {

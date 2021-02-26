@@ -27,11 +27,11 @@ private:
 
 class StyleLoader {
 public:
-    StyleLoader( const std::string& file_name, const TextureManager&);
+    StyleLoader( const std::string& file_name, TextureManager&);
     void load(StylesHolder<GStyle>&);
 private:
     std::ifstream ifs;
-    const TextureManager& tm;
+    TextureManager& tm;
 };
 
 class CGStyleLoader {

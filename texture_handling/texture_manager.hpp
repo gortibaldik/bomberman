@@ -10,6 +10,7 @@ using Fonts = std::map<std::string, sf::Font>;
 
 class TextureManager {
 public:
+    TextureManager();
     void create_animation(const std::string& name
                          , const std::string& texture_name
                          , Direction default_direction);
@@ -22,9 +23,13 @@ public:
 
     bool load_font(const std::string& name, const std::string& filename);
     const sf::Font& get_font(const std::string& font_name) const;
+
+    void load_color(const std::string& name, sf::Color&& color);
+    const sf::Color& get_color(const std::string& color_name) const;
 private:
     std::map<std::string, Animation> animations;
     std::map<std::string, sf::Texture> textures;
+    std::map<std::string, sf::Color> colors;
     Fonts fonts;
 };
 #endif

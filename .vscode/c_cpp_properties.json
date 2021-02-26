@@ -3,12 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "${default}",
-                "/home/gortibaldik/Documents/Skola/cpp/moje_zdrojaky/bomberman/",
-                "/home/gortibaldik/Documents/Skola/cpp/moje_zdrojaky/bomberman/controls/",
-                "/home/gortibaldik/Documents/Skola/cpp/moje_zdrojaky/bomberman/states/",
-                "/home/gortibaldik/Documents/Skola/cpp/moje_zdrojaky/bomberman/window_manager/",
-                "/home/gortibaldik/Documents/Skola/cpp/moje_zdrojaky/bomberman/texture_handling/"
+                "${default}"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
