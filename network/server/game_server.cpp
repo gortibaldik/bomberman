@@ -125,7 +125,10 @@ void GameServer::start_game() {
     while (players.size() < max_clients) {
         auto [row, column, type] = map.get_spawn_pos();
         std::pair<int, int> coords(row, column);
-        const std::string ai_name = "ai_escaper_" + std::to_string(ai_number);
+        std::string ai_name = "ai_escaper_" + std::to_string(ai_number);
+        while (players.find(ai_name) != players.end()) {
+            ai_name = "ai_escaper_" + std::to_string(++ai_number);
+        }
         players.emplace(ai_name, std::make_unique<AIEscaper>( ai_name
                                                             , coords
                                                             , coords
