@@ -11,7 +11,8 @@
 enum class ServerState {
         WAITING_ROOM,
         STARTING,
-        RUNNING
+        RUNNING,
+        END_GAME
 };
 
 using AIPlayers = std::unordered_map<std::string, AIEscaper*>;
@@ -26,7 +27,7 @@ public:
     size_t get_max_players() { return map.get_max_players(); }
     bool is_in_waiting_room() { return state == ServerState::WAITING_ROOM; }
 protected:
-    void handle_others(const std::string& client_name, sf::Packet&, PacketType) override;
+    void listener_handle_others(const std::string& client_name, sf::Packet&, PacketType) override;
     void notify_disconnect(const std::string& client_name) override;
     void handle_starting_state(const std::string& client_name, sf::Packet&, PacketType);
     void handle_running_state(const std::string& client_name, sf::Packet&, PacketType);

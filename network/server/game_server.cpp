@@ -22,7 +22,7 @@ GameServer::GameServer(const std::string& name_of_map)
     }
 }
 
-void GameServer::handle_others(const std::string& client_name, sf::Packet& packet, PacketType ptype) {
+void GameServer::listener_handle_others(const std::string& client_name, sf::Packet& packet, PacketType ptype) {
     switch(state) {
     case ServerState::WAITING_ROOM:
         // in the waiting room, don't serve any other than connection and heartbeat packets
@@ -33,6 +33,9 @@ void GameServer::handle_others(const std::string& client_name, sf::Packet& packe
     case ServerState::RUNNING:
         handle_running_state(client_name, packet, ptype);
         break;
+    case ServerState::END_GAME:
+        // same as in the waiting room, don't serve any extra packets
+        return;
     }
 }
 
@@ -320,10 +323,11 @@ void GameServer::game_end_notify_loop( sf::Time& time
     while ((time - till_end).asSeconds() <= 3.f) {
         sf::Packet packet;
         std::this_thread::sleep_for(100ms);
-        time += clock.restart();
         add_type_to_packet(packet, PacketType::Update);
         bool at_least_one = false;
-        at_least_one = update_bombs_explosions(time.asSeconds(), packet);
+        auto dt = clock.restart();
+        time += dt;
+        at_least_one = update_bombs_explosions(dt.asSeconds(), packet);
         at_least_one = update_soft_blocks(packet) || at_least_one;
         if (at_least_one) {
             broadcast(packet);

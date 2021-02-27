@@ -14,7 +14,7 @@ PortNumber Server::start(PortNumber port) {
     std::cout << "SERVER : Incoming port: " << incoming_socket.getLocalPort() << std::endl;
     std::cout << "SERVER : Outcoming port: " << outcoming_socket.getLocalPort() << std::endl;
     running = true;
-    updater = std::thread(&Server::update_loop, this);
+    heartbeater = std::thread(&Server::update_loop, this);
     listener = std::thread(&Server::listen, this);
     return incoming_socket.getLocalPort();
 }
@@ -52,7 +52,7 @@ void Server::listen() {
                 }
                 client_name = iter->first;
             }
-            handle_others(client_name, packet, static_cast<PacketType>(id));
+            listener_handle_others(client_name, packet, static_cast<PacketType>(id));
         }
     }
 }
@@ -220,11 +220,11 @@ void Server::terminate() {
 
 Server::~Server() {
     terminate();
-    if (updater.joinable()) {
-        updater.join();
-        std::cout << "SERVER : joined updater!" << std::endl;
+    if (heartbeater.joinable()) {
+        heartbeater.join();
+        std::cout << "SERVER : joined heartbeater!" << std::endl;
     } else {
-        std::cout << "SERVER : updater already joined!" << std::endl;
+        std::cout << "SERVER : heartbeater already joined!" << std::endl;
     }
     if (listener.joinable()) {
         listener.join();
