@@ -11,6 +11,13 @@ using BombEntities = std::unordered_map<int, ClientBombEntity>;
 using ExplosionEntities = std::unordered_map<int, ClientExplosionEntity>;
 using SoftBlocks = std::unordered_map<int, ClientSoftBlockEntity>;
 
+enum class GameClientStatus {
+    IDLE,
+    GAME_STARTED,
+    GAME_APPROVED,
+    GAME_ENDED
+};
+
 class GameClient : public Client {
 public:
     GameClient( const std::string& name
@@ -22,8 +29,9 @@ public:
               , me(nullptr)
               , font(font) {}
     ~GameClient();
-    bool is_game_started() { return game_started; }
-    bool is_approved() { return approved; }
+    bool is_game_started() { return status == GameClientStatus::GAME_STARTED; }
+    bool is_approved() { return (status == GameClientStatus::GAME_STARTED) ||
+                                (status == GameClientStatus::GAME_APPROVED); }
     void update(float dt);
     GameMapRenderable& get_game_map() { return map; }
     ReceiverQueue& get_received_messages() { return received_messages; }
@@ -45,9 +53,8 @@ private:
     void create_soft_block(sf::Packet& packet);
     void destroy_soft_block(sf::Packet& packet);
     void destroy_power_up(sf::Packet& packet);
-    bool game_started = false;
-    bool approved = false;
-    bool only_viewer = false;
+
+    GameClientStatus status = GameClientStatus::IDLE;
 
     GameMapRenderable map;
     const TextureManager& tm;

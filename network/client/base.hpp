@@ -25,7 +25,8 @@ public:
           : player_name(player_name)
           , status(ClientStatus::NotStarted)
           , server_port_in(0)
-          , server_port_out(0) {}
+          , server_port_out(0)
+          , can_send(true) {}
     virtual ~Client();
     bool connect(const sf::IpAddress&, PortNumber);
     void listen();
@@ -43,6 +44,7 @@ protected:
     void update_loop();
     std::string player_name;
 
+    std::atomic<bool> can_send;
     std::atomic<ClientStatus> status;
     sf::IpAddress server_ip;
     PortNumber server_port_out, server_port_in;
@@ -52,7 +54,7 @@ protected:
     sf::UdpSocket socket;
     std::mutex socket_mutex;
     std::thread listener;
-    std::thread updater;
+    std::thread heartbeater;
 
     ReceiverQueue received_messages;
 };

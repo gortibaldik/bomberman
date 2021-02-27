@@ -92,7 +92,7 @@ bool Client::connect(const sf::IpAddress& server_ip, PortNumber server_port) {
 
         status = ClientStatus::Connected;
         socket.setBlocking(true);
-        updater = std::thread(&Client::update_loop, this);
+        heartbeater = std::thread(&Client::update_loop, this);
         listener = std::thread(&Client::listen, this);
         std::cout << "CLIENT : STATUS CONNECTED" << std::endl;
         return true;
@@ -144,7 +144,9 @@ void Client::handle_heartbeat(sf::Packet& p) {
 }
 
 void Client::send(sf::Packet& packet) {
-    socket.send(packet, server_ip, server_port_in);
+    if (can_send) {
+        socket.send(packet, server_ip, server_port_in);
+    }
 }
 
 void Client::listen() {
@@ -196,7 +198,7 @@ void Client::terminate() {
 }
 
 Client::~Client() {
-    // end both updater and listener threads
+    // end both heartbeater and listener threads
     if (listener.joinable()) {
         listener.join();
         std::cout << "CLIENT : joined listener!" << std::endl;
@@ -204,11 +206,11 @@ Client::~Client() {
         std::cout << "CLIENT : listener already joined!" << std::endl;
     }
 
-    if (updater.joinable()) {
-        updater.join();
-        std::cout << "CLIENT : joined updater!" << std::endl;
+    if (heartbeater.joinable()) {
+        heartbeater.join();
+        std::cout << "CLIENT : joined heartbeater!" << std::endl;
     }
     else {
-        std::cout << "CLIENT : updater already joined!" << std::endl;
+        std::cout << "CLIENT : heartbeater already joined!" << std::endl;
     }
 }

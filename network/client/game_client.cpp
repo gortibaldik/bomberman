@@ -20,7 +20,7 @@ void GameClient::get_ready(sf::Packet& packet) {
         throw std::runtime_error(ss.str());
     }
     std::cout << "CLIENT : game ready socket loaded!" << std::endl;
-    approved = true;
+    status = GameClientStatus::GAME_APPROVED;
     sf::Packet answer;
     add_type_to_packet(answer, PacketType::ClientReady);
     send(answer);
@@ -103,7 +103,7 @@ void GameClient::erase_player(sf::Packet& packet) {
     std::string name = "";
     packet >> name;
     if (this->player_name.compare(name) == 0) {
-        only_viewer = true;
+        can_send = false;
     }
     players.erase(name);
     received_messages.enqueue("player " + name + " died!");
@@ -216,16 +216,14 @@ void GameClient::handle_others(sf::Packet& packet, PacketType ptype) {
     std::string token;
     switch(ptype) {
     case PacketType::GetReady:
-        if (approved) { return; }
+        if (is_approved()) { return; }
         get_ready(packet);
         break;
     case PacketType::StartGame:
-        if (!approved) { return; }
-        game_started = true;
-        server_state_update(packet);
-        break;
+        if (!is_approved()) { return; }
+        status = GameClientStatus::GAME_STARTED;
     case PacketType::Update:
-        if (!approved) { return; }
+        if (!is_approved()) { return; }
         server_state_update(packet);
         break;
     case PacketType::ServerNotifyPlayerDisconnect:
@@ -246,8 +244,7 @@ void GameClient::handle_others(sf::Packet& packet, PacketType ptype) {
 }
 
 void GameClient::notify_disconnect() {
-    approved = false;
-    game_started = false;
+    status = GameClientStatus::IDLE;
 }
 
 void GameClient::render_entities(sf::RenderTarget* target) {
