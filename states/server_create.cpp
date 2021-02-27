@@ -62,7 +62,15 @@ ServerCreateState::ServerCreateState(WindowManager& mngr
                                     : MenuState(mngr, view, "server_create")
                                     , local_address(sf::IpAddress::getLocalAddress()) {
     initialize_maps();
-    menu.add_non_clickable("Your local address is " + local_address.toString());
+    if (local_address == sf::IpAddress()) {
+        // from the SFML 2.5.1 documentation, the default address is returned in case of
+        // no connection to the internet
+        std::cout << "SERVERCREATESTATE : couldn't get valid ip address of the computer, setting it to local host!" << std::endl;
+        local_address = sf::IpAddress::LocalHost;
+        menu.add_non_clickable("Just single player, nobody else can connect!");
+    } else {
+        menu.add_non_clickable("Your local address is " + local_address.toString());
+    }
     menu.add_non_clickable(btn_to_str.at(BTN::ENTER_USER));
     menu.add_text_field(btn_to_str.at(BTN::NAME), [](char a){ return std::isalnum(a) || std::ispunct(a); },
                                 [](const std::string& s){ return s.size() > 0; }, name_length);

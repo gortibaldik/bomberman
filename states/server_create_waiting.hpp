@@ -5,11 +5,9 @@
 #include "network/server/game_server.hpp"
 #include "network/network_params.hpp"
 #include "controls/control_grid.hpp"
-#include <vector>
 #include <SFML/Graphics.hpp>
 #include <SFML/Network.hpp>
-#include <thread>
-#include <atomic>
+
 class ServerCreateWaitingState: public MenuState {
 public:
     ServerCreateWaitingState(WindowManager&

@@ -14,6 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 # thanks to https://en.sfml-dev.org/forums/index.php?topic=7549.0
 set(SFML_STATIC_LIBRARIES TRUE)
 set(BUILD_SHARED_LIBS OFF)
+set_property(TARGET Bomberman PROPERTY POSITION_INDEPENDENT_CODE FALSE)
 set(SFML_DIR /home/gortibaldik/Documents/utils/SFML/)
 
 if(NOT CMAKE_BUILD_TYPE)
