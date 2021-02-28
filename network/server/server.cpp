@@ -48,6 +48,7 @@ void Server::listen() {
                 std::unique_lock<std::mutex> l(clients_mutex);
                 auto iter = find_by_ip_port(ip, port);
                 if (iter == connected_clients.end()) {
+                    std::cout << "Unknown client!" << std::endl;
                     break;
                 }
                 client_name = iter->first;

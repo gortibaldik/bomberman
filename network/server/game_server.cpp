@@ -18,7 +18,7 @@ GameServer::GameServer(const std::string& name_of_map)
         std::stringstream ss;
         ss << "--- ERROR ---" << std::endl;
         ss << e.what() << std::endl;
-        ss << "--- in GameServer::set_ready_game";
+        ss << "--- in GameServer::ctor";
         throw std::runtime_error(ss.str());
     }
 }
@@ -35,7 +35,7 @@ void GameServer::listener_handle_others(const std::string& client_name, sf::Pack
         handle_running_state(client_name, packet, ptype);
         break;
     case ServerState::END_GAME:
-        // same as in the waiting room, don't serve any extra packets
+        handle_ending_state(client_name, packet, ptype);
         return;
     }
 }
@@ -46,6 +46,12 @@ void GameServer::handle_starting_state(const std::string& client_name, sf::Packe
         if (iter != players.end()) { return; }
         auto [row, column, type] = map.get_spawn_pos();
         std::pair<int, int> coords(row, column);
+        std::cout << "SERVER : emplacing " << client_name << std::endl;
+        ScoreInfo si;
+        auto it = players_scores.find(client_name);
+        if (it != players_scores.end()) {
+            si = it->second;
+        }
         players.emplace( client_name
                        , std::make_unique<ServerPlayerEntity>( client_name
                                                              , coords
@@ -54,12 +60,17 @@ void GameServer::handle_starting_state(const std::string& client_name, sf::Packe
                                                              , type
                                                              , player_lives
                                                              , move_factor
-                                                             , ScoreInfo() ));
+                                                             , si ));
         std::cout << "SERVER : player " << client_name << " approved starting the game!" << std::endl;
+    } else if (ptype == PacketType::ClientMainStart) {
+        std::cout << "SERVER : starting the game because of the order from " << client_name << std::endl;
+        start_game();
     }
 }
 
-void GameServer::handle_running_state(const std::string& client_name, sf::Packet& packet, PacketType ptype) {
+void GameServer::handle_running_state( const std::string& client_name
+                                     , sf::Packet& packet
+                                     , PacketType ptype) {
     if (ptype != PacketType::Update) { return; }
     sf::Int8 t = 0;
     while ((packet >> t) && (t == Network::Delimiter)) {
@@ -105,6 +116,17 @@ void GameServer::handle_running_state(const std::string& client_name, sf::Packet
     }
 }
 
+void GameServer::handle_ending_state( const std::string& client_name
+                                    , sf::Packet& packet
+                                    , PacketType ptype) {
+    switch (ptype) {
+    case PacketType::ClientMainSetReady:
+        std::cout << "SERVER : main client(" << client_name << ") wants to restart the game!" << std::endl;
+        map.load_from_config(map.get_name());
+        set_ready_game();
+        break;
+    }
+}
 
 void GameServer::set_ready_game() {
     if (state == ServerState::RUNNING) { return; }
@@ -126,20 +148,29 @@ void GameServer::start_game() {
     state = ServerState::RUNNING;
     sf::Packet p;
     // create the packet with all the player positions
+    std::cout << "SERVER : Notifying about all the players!" << std::endl;
     add_type_to_packet(p, PacketType::StartGame);
     for (auto&& player : players) {
+        std::cout << "SERVER : Notifying about " << player.first << std::endl;
         p << sf::Int8(Network::Delimiter);
         add_type_to_packet(p, PacketType::SpawnPosition);
         p << *player.second;
     }
     // place simple ai to the game if it isn't full
     int ai_number = 0;
+    std::cout << "SERVER : Creating ais" << std::endl;
     while (players.size() < max_clients) {
         auto [row, column, type] = map.get_spawn_pos();
         std::pair<int, int> coords(row, column);
         std::string ai_name = "ai_escaper_" + std::to_string(ai_number);
         while (players.find(ai_name) != players.end()) {
             ai_name = "ai_escaper_" + std::to_string(++ai_number);
+        }
+        std::cout << "SERVER : emplacing " << ai_name << std::endl;
+        ScoreInfo si;
+        auto it = players_scores.find(ai_name);
+        if (it != players_scores.end()) {
+            si = it->second;
         }
         players.emplace(ai_name, std::make_unique<AIEscaper>( ai_name
                                                             , coords
@@ -148,7 +179,7 @@ void GameServer::start_game() {
                                                             , type
                                                             , player_lives
                                                             , move_factor * 1.8f
-                                                            , ScoreInfo()
+                                                            , si
                                                             , map
                                                             , TIME_TO_EXPLODE));
         ais.emplace(ai_name, dynamic_cast<AIEscaper*>(players.at(ai_name).get()));
@@ -160,6 +191,7 @@ void GameServer::start_game() {
     }
     // and all the positions of the soft blocks
     int i = -1;
+    std::cout << "SERVER : Getting the soft blocks" << std::endl;
     for (auto&& b : map.get_soft_blocks()) {
         i++;
         if (b) {
@@ -171,6 +203,12 @@ void GameServer::start_game() {
         }
     }
     broadcast(p);
+    std::cout << "SERVER : created everything possible!" << std::endl;
+    if (notifier.joinable()) { 
+        std::cout << "SERVER : needed to join notifier before start!" << std::endl;
+        notifier.join();
+    }
+    end_notifier = false;
     notifier = std::thread([this]() { game_notify_loop(); });
 }
 
@@ -408,6 +446,8 @@ void GameServer::game_notify_loop() {
                   std::to_string(score.first.dying_score);
     }
     broadcast(packet);
+    map.clear();
+    ais.clear();
     state = ServerState::END_GAME;
 }
 void GameServer::notify_disconnect(const std::string& client_name) {

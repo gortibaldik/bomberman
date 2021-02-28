@@ -40,7 +40,8 @@ GameStartingState::GameStartingState( WindowManager& mngr
                                     : MenuState(mngr, view, "start_menu")
                                     , client( "Player"
                                             , mngr.get_tm()
-                                            , mngr.get_tm().get_font("game_font"))
+                                            , mngr.get_tm().get_font("game_font")
+                                            , true)
                                     , server("media/map_basic.cfg") {
     initialize_maps();
     menu.add_non_clickable(btn_to_str.at(BTN::START_GAME));

@@ -223,7 +223,7 @@ void AIEscaper::BFS() {
         if (index_of_solution == -1) {
             // all the workers should have finished by now
             index_of_solution = 0;
-            std::cout << name << " : error - solution not found!" << std::endl;
+            //std::cout << name << " : error - solution not found!" << std::endl;
         }
     }
     {
@@ -274,7 +274,7 @@ void AIEscaper::update(float dt) {
                 go(actual_pos, next_move, move_factor);
                 map.collision_checking(move_factor, actual_pos, direction);
             } else {
-                std::cout << "SERVER : ai wants to place a bomb at: " << actual_pos.first << "," << actual_pos.second << std::endl;
+                //std::cout << "SERVER : ai wants to place a bomb at: " << actual_pos.first << "," << actual_pos.second << std::endl;
             }
             updated = true;
             new_pos_calculated = false;
@@ -317,6 +317,13 @@ AIEscaper::~AIEscaper() {
         std::cout << name << " : joined updater" << std::endl;
     } else {
         std::cout << name << " : updater already joined" << std::endl;
+    }
+    for (auto&& t : workers) {
+        if (t.joinable()) {
+            std::cout << name << " : worker joinable!" << std::endl;
+            t.join();
+            std::cout << name << " : joined worker" << std::endl;
+        }
     }
 }
 

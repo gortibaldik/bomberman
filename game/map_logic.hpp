@@ -74,6 +74,13 @@ public:
     bool check_damage(const EntityCoords&);
     IDTypeVector check_soft_blocks();
     void check_soft_blocks(const std::string&, int& count);
+    void clear() {
+        power_ups.clear();
+        bombs.clear();
+        explosions.clear();
+        tiles.clear();
+        soft_blocks.clear();
+    }
 private:
     std::vector<std::tuple<int, int, int>> spawn_positions;
     LogicMap tiles;

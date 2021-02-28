@@ -19,6 +19,10 @@ public:
     void render_grass(sf::RenderTarget* rt);
     void render_tiles(sf::RenderTarget* rt);
     void fit_to_window(float, float);
+    void clear() {
+        tiles.clear();
+        grass.clear();
+    }
 private:
     const TextureManager& tm;
     AnimObject& unsafe_get(int row, int column);

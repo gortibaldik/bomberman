@@ -4,6 +4,9 @@
 #include <limits>
 
 std::tuple<int, int, int> GameMapLogic::get_spawn_pos() {
+    if (spawn_positions.size() == 0) {
+        throw std::runtime_error("GameMapLogic::get_spawn_pos - no more spawn positions!");
+    }
     auto tpl = std::move(spawn_positions.back());
     spawn_positions.pop_back();
     return tpl;

@@ -84,7 +84,10 @@ ServerCreateWaitingState::ServerCreateWaitingState( WindowManager& mngr
                                                   , PortNumber port
                                                   , const std::string& name)
                                                   : MenuState(mngr, view, "server_wait")
-                                                  , client(name, mngr.get_tm(), mngr.get_tm().get_font("game_font"))
+                                                  , client( name
+                                                          , mngr.get_tm()
+                                                          , mngr.get_tm().get_font("game_font")
+                                                          , true)
                                                   , server("media/map_basic.cfg") {
     auto in_port = server.start(port);
     if (in_port == -1) {

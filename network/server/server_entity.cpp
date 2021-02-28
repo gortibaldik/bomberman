@@ -37,7 +37,6 @@ void ServerPlayerEntity::update(float dt) {
                 reflect = !reflect;
                 break;
             }
-            std::cout << "SERVER : power up " << std::to_string(static_cast<int>(power_ups.at(s).second)) << " erased from " << name << std::endl;
             power_ups.erase(power_ups.begin()+s);
         } else {
             s++;
@@ -64,5 +63,4 @@ void ServerPlayerEntity::apply_power_up(PowerUpType pu, const sf::Time& duration
         break;
     }
     power_ups.emplace_back(duration, pu);
-    std::cout << "SERVER : power up " << std::to_string(static_cast<int>(pu)) << " added to " << name << std::endl;
 }

@@ -16,23 +16,29 @@ enum class GameClientStatus {
     IDLE,
     GAME_STARTED,
     GAME_APPROVED,
-    GAME_ENDED
+    GAME_ENDED,
+    GAME_ASK_READY
 };
 
 class GameClient : public Client {
 public:
     GameClient( const std::string& name
               , const TextureManager& tm
-              , const sf::Font& font)
+              , const sf::Font& font
+              , bool main = false)
               : Client(name)
               , map(tm)
               , tm(tm)
               , me(nullptr)
-              , font(font) {}
+              , font(font)
+              , main(main) {}
     ~GameClient();
     bool is_game_started() { return status == GameClientStatus::GAME_STARTED; }
     bool is_approved() { return (status == GameClientStatus::GAME_STARTED) ||
                                 (status == GameClientStatus::GAME_APPROVED); }
+    bool is_main() { return main; }
+    void send_set_ready();
+    void send_start();
     GameClientStatus get_game_status() { return status; }
     PlayerScores& get_players_scores() { return players_scores; }
     void update(float dt);
@@ -58,6 +64,7 @@ private:
     void destroy_power_up(sf::Packet& packet);
 
     GameClientStatus status = GameClientStatus::IDLE;
+    const bool main;
 
     GameMapRenderable map;
     const TextureManager& tm;

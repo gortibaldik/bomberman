@@ -14,16 +14,18 @@ enum class PacketType {
     ClientReady,
     ClientMove,
     ClientDeployBomb, /* 8 */
+    ClientMainSetReady,
+    ClientMainStart,
     ServerNewBomb,
-    ServerEraseBomb,
+    ServerEraseBomb, /* 12 */
     ServerPlayerUpdate,
-    ServerCreateExplosion, /* 12 */
+    ServerCreateExplosion,
     ServerEraseExplosion,
-    ServerNotifyPlayerDisconnect,
+    ServerNotifyPlayerDisconnect, /* 16 */
     ServerNotifyPlayerDied,
     ServerNotifySoftBlockDestroyed,
-    ServerNotifySoftBlockExists, /* 16 */
-    ServerNotifyPowerUpDestroyed,
+    ServerNotifySoftBlockExists,
+    ServerNotifyPowerUpDestroyed, /* 20 */
     ServerNotifyGameEnd,
     ServerNotifyLeaderboard,
     Update,

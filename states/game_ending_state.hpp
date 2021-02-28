@@ -15,6 +15,8 @@ private:
     void handle_btn_pressed() override;
     void initialize_leaderboard(const std::vector<std::string>& scores);
     GameClient* client;
+    sf::Clock connection_timer;
+    bool is_restarting;
     bool leaderboard_initialized;
 };
 

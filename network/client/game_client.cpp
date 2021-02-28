@@ -19,8 +19,9 @@ void GameClient::get_ready(sf::Packet& packet) {
         ss << "--- GameClient::get_ready" << std::endl;
         throw std::runtime_error(ss.str());
     }
-    std::cout << "CLIENT : game ready socket loaded!" << std::endl;
+    std::cout << "CLIENT : " << player_name << "game ready socket loaded!" << std::endl;
     status = GameClientStatus::GAME_APPROVED;
+    can_send = true;
     sf::Packet answer;
     add_type_to_packet(answer, PacketType::ClientReady);
     send(answer);
@@ -43,7 +44,6 @@ void GameClient::update_player(sf::Packet& packet, bool spawn) {
         cpe.player_name_renderable.setCharacterSize(20);
         cpe.player_name_renderable.setString(cpe.name);
         cpe.new_pos = cpe.actual_pos;
-        //cpe.move_to_actual_position(map);
         players.emplace(cpe.name, cpe);
         if (cpe.name == player_name) {
             me = &players.at(cpe.name);
@@ -103,7 +103,7 @@ void GameClient::erase_player(sf::Packet& packet) {
     std::string name = "";
     packet >> name;
     if (this->player_name.compare(name) == 0) {
-        can_send = false;
+        can_send = false || main;
     }
     players.erase(name);
     received_messages.enqueue("player " + name + " died!");
@@ -216,11 +216,16 @@ void GameClient::handle_others(sf::Packet& packet, PacketType ptype) {
     std::string token;
     switch(ptype) {
     case PacketType::GetReady:
+    {
+        auto old_status = status;
         if (is_approved()) { return; }
         get_ready(packet);
+        std::cout << "CLIENT : set status to GAME_APPROVED" << std::endl;
         break;
+    }
     case PacketType::StartGame:
         if (!is_approved()) { return; }
+        std::cout << "CLIENT : set status to GAME_STARTED" << std::endl;
         status = GameClientStatus::GAME_STARTED;
     case PacketType::Update:
         if (!is_approved()) { return; }
@@ -248,8 +253,28 @@ void GameClient::handle_others(sf::Packet& packet, PacketType ptype) {
         while (packet >> token) {
             players_scores.push_back(token);
         }
+        players.clear();
+        soft_blocks.clear();
+        bombs.clear();
+        explosions.clear();
+        map.clear();
         break;
     }
+}
+
+void GameClient::send_set_ready() {
+    if (!is_main()) { return; }
+    sf::Packet packet;
+    add_type_to_packet(packet, PacketType::ClientMainSetReady);
+    send(packet);
+}
+
+void GameClient::send_start() {
+    if (!is_main()) { return; }
+    std::cout << "CLIENT : sending order to start the game" << std::endl;
+    sf::Packet packet;
+    add_type_to_packet(packet, PacketType::ClientMainStart);
+    send(packet);
 }
 
 void GameClient::notify_disconnect() {

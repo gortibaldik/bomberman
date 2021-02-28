@@ -32,6 +32,7 @@ protected:
     void notify_disconnect(const std::string& client_name) override;
     void handle_starting_state(const std::string& client_name, sf::Packet&, PacketType);
     void handle_running_state(const std::string& client_name, sf::Packet&, PacketType);
+    void handle_ending_state(const std::string& client_name, sf::Packet&, PacketType);
     void game_notify_loop();
     void game_end_notify_loop(sf::Time&, sf::Clock&);
     bool update_bombs_explosions(float dt, sf::Packet&);
@@ -39,7 +40,7 @@ protected:
     bool update_soft_blocks(sf::Packet&);
     bool update_player(const sf::Time&, ServerPlayerEntity&, sf::Packet&);
     void handle_player_die_event(const std::string& player_name);
-    ServerState state;
+    std::atomic<ServerState> state;
 
     ServerPlayers players;
     Scores players_scores;

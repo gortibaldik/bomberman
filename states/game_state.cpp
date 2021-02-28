@@ -57,6 +57,10 @@ bool GameState::check_move(sf::Packet& packet) {
           {sf::Keyboard::Down,  EntityDirection::DOWN}};
 
     bool moved = false;
+    if (client->me == nullptr) { 
+        std::cout << "GameState::check_move : client->me == nullptr" << std::endl;
+        return false;
+    }
     auto d = client->me->direction;
     
     for (auto&& key : key_to_dir) {
