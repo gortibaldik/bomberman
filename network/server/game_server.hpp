@@ -17,6 +17,7 @@ enum class ServerState {
 
 using AIPlayers = std::unordered_map<std::string, AIEscaper*>;
 using ServerPlayers = std::unordered_map<std::string, std::unique_ptr<ServerPlayerEntity>>;
+using Scores = std::unordered_map<std::string, ScoreInfo>;
 
 class GameServer: public Server {
 public:
@@ -32,14 +33,16 @@ protected:
     void handle_starting_state(const std::string& client_name, sf::Packet&, PacketType);
     void handle_running_state(const std::string& client_name, sf::Packet&, PacketType);
     void game_notify_loop();
+    void game_end_notify_loop(sf::Time&, sf::Clock&);
     bool update_bombs_explosions(float dt, sf::Packet&);
     bool update_players_damage(sf::Packet&);
     bool update_soft_blocks(sf::Packet&);
     bool update_player(const sf::Time&, ServerPlayerEntity&, sf::Packet&);
-    void game_end_notify_loop(sf::Time&, sf::Clock&);
+    void handle_player_die_event(const std::string& player_name);
     ServerState state;
 
     ServerPlayers players;
+    Scores players_scores;
     AIPlayers ais;
     GameMapLogic map;
 

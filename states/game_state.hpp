@@ -21,6 +21,9 @@ protected:
     bool can_deploy = true;
     GameClient* client;
     sf::View view;
-    sf::Time last_update_time, c_time, message_time, last_deployed;
+    sf::Time last_update_time
+           , c_time
+           , message_time
+           , last_deployed;
 };
 #endif

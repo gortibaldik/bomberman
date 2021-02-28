@@ -143,3 +143,16 @@ std::vector<std::pair<int, ExplosionEntity>> BombEntity::explode(int c_pos
     }
     return result;
 }
+
+bool ScoreInfo::operator <(const ScoreInfo& si) const {
+    if (dying_score < si.dying_score) {
+        return true;
+    } else if (soft_blocks_destroyed < si.soft_blocks_destroyed) {
+        return true;
+    }
+    return false;
+}
+
+bool ScoreInfo::operator >=(const ScoreInfo& si) const {
+    return !(*this < si);
+}

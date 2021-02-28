@@ -1,7 +1,7 @@
 #include "start.hpp"
 #include "server_create.hpp"
 #include "client_connect.hpp"
-#include "starting_game.hpp"
+#include "game_starting_state.hpp"
 #include "window_manager/def.hpp"
 #include <iostream>
 #include <unordered_map>

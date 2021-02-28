@@ -18,6 +18,7 @@ public:
              , sf::Int8 type
              , int lives
              , float move_factor
+             , const ScoreInfo& score
              , const GameMapLogic& map
              , float server_bomb_explosion_time)
              : ServerPlayerEntity( name
@@ -26,7 +27,8 @@ public:
                                  , direction
                                  , type
                                  , lives
-                                 , move_factor)
+                                 , move_factor
+                                 , score)
              , map(map)
              , next_move(EntityDirection::UP)
              , server_bomb_explosion_time(server_bomb_explosion_time)

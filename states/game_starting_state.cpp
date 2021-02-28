@@ -1,4 +1,4 @@
-#include "starting_game.hpp"
+#include "game_starting_state.hpp"
 #include "game_state.hpp"
 #include "network/network_params.hpp"
 #include "window_manager/def.hpp"

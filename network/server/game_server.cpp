@@ -1,5 +1,6 @@
 #include "game_server.hpp"
 #include <unordered_map>
+#include <limits>
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
@@ -45,7 +46,15 @@ void GameServer::handle_starting_state(const std::string& client_name, sf::Packe
         if (iter != players.end()) { return; }
         auto [row, column, type] = map.get_spawn_pos();
         std::pair<int, int> coords(row, column);
-        players.emplace(client_name, std::make_unique<ServerPlayerEntity>(client_name, coords, coords, EntityDirection::UP, type, player_lives, move_factor));
+        players.emplace( client_name
+                       , std::make_unique<ServerPlayerEntity>( client_name
+                                                             , coords
+                                                             , coords
+                                                             , EntityDirection::UP
+                                                             , type
+                                                             , player_lives
+                                                             , move_factor
+                                                             , ScoreInfo() ));
         std::cout << "SERVER : player " << client_name << " approved starting the game!" << std::endl;
     }
 }
@@ -139,6 +148,7 @@ void GameServer::start_game() {
                                                             , type
                                                             , player_lives
                                                             , move_factor * 1.8f
+                                                            , ScoreInfo()
                                                             , map
                                                             , TIME_TO_EXPLODE));
         ais.emplace(ai_name, dynamic_cast<AIEscaper*>(players.at(ai_name).get()));
@@ -219,6 +229,17 @@ bool GameServer::update_bombs_explosions(float dt, sf::Packet& packet) {
     return result;
 }
 
+/* Update player score and add the entry to
+ * players_scores table
+ *  WARNING : unsafe, doesn't check if the player exists
+ */
+void GameServer::handle_player_die_event(const std::string& player_name) {
+    auto&& player = players.at(player_name);
+    auto ssi = player->score;
+    ssi.update_ds(max_clients - players.size());
+    players_scores.emplace(player_name, ssi);
+}
+
 bool GameServer::update_players_damage(sf::Packet& packet) {
     bool result = false;
     std::vector<std::string> to_erase;
@@ -239,6 +260,7 @@ bool GameServer::update_players_damage(sf::Packet& packet) {
                 ais.at(player.first)->terminate();
                 ais.erase(player.first);
             }
+            handle_player_die_event(player.first);
             to_erase.emplace_back(player.first);
         } else {
             player.second->lives--;
@@ -249,7 +271,6 @@ bool GameServer::update_players_damage(sf::Packet& packet) {
         }
     }
     for (auto&& str : to_erase) {
-        
         players.erase(str);
     }
     return result;
@@ -335,7 +356,7 @@ void GameServer::game_end_notify_loop( sf::Time& time
             broadcast(packet);
         }
     }
-} 
+}
 
 void GameServer::game_notify_loop() {
     using namespace std::chrono;
@@ -366,14 +387,28 @@ void GameServer::game_notify_loop() {
             break;
         }
     }
+    // at the end of the game, copy
+    // all the scores of the remaining players
+    // to the table of players scores
     while (players.size() > 0) {
         sf::Packet packet;
         add_type_to_packet(packet, PacketType::ServerNotifyPlayerDisconnect);
         packet << players.begin()->first;
         broadcast(packet);
+        handle_player_die_event(players.begin()->first);
         players.erase(players.begin());
     }
-    terminate();
+    sf::Packet packet;
+    add_type_to_packet(packet, PacketType::ServerNotifyLeaderboard);
+    // sorting
+    auto scores_tmp = flip_map(players_scores);
+    for (auto&& score : scores_tmp) {
+        packet << score.second +
+                  " : " +
+                  std::to_string(score.first.dying_score);
+    }
+    broadcast(packet);
+    state = ServerState::END_GAME;
 }
 void GameServer::notify_disconnect(const std::string& client_name) {
     {

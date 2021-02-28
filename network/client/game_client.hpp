@@ -10,6 +10,7 @@ using PlayerEntities = std::unordered_map<std::string, ClientPlayerEntity>;
 using BombEntities = std::unordered_map<int, ClientBombEntity>;
 using ExplosionEntities = std::unordered_map<int, ClientExplosionEntity>;
 using SoftBlocks = std::unordered_map<int, ClientSoftBlockEntity>;
+using PlayerScores = std::vector<std::string>;
 
 enum class GameClientStatus {
     IDLE,
@@ -32,6 +33,8 @@ public:
     bool is_game_started() { return status == GameClientStatus::GAME_STARTED; }
     bool is_approved() { return (status == GameClientStatus::GAME_STARTED) ||
                                 (status == GameClientStatus::GAME_APPROVED); }
+    GameClientStatus get_game_status() { return status; }
+    PlayerScores& get_players_scores() { return players_scores; }
     void update(float dt);
     GameMapRenderable& get_game_map() { return map; }
     ReceiverQueue& get_received_messages() { return received_messages; }
@@ -64,6 +67,7 @@ private:
     BombEntities bombs;
     ExplosionEntities explosions;
     SoftBlocks soft_blocks;
+    PlayerScores players_scores;
     ReceiverQueue received_messages;
 
     std::mutex resources_mutex;

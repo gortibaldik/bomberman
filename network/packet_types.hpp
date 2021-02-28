@@ -25,6 +25,7 @@ enum class PacketType {
     ServerNotifySoftBlockExists, /* 16 */
     ServerNotifyPowerUpDestroyed,
     ServerNotifyGameEnd,
+    ServerNotifyLeaderboard,
     Update,
     Invalid
 };

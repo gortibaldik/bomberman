@@ -34,6 +34,22 @@ enum class PowerUpType : int {
     REFLECT = 3,
 };
 
+struct ScoreInfo {
+    ScoreInfo(): soft_blocks_destroyed(0)
+                     , dying_score(0) {}
+    ScoreInfo( int soft_blocks_destroyed
+                   , int dying_score)
+                   : soft_blocks_destroyed(soft_blocks_destroyed)
+                   , dying_score(dying_score) {}
+    void update_sbd(int addend) { soft_blocks_destroyed += addend; }
+    void update_ds(int addend) { dying_score += addend; }
+
+    bool operator <(const ScoreInfo&) const;
+    bool operator >=(const ScoreInfo&) const;
+    int soft_blocks_destroyed;
+    int dying_score;
+};
+
 using EntityCoords = std::pair<float, float>;
 using IDType = int;
 
@@ -42,11 +58,12 @@ public:
     EntityCoords actual_pos;
     Entity() = default;
     virtual ~Entity() = default;
-    Entity(EntityCoords actual_pos): actual_pos(actual_pos) {}
-    
+    Entity( EntityCoords actual_pos)
+          : actual_pos(actual_pos) {}    
 };
 
-void go(EntityCoords&, EntityDirection, float move_factor);
+void go( EntityCoords&, EntityDirection
+       , float move_factor);
 EntityDirection opposite(EntityDirection dir);
 std::string to_string(EntityDirection dir);
 
@@ -121,7 +138,9 @@ public:
                                                         , float till_erasement);
 };
 
-bool naive_bbox_intersect(const EntityCoords& c1, const EntityCoords& c2, float intersection_tolerance);
+bool naive_bbox_intersect( const EntityCoords& c1
+                         , const EntityCoords& c2
+                         , float intersection_tolerance);
 std::pair<int, int> to_integral(const EntityCoords&);
 
 #endif

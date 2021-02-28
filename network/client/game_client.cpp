@@ -232,6 +232,9 @@ void GameClient::handle_others(sf::Packet& packet, PacketType ptype) {
         {
             std::unique_lock<std::mutex> l(resources_mutex);
             players.erase(token);
+            if (players.size() == 0) {
+                status = GameClientStatus::GAME_ENDED;
+            }
         }
         received_messages.enqueue("client " + token + " disconnected");
         break;
@@ -239,6 +242,12 @@ void GameClient::handle_others(sf::Packet& packet, PacketType ptype) {
         packet >> token;
         std::cout << "CLIENT : server says that " << token << " has won!" << std::endl;
         received_messages.change_first_remove_rest("player " + token + " won!");
+        break;
+    case PacketType::ServerNotifyLeaderboard:
+        players_scores.clear();
+        while (packet >> token) {
+            players_scores.push_back(token);
+        }
         break;
     }
 }

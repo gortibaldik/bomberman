@@ -15,8 +15,10 @@ target_sources(Bomberman
     client_connect.cpp
     client_connect_waiting.hpp
     client_connect_waiting.cpp
-    starting_game.hpp
-    starting_game.cpp
+    game_starting_state.hpp
+    game_starting_state.cpp
+    game_ending_state.hpp
+    game_ending_state.cpp
     game_state.hpp
     game_state.cpp
 )

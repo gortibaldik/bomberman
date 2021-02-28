@@ -1,4 +1,5 @@
 #include "game_state.hpp"
+#include "game_ending_state.hpp"
 #include "window_manager/def.hpp"
 #include <iostream>
 #include <unordered_map>
@@ -103,11 +104,21 @@ void GameState::check_messages(float dt) {
 }
 
 void GameState::update(float dt) {
-    if ((client == nullptr) || !client->is_game_started()) {
+    if (client == nullptr) {
+        window_manager.pop_states(2);
+        return;
+    }
+    switch (client->get_game_status()) {
+    case GameClientStatus::GAME_STARTED:
+        break;
+    case GameClientStatus::GAME_ENDED:
+        window_manager.change_state(std::make_unique<GameEndingState>(window_manager, view, client));
+        return;
+    default:
         window_manager.pop_states(2);
         client = nullptr;
         return;
-    }
+    } 
     check_messages(dt);
     menu.update();
     client->update(dt);
