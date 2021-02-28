@@ -142,6 +142,7 @@ void GameServer::start_game() {
                                                             , map
                                                             , TIME_TO_EXPLODE));
         ais.emplace(ai_name, dynamic_cast<AIEscaper*>(players.at(ai_name).get()));
+        ais.at(ai_name)->start();
         p << sf::Int8(Network::Delimiter);
         add_type_to_packet(p, PacketType::SpawnPosition);
         p << *(players.at(ai_name));
@@ -248,6 +249,7 @@ bool GameServer::update_players_damage(sf::Packet& packet) {
         }
     }
     for (auto&& str : to_erase) {
+        
         players.erase(str);
     }
     return result;

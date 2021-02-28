@@ -12,6 +12,12 @@ static const std::vector<EntityDirection> directions = { EntityDirection::UP
                                                        , EntityDirection::RIGHT
                                                        , EntityDirection::LEFT};
 
+void AIEscaper::start() {
+    if (is_running) { return; }
+    is_running = true;
+    updater = std::thread([this](){ update_loop(); });
+}
+
 void AIEscaper::update_loop() {
     for(;;) {
         std::unique_lock<std::mutex> l(cond_m);

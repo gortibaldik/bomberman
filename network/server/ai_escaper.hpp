@@ -29,9 +29,8 @@ public:
                                  , move_factor)
              , map(map)
              , next_move(EntityDirection::UP)
-             , updater([this](){ update_loop(); })
              , server_bomb_explosion_time(server_bomb_explosion_time)
-             , is_running(true)
+             , is_running(false)
              , new_pos_calculated(false) {}
     ~AIEscaper();
     void respawn() override ;
@@ -42,6 +41,7 @@ public:
     void notify_sb_destroyed(int i);
     void update(float dt) override;
     void terminate();
+    void start();
 private:
     float server_bomb_explosion_time;
     void BFS();
