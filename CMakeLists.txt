@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
-
-# Set project name and version
-project(Bomberman VERSION 1.0)
-add_executable(Bomberman main.cpp)
-
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -14,6 +9,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 # thanks to https://en.sfml-dev.org/forums/index.php?topic=7549.0
 set(SFML_STATIC_LIBRARIES TRUE)
 set(BUILD_SHARED_LIBS OFF)
+
+# Set project name and version
+project(Bomberman VERSION 1.0)
+add_executable(Bomberman main.cpp)
+
 set_property(TARGET Bomberman PROPERTY POSITION_INDEPENDENT_CODE FALSE)
 set(SFML_DIR /home/gortibaldik/Documents/utils/SFML/)
 
@@ -63,6 +63,3 @@ target_link_libraries(Bomberman
   sfml-network
   sfml-system
 )
-
-
-
