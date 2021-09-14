@@ -16,5 +16,5 @@ stages:
   - stage: Hello World
     jobs:
       - job: Hello World
-      steps:
-        - script: echo "Hello World"
+        steps:
+        - script: echo Hello World
