@@ -42,7 +42,7 @@ GameStartingState::GameStartingState( WindowManager& mngr
                                             , mngr.get_tm()
                                             , mngr.get_tm().get_font("game_font")
                                             , true)
-                                    , server("media/map_basic.cfg") {
+                                    , server(mngr.get_media_dir() + "map_basic.cfg") {
     initialize_maps();
     menu.add_non_clickable(btn_to_str.at(BTN::START_GAME));
     menu.add_non_clickable(btn_to_str.at(BTN::START_TIME), btn_to_str.at(BTN::BLANK));

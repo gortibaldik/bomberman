@@ -7,7 +7,7 @@
 #include <unordered_map>
 
 enum class BTN: int {
-    NEW_GAME, CONNECT, CREATE, SINGLE_GAME, QUIT
+    CONNECT, CREATE, SINGLE_GAME, QUIT
 };
 
 static const std::unordered_map<std::string, BTN> str_to_btn = { 

@@ -77,17 +77,23 @@ void WindowManager::close_window() {
     window.close();
 }
 
-WindowManager::WindowManager(): null_placeholder()
-                              , window_name("Bomberman")
-                              , actual_state(nullptr) {
-    // load all the textures
-    TextureLoader tl("media/config.cfg");
+/** 
+ * @arg media_dir: string - must be written with '/' at the end
+ */
+WindowManager::WindowManager( const std::string& media_dir)
+                            : null_placeholder()
+                            , media_dir(media_dir)
+                            , window_name("Bomberman")
+                            , actual_state(nullptr) {
+    // texture_manager, styles_holder, cgstyles_holder are
+    // private fields of WindowManager
+    TextureLoader tl(media_dir, "config.cfg");
     tl.load(texture_manager);
 
-    StyleLoader sl("media/button_style.cfg", texture_manager);
+    StyleLoader sl(media_dir + "button_style.cfg", texture_manager);
     sl.load(styles_holder);
 
-    CGStyleLoader cgsl("media/menu_configs.cfg", styles_holder);
+    CGStyleLoader cgsl(media_dir + "menu_configs.cfg", styles_holder);
     cgsl.load(cgstyles_holder);
 
     window.create(sf::VideoMode(800,600), window_name);

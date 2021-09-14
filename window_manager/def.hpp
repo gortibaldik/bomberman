@@ -25,9 +25,10 @@ public:
     GSPtr peek_state();
     const TextureManager& get_tm() { return texture_manager; }
     const StylesHolder<GStyle>& get_sh() { return styles_holder; }
-    const StylesHolder<CGStyle>& get_cgsh() { return cgstyles_holder;} 
+    const StylesHolder<CGStyle>& get_cgsh() { return cgstyles_holder;}
+    const std::string& get_media_dir() { return media_dir; }
 
-    WindowManager();
+    WindowManager(const std::string& media_dir);
 private:
 
     GSPtr null_placeholder;
@@ -35,6 +36,7 @@ private:
     bool remove_top = false;
     std::deque<GSPtr> states;
     std::string window_name;
+    std::string media_dir;
     TextureManager texture_manager;
     StylesHolder<GStyle> styles_holder;
     StylesHolder<CGStyle> cgstyles_holder;

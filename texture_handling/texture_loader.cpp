@@ -140,24 +140,32 @@ static void load_animation(TextureManager& tm, std::istream& is, int& line_n) {
     }
 }
 
-static void load_texture(TextureManager& tm, std::istream& is) {
+static void load_texture( TextureManager& tm
+                        , const std::string& media_dir
+                        , std::istream& is) {
     std::string file_name, texture_name;
-    if (!(is >> file_name >> texture_name) || !tm.load_texture(texture_name, file_name)) {
+    if (!(is >> file_name >> texture_name) ||
+          !tm.load_texture(texture_name, media_dir + file_name)) {
         throw std::runtime_error("Couldn't load texture: " + texture_name);
     }
 }
 
-static void load_font(TextureManager& tm, std::istream& is) {
+static void load_font( TextureManager& tm
+                     , const std::string& media_dir
+                     , std::istream& is) {
     std::string file_name, font_name;
-    if (!(is >> file_name >> font_name) || !tm.load_font(font_name, file_name)) {
-        throw std::runtime_error("Couldn't load font: " + font_name);
+    if (!(is >> file_name >> font_name) ||
+          !tm.load_font(font_name, media_dir + file_name)) {
+        throw std::runtime_error("Couldn't load font: " + font_name + "(" + media_dir + file_name + ")");
     }
 }
 
-TextureLoader::TextureLoader(const std::string& name_of_config_file)
-                            : ifs(name_of_config_file) {
+TextureLoader::TextureLoader( const std::string& media_dir
+                            , const std::string& name_of_config_file)
+                            : media_dir(media_dir)
+                            , ifs(media_dir + "/" + name_of_config_file) {
     if (!ifs) {
-        throw std::runtime_error("Couldn't load texture config file! (" + name_of_config_file + ")");
+        throw std::runtime_error("Couldn't load texture config file! (" + media_dir + "/" + name_of_config_file + ")");
     }
 }
 
@@ -179,10 +187,10 @@ void TextureLoader::load(TextureManager& texture_manager) {
         }
         switch(cfg_type.at(token)) {
             case CONFIG_TYPES::TEXTURE:
-                load_texture(texture_manager, ss);
+                load_texture(texture_manager, media_dir, ss);
                 break;
             case CONFIG_TYPES::FONT:
-                load_font(texture_manager, ss);
+                load_font(texture_manager, media_dir, ss);
                 break;
             case CONFIG_TYPES::ANIMATION:
                 load_animation(texture_manager, ifs, line_n);
