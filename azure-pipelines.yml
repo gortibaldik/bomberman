@@ -13,8 +13,8 @@ pool:
   vmImage: ubuntu-latest
 
 stages:
-  - stage: Hello World
+  - stage: HelloWorld
     jobs:
-      - job: Hello World
+      - job: HelloWorld
         steps:
         - script: echo Hello World
