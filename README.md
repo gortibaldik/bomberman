@@ -5,8 +5,8 @@
 
 # Compilation guide
 
-- [ ] create compilation guide for Linux
-- [ ] create .deb package for Linux [walktrough](https://www.internalpointers.com/post/build-binary-deb-package-practical-guide)
+- [x] create .deb package for Linux [walktrough](https://www.internalpointers.com/post/build-binary-deb-package-practical-guide)
+- [x] remove magic strings - when deploying, we need the media data to be in consistent location, which has to be set up
 - [ ] investigate possibilities of deployment to Windows
 - [ ] investigate possibilities of deployment to Android
 
