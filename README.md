@@ -5,10 +5,10 @@
 
 # Compilation guide
 
-[ ] - create compilation guide for Linux
-[ ] - create .deb package for Linux [walktrough](https://www.internalpointers.com/post/build-binary-deb-package-practical-guide)
-[ ] - investigate possibilities of deployment to Windows
-[ ] - investigate possibilities of deployment to Android
+- [ ] create compilation guide for Linux
+- [ ] create .deb package for Linux [walktrough](https://www.internalpointers.com/post/build-binary-deb-package-practical-guide)
+- [ ] investigate possibilities of deployment to Windows
+- [ ] investigate possibilities of deployment to Android
 
 # Acknowledgements
 - [bomb party art](https://opengameart.org/content/bomb-party-the-complete-set)
